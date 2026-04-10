@@ -148,15 +148,75 @@ def verify_stats_latest(idx):
         check('latest_draw' in latest, 'latest.json 缺少 latest_draw')
         check('picks' in latest, 'latest.json 缺少 picks')
         picks = latest.get('picks', {})
+
+        # 单式方案校验 (plan_a ~ plan_c)
         for plan in ['plan_a', 'plan_b', 'plan_c']:
             if check(plan in picks, f'latest.json 缺少 picks.{plan}'):
                 p = picks[plan]
+                check(p.get('type') == 'single',
+                      f'{plan}.type 应为 "single"，实际为 "{p.get("type")}"',
+                      is_warning=True)
                 check(isinstance(p.get('red'), list) and len(p['red']) == 6,
                       f'{plan}.red 不是6个红球')
                 check(isinstance(p.get('blue'), int) and 1 <= p['blue'] <= 16,
                       f'{plan}.blue 不在1-16范围')
+                # 红球范围校验
+                if isinstance(p.get('red'), list):
+                    check(all(1 <= r <= 33 for r in p['red']),
+                          f'{plan}.red 中存在超出1-33范围的号码')
+                    check(len(set(p['red'])) == len(p['red']),
+                          f'{plan}.red 中存在重复号码')
 
-        print(f'  ✅ latest.json: 推荐期号={picks.get("target_issue")}')
+        # 复式方案校验 (plan_d ~ plan_e)
+        for plan in ['plan_d', 'plan_e']:
+            if check(plan in picks, f'latest.json 缺少 picks.{plan}'):
+                p = picks[plan]
+                check(p.get('type') == 'complex',
+                      f'{plan}.type 应为 "complex"，实际为 "{p.get("type")}"',
+                      is_warning=True)
+
+                # 红球: 7~20个，范围1-33
+                red = p.get('red', [])
+                check(isinstance(red, list) and 7 <= len(red) <= 20,
+                      f'{plan}.red 应为7-20个红球，实际 {len(red) if isinstance(red, list) else "非数组"}')
+                if isinstance(red, list):
+                    check(all(1 <= r <= 33 for r in red),
+                          f'{plan}.red 中存在超出1-33范围的号码')
+                    check(len(set(red)) == len(red),
+                          f'{plan}.red 中存在重复号码')
+
+                # 蓝球: 可以是单个int或数组
+                blue = p.get('blue')
+                if isinstance(blue, list):
+                    check(len(blue) >= 1 and len(blue) <= 16,
+                          f'{plan}.blue 数组长度应为1-16，实际 {len(blue)}')
+                    check(all(isinstance(b, int) and 1 <= b <= 16 for b in blue),
+                          f'{plan}.blue 数组中存在超出1-16范围的号码')
+                    check(len(set(blue)) == len(blue),
+                          f'{plan}.blue 数组中存在重复号码')
+                elif isinstance(blue, int):
+                    check(1 <= blue <= 16,
+                          f'{plan}.blue={blue} 不在1-16范围')
+                else:
+                    check(False, f'{plan}.blue 类型异常：{type(blue).__name__}')
+
+                # 注数与费用校验
+                if isinstance(red, list) and len(red) >= 7:
+                    from math import comb
+                    blue_count = len(blue) if isinstance(blue, list) else 1
+                    expected_notes = comb(len(red), 6) * blue_count
+                    actual_notes = p.get('note_count')
+                    if actual_notes is not None:
+                        check(actual_notes == expected_notes,
+                              f'{plan}.note_count={actual_notes}，期望 C({len(red)},6)×{blue_count}={expected_notes}',
+                              is_warning=True)
+                    actual_cost = p.get('cost')
+                    if actual_cost is not None:
+                        check(actual_cost == expected_notes * 2,
+                              f'{plan}.cost={actual_cost}，期望 {expected_notes}×2={expected_notes*2}',
+                              is_warning=True)
+
+        print(f'  ✅ latest.json: 推荐期号={picks.get("target_issue")}, 单式×3 + 复式×2')
 
 
 def verify_readme(idx):
@@ -216,7 +276,7 @@ def verify_file_structure():
         'scripts/fetch_latest.py',
         'scripts/calc_all.py',
         'scripts/update_readme.py',
-        '.github/workflows/update-data.yml',
+        '.github/workflows/update_data.yml',
     ]
 
     missing = []

@@ -5,6 +5,15 @@ on:
     # 每周二、四、日 22:30 北京时间 = UTC 14:30
     - cron: '30 14 * * 0,2,4'
   workflow_dispatch: # 支持手动触发
+    inputs:
+      force_recalc:
+        description: '强制重算统计（即使无新数据）'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 permissions:
   contents: write
@@ -12,6 +21,7 @@ permissions:
 jobs:
   update-data:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: 📥 检出代码
@@ -21,17 +31,23 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'  # 缓存 pip 依赖，加速 CI
 
       - name: 📦 安装依赖
         run: pip install -r requirements.txt
 
       - name: 🌐 抓取最新开奖数据
-        run: python scripts/fetch_latest.py
+        id: fetch
+        run: |
+          python scripts/fetch_latest.py
+          echo "fetch_ok=true" >> $GITHUB_OUTPUT
 
       - name: 📊 重新计算统计指标
+        if: steps.fetch.outputs.fetch_ok == 'true' || github.event.inputs.force_recalc == 'true'
         run: python scripts/calc_all.py
 
       - name: 📝 更新 README 期数信息
+        if: steps.fetch.outputs.fetch_ok == 'true' || github.event.inputs.force_recalc == 'true'
         run: python scripts/update_readme.py
 
       - name: 🚀 提交并推送更新
@@ -39,6 +55,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          # 仅在有变更时提交
-          git diff --staged --quiet || git commit -m "🤖 自动更新: $(date +'%Y-%m-%d %H:%M') UTC"
-          git push
+          # 仅在有变更时提交，附带具体变更信息
+          if ! git diff --staged --quiet; then
+            CHANGES=$(git diff --staged --stat | tail -1)
+            git commit -m "🤖 自动更新: $(date +'%Y-%m-%d %H:%M') UTC | ${CHANGES}"
+            git push
+          else
+            echo "✅ 无文件变更，跳过提交"
+          fi

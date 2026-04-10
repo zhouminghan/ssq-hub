@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """
-从网络抓取最新双色球开奖数据，增量更新按年存储的历史数据
+从网络抓取最新双色球开奖数据，覆盖更新按年存储的历史数据
 写入: data/history/{year}.json + data/history_index.json
+
+更新策略: 增量追加 + 同期号覆盖
+  - 新期号 → 追加
+  - 已有期号 → 用最新数据覆盖（确保数据勘误能同步）
 
 支持多数据源自动切换:
   1. 福彩官方 API (cwl.gov.cn) — 国内首选
   2. 备用 API (idcd.com) — 海外 GitHub Actions 可用
+  3. 备用 API (mxnzp.com) — 兜底
 """
 
 import json
@@ -26,23 +31,24 @@ COMMON_HEADERS = {
 
 
 def load_all_draws():
-    """从按年文件中加载全部历史数据"""
-    all_draws = []
+    """从按年文件中加载全部历史数据，返回 dict（issue → draw）便于覆盖"""
+    draws_map = {}
     if not os.path.isdir(HISTORY_DIR):
-        return all_draws
+        return draws_map
     for fpath in sorted(glob.glob(os.path.join(HISTORY_DIR, '*.json'))):
         try:
             with open(fpath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             if isinstance(data, list):
-                all_draws.extend(data)
+                for d in data:
+                    draws_map[d['issue']] = d
             else:
                 print(f'⚠️ 跳过格式异常的文件(非列表): {os.path.basename(fpath)}')
         except (json.JSONDecodeError, ValueError) as e:
             print(f'⚠️ 跳过损坏的 JSON 文件: {os.path.basename(fpath)} ({e})')
         except Exception as e:
             print(f'⚠️ 读取文件失败: {os.path.basename(fpath)} ({e})')
-    return all_draws
+    return draws_map
 
 
 # ───────── 数据源 1: 福彩官方 ─────────
@@ -161,18 +167,29 @@ def fetch_latest_draws():
     return []
 
 
-def merge_draws(existing, new_draws):
-    """合并新旧数据（去重）"""
-    existing_issues = {d['issue'] for d in existing}
+def merge_draws(draws_map, new_draws):
+    """合并新旧数据（新增 + 覆盖更新已有期号）
+    
+    Returns:
+        (added, updated) - 新增期数, 覆盖更新期数
+    """
     added = 0
+    updated = 0
     for d in new_draws:
-        if d['issue'] not in existing_issues:
-            existing.append(d)
-            existing_issues.add(d['issue'])
+        issue = d['issue']
+        if issue not in draws_map:
+            draws_map[issue] = d
             added += 1
-    # 按期号排序
-    existing.sort(key=lambda x: x['issue'])
-    return added
+        elif draws_map[issue] != d:
+            # 已有期号但数据不同 → 覆盖更新
+            draws_map[issue] = d
+            updated += 1
+    return added, updated
+
+
+def draws_map_to_sorted_list(draws_map):
+    """将 dict 转为按期号排序的列表"""
+    return sorted(draws_map.values(), key=lambda x: x['issue'])
 
 
 def save_by_year(all_draws):
@@ -213,31 +230,35 @@ def save_by_year(all_draws):
 def main():
     os.makedirs(DATA_DIR, exist_ok=True)
 
-    existing_draws = load_all_draws()
-    last_issue = existing_draws[-1]['issue'] if existing_draws else 'N/A'
-    print(f'📦 当前数据: {len(existing_draws)} 期, 最新: {last_issue}')
+    draws_map = load_all_draws()
+    sorted_issues = sorted(draws_map.keys())
+    last_issue = sorted_issues[-1] if sorted_issues else 'N/A'
+    print(f'📦 当前数据: {len(draws_map)} 期, 最新: {last_issue}')
 
     # 抓取新数据 (自动尝试多个数据源)
     new_draws = fetch_latest_draws()
     if not new_draws:
         print('❌ 所有数据源均未获取到新数据，跳过本次更新')
-        # 以正常退出码结束，不阻塞 CI 流程
         sys.exit(0)
 
     print(f'🌐 共获取 {len(new_draws)} 期数据')
 
-    # 合并
-    added = merge_draws(existing_draws, new_draws)
+    # 合并（新增 + 覆盖更新）
+    added, updated = merge_draws(draws_map, new_draws)
 
-    if added == 0:
-        print('✅ 没有新数据需要更新')
-        sys.exit(2)  # exit(2) = 无新数据，区别于 exit(0)=有新数据, exit(1)=异常
+    if added == 0 and updated == 0:
+        print('✅ 没有新数据需要更新，也没有数据变更')
+        sys.exit(0)  # 正常退出，不阻塞后续步骤
+
+    # 转为排序列表
+    all_draws = draws_map_to_sorted_list(draws_map)
 
     # 按年保存
-    years_info = save_by_year(existing_draws)
+    years_info = save_by_year(all_draws)
 
-    print(f'✅ 新增 {added} 期数据，共 {len(existing_draws)} 期')
-    print(f'   最新: {existing_draws[-1]["issue"]} ({existing_draws[-1]["date"]})')
+    total = len(all_draws)
+    print(f'✅ 新增 {added} 期, 覆盖更新 {updated} 期, 共 {total} 期')
+    print(f'   最新: {all_draws[-1]["issue"]} ({all_draws[-1]["date"]})')
     print(f'   涉及年份: {", ".join(y["year"] for y in years_info)}')
 
 

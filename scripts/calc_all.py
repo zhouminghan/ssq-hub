@@ -158,6 +158,9 @@ def generate_picks(stats, draws):
     red_scores = stats['red_scores']
     blue_scores = stats['blue_scores']
 
+    # === 单式方案 (3组 6+1) ===
+
+    # 方案A: 均衡型 — 三区各取2个高分球
     top = sorted(red_scores[:15], key=lambda x: x['ball'])
     z1 = [b for b in top if b['ball'] <= 11]
     z2 = [b for b in top if 12 <= b['ball'] <= 22]
@@ -169,9 +172,11 @@ def generate_picks(stats, draws):
         pick_a.extend([b['ball'] for b in zs[:2]])
     pick_a = sorted(pick_a[:6])
 
+    # 方案B: 热号追击 — 近10期高频号
     hot = sorted(red_scores, key=lambda x: x['freq_10'], reverse=True)
     pick_b = sorted([b['ball'] for b in hot[:6]])
 
+    # 方案C: 冷号回补 — 全局高频但近期遇冷
     cold_c = sorted(
         [b for b in red_scores if b['global_count'] > 600 and b['freq_50'] < 10],
         key=lambda x: x['global_count'] - x['freq_50'] * 10, reverse=True
@@ -180,13 +185,70 @@ def generate_picks(stats, draws):
     hp = [b['ball'] for b in hot[:2] if b['ball'] not in cp]
     pick_c = sorted((cp + hp)[:6])
 
+    # === 复式方案 (2组) ===
+
+    # 方案D: 小复式 — 红球7个(top7高分) + 蓝球2个 = 7注/14元
+    top7_red = sorted([b['ball'] for b in red_scores[:7]])
+    top2_blue = sorted([b['ball'] for b in blue_scores[:2]])
+
+    # 方案E: 中复式 — 红球10个(高分+遗漏回补) + 蓝球3个 = 360注/720元 → 适合合买
+    top8 = [b['ball'] for b in red_scores[:8]]
+    high_missing = sorted(
+        [b for b in red_scores if stats['red_missing'].get(str(b['ball']).zfill(2), 0) > 15],
+        key=lambda x: stats['red_missing'].get(str(x['ball']).zfill(2), 0), reverse=True
+    )
+    missing_balls = [b['ball'] for b in high_missing[:4] if b['ball'] not in top8]
+    mid_red = sorted(list(set(top8 + missing_balls))[:10])
+    top3_blue = sorted([b['ball'] for b in blue_scores[:3]])
+
     next_issue = str(int(draws[-1]['issue']) + 1).zfill(7)
+
+    # 计算复式注数
+    from math import comb
+    d_count = comb(len(top7_red), 6) * len(top2_blue)
+    e_count = comb(len(mid_red), 6) * len(top3_blue)
 
     return {
         'target_issue': next_issue,
-        'plan_a': {'name': '🎯 均衡型', 'red': pick_a, 'blue': blue_scores[0]['ball'], 'desc': '综合评分前列，兼顾区间平衡'},
-        'plan_b': {'name': '🔥 热号追击', 'red': pick_b, 'blue': blue_scores[0]['ball'], 'desc': '近10期高频号码延续'},
-        'plan_c': {'name': '❄️ 冷号回补', 'red': pick_c, 'blue': blue_scores[-1]['ball'], 'desc': '全局热/近期冷号回补'},
+        # 单式
+        'plan_a': {
+            'name': '🎯 均衡型', 'type': 'single',
+            'red': pick_a, 'blue': blue_scores[0]['ball'],
+            'desc': '综合评分前列，三区各取2球，兼顾区间平衡',
+            'method': '三区均衡 + 综合评分',
+            'cost': 2,
+        },
+        'plan_b': {
+            'name': '🔥 热号追击', 'type': 'single',
+            'red': pick_b, 'blue': blue_scores[0]['ball'],
+            'desc': '近10期高频号码延续，追踪短期热门趋势',
+            'method': '短期频率追踪',
+            'cost': 2,
+        },
+        'plan_c': {
+            'name': '❄️ 冷号回补', 'type': 'single',
+            'red': pick_c, 'blue': blue_scores[-1]['ball'],
+            'desc': '全局高频但近期遇冷的号码，等待回补',
+            'method': '遗漏回补理论',
+            'cost': 2,
+        },
+        # 复式
+        'plan_d': {
+            'name': '🎰 小复式', 'type': 'complex',
+            'red': top7_red, 'blue': top2_blue,
+            'desc': f'红球7+蓝球2，共{d_count}注/{d_count*2}元，高分球精选覆盖',
+            'method': '高频精选 + 双蓝保底',
+            'cost': d_count * 2,
+            'note_count': d_count,
+        },
+        'plan_e': {
+            'name': '🏆 中复式', 'type': 'complex',
+            'red': mid_red, 'blue': top3_blue,
+            'desc': f'红球{len(mid_red)}+蓝球3，共{e_count}注/{e_count*2}元，适合合买',
+            'method': '高频聚合 + 遗漏回补',
+            'cost': e_count * 2,
+            'note_count': e_count,
+        },
     }
 
 
@@ -210,7 +272,11 @@ def main():
         json.dump(latest, f, ensure_ascii=False, indent=2)
     print('✅ latest.json 已更新')
     print(f'🎯 下期推荐: {picks["target_issue"]}')
-    print(f'   方案A: {picks["plan_a"]["red"]} + [{picks["plan_a"]["blue"]}]')
+    print(f'   单式A: {picks["plan_a"]["red"]} + [{picks["plan_a"]["blue"]}]')
+    print(f'   单式B: {picks["plan_b"]["red"]} + [{picks["plan_b"]["blue"]}]')
+    print(f'   单式C: {picks["plan_c"]["red"]} + [{picks["plan_c"]["blue"]}]')
+    print(f'   复式D: {picks["plan_d"]["red"]} + {picks["plan_d"]["blue"]} ({picks["plan_d"]["note_count"]}注)')
+    print(f'   复式E: {picks["plan_e"]["red"]} + {picks["plan_e"]["blue"]} ({picks["plan_e"]["note_count"]}注)')
 
 
 if __name__ == '__main__':

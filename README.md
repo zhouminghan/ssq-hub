@@ -1,4 +1,4 @@
-# 🎱 双色球数据中心 (SSQ Hub)
+# 🔴🔵 双色球数据中心 (SSQ Hub)
 
 [![GitHub Pages](https://img.shields.io/badge/🌐_在线访问-GitHub_Pages-blue?style=for-the-badge)](https://zhouminghan.github.io/ssq-hub/)
 [![GitHub](https://img.shields.io/badge/📦_源码仓库-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/zhouminghan/ssq-hub)

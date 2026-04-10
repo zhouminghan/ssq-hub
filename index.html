@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎱 双色球数据中心 | SSQ Hub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>[v-cloak] { display: none !important; }</style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <header class="header">
+      <div class="header-inner">
+        <h1 class="logo">🎱 双色球数据中心</h1>
+        <span class="update-tag" v-if="latestData.updated">数据更新至 {{ latestData.updated }}</span>
+      </div>
+    </header>
+
+    <!-- 最新开奖 -->
+    <section class="latest-section" v-if="latestData.latest_draw">
+      <div class="latest-card">
+        <div class="latest-header">
+          <span class="latest-label">🏆 最新开奖</span>
+          <span class="latest-issue">第 {{ latestData.latest_draw.issue }} 期</span>
+          <span class="latest-date">{{ latestData.latest_draw.date }}</span>
+        </div>
+        <div class="ball-row">
+          <span class="ball red" v-for="r in latestData.latest_draw.red" :key="'lr'+r">{{ padBall(r) }}</span>
+          <span class="ball-sep">|</span>
+          <span class="ball blue">{{ padBall(latestData.latest_draw.blue) }}</span>
+        </div>
+      </div>
+      <div class="pick-card" v-if="latestData.picks">
+        <div class="latest-header">
+          <span class="latest-label">🎯 下期推荐</span>
+          <span class="latest-issue">第 {{ latestData.picks.target_issue }} 期</span>
+          <button class="btn-regen" @click="regeneratePlans" title="重新生成推荐">🔄 换一批</button>
+        </div>
+        <div class="pick-plans" :class="{ 'plans-refreshing': plansRefreshing }">
+          <div class="plan" v-for="(plan, key) in getPlans()" :key="key">
+            <div class="plan-name">{{ plan.name }}</div>
+            <div class="ball-row small">
+              <span class="ball red sm" v-for="r in plan.red" :key="'p'+key+r">{{ padBall(r) }}</span>
+              <span class="ball-sep">|</span>
+              <span class="ball blue sm">{{ padBall(plan.blue) }}</span>
+            </div>
+            <div class="plan-desc">{{ plan.desc }}</div>
+          </div>
+        </div>
+        <p class="pick-hint" style="margin-top:10px">💡 点击「🔄 换一批」可基于统计数据重新生成推荐方案（加权随机）</p>
+      </div>
+    </section>
+
+    <!-- 导航标签 -->
+    <nav class="tab-bar">
+      <button
+        v-for="tab in tabs"
+        :key="tab.id"
+        :class="['tab-btn', { active: activeTab === tab.id }]"
+        @click="activeTab = tab.id"
+      >{{ tab.icon }} {{ tab.name }}</button>
+    </nav>
+
+    <!-- 历史查询 -->
+    <section class="content-section" v-show="activeTab === 'history'">
+      <div class="search-bar">
+        <input v-model="searchQuery" placeholder="搜索期号、日期或号码..." class="search-input" @input="doSearch">
+        <select v-model="filterYear" class="year-select" @change="onYearChange($event.target.value)">
+          <option value="">{{ availableYears[0] || '全部' }}年（默认当前年）</option>
+          <option v-for="y in availableYears" :key="y" :value="y">{{ y }}年（{{ historyIndex.years.find(yi => yi.year === y)?.count || 0 }}期）</option>
+        </select>
+        <span v-if="yearLoading" class="loading-hint">⏳ 加载中...</span>
+      </div>
+      <div class="history-table-wrap">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>期号</th>
+              <th>日期</th>
+              <th>红球号码</th>
+              <th>蓝球</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="d in paginatedDraws" :key="d.issue">
+              <td class="issue-cell">{{ d.issue }}</td>
+              <td class="date-cell">{{ d.date }}</td>
+              <td>
+                <span class="ball red xs" v-for="r in d.red" :key="d.issue+'r'+r">{{ padBall(r) }}</span>
+              </td>
+              <td><span class="ball blue xs">{{ padBall(d.blue) }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination" v-if="totalPages > 1">
+          <button @click="page = Math.max(1, page-1)" :disabled="page <= 1">‹ 上一页</button>
+          <span class="page-info">{{ page }} / {{ totalPages }}</span>
+          <button @click="page = Math.min(totalPages, page+1)" :disabled="page >= totalPages">下一页 ›</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 智能选号 -->
+    <section class="content-section" v-show="activeTab === 'picker'">
+      <div class="picker-panel">
+        <h3>🎛️ 调节权重（自定义选号）</h3>
+        <div class="weight-sliders">
+          <div class="slider-row" v-for="(w, i) in weights" :key="i">
+            <label>{{ w.label }}</label>
+            <input type="range" min="0" max="100" v-model.number="w.value" @input="generateCustomPick">
+            <span class="weight-val">{{ w.value }}%</span>
+          </div>
+        </div>
+        <div class="custom-pick" v-if="customPick.red.length">
+          <h4>📌 自定义推荐 <button class="btn-refresh" @click="generateCustomPick" title="重新生成">🔄</button></h4>
+          <div class="ball-row">
+            <span class="ball red" v-for="r in customPick.red" :key="'cr'+r">{{ padBall(r) }}</span>
+            <span class="ball-sep">|</span>
+            <span class="ball blue">{{ padBall(customPick.blue) }}</span>
+          </div>
+          <p class="pick-hint">💡 调节权重或点击 🔄 可刷新推荐号码，评分越高的号码被选中概率越大</p>
+        </div>
+
+        <h3 style="margin-top:24px">🎲 随机选号器</h3>
+        <div class="random-constraints">
+          <label><input type="checkbox" v-model="randOpts.balanceZone"> 区间均衡</label>
+          <label><input type="checkbox" v-model="randOpts.balanceOddEven"> 奇偶均衡</label>
+        </div>
+        <button class="btn-random" @click="randomPick">🎲 摇一摇</button>
+        <div class="random-result" v-if="randomResult.red.length">
+          <div class="ball-row" :class="{ shaking: isShaking }">
+            <span class="ball red" v-for="r in randomResult.red" :key="'rr'+r">{{ padBall(r) }}</span>
+            <span class="ball-sep">|</span>
+            <span class="ball blue">{{ padBall(randomResult.blue) }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 统计分析 -->
+    <section class="content-section" v-show="activeTab === 'stats'">
+      <div class="stats-panel">
+        <div class="chart-tabs">
+          <button :class="['chart-tab-btn', {active: chartTab==='redFreq'}]" @click="switchChart('redFreq')">红球频率</button>
+          <button :class="['chart-tab-btn', {active: chartTab==='blueFreq'}]" @click="switchChart('blueFreq')">蓝球频率</button>
+          <button :class="['chart-tab-btn', {active: chartTab==='missing'}]" @click="switchChart('missing')">遗漏追踪</button>
+          <button :class="['chart-tab-btn', {active: chartTab==='ranking'}]" @click="switchChart('ranking')">评分排名</button>
+        </div>
+        <div class="chart-container">
+          <canvas id="mainChart" ref="chartCanvas"></canvas>
+        </div>
+
+        <!-- 结构特征 -->
+        <div class="structure-panel" v-if="statsData.structure">
+          <h3>📐 结构特征（近50期）</h3>
+          <div class="struct-grid">
+            <div class="struct-item">
+              <div class="struct-label">一区(01~11)</div>
+              <div class="struct-bar"><div class="bar-fill zone1" :style="{width: zonePercent(statsData.structure.zone1) + '%'}"></div></div>
+              <div class="struct-val">{{ zonePercent(statsData.structure.zone1) }}%</div>
+            </div>
+            <div class="struct-item">
+              <div class="struct-label">二区(12~22)</div>
+              <div class="struct-bar"><div class="bar-fill zone2" :style="{width: zonePercent(statsData.structure.zone2) + '%'}"></div></div>
+              <div class="struct-val">{{ zonePercent(statsData.structure.zone2) }}%</div>
+            </div>
+            <div class="struct-item">
+              <div class="struct-label">三区(23~33)</div>
+              <div class="struct-bar"><div class="bar-fill zone3" :style="{width: zonePercent(statsData.structure.zone3) + '%'}"></div></div>
+              <div class="struct-val">{{ zonePercent(statsData.structure.zone3) }}%</div>
+            </div>
+            <div class="struct-item">
+              <div class="struct-label">奇数</div>
+              <div class="struct-bar"><div class="bar-fill odd" :style="{width: zonePercent(statsData.structure.odd) + '%'}"></div></div>
+              <div class="struct-val">{{ zonePercent(statsData.structure.odd) }}%</div>
+            </div>
+            <div class="struct-item">
+              <div class="struct-label">偶数</div>
+              <div class="struct-bar"><div class="bar-fill even" :style="{width: zonePercent(statsData.structure.even) + '%'}"></div></div>
+              <div class="struct-val">{{ zonePercent(statsData.structure.even) }}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+      <p>⚠️ 彩票开奖为完全随机事件，以上分析仅供娱乐参考，不构成购买建议。请理性购彩！</p>
+      <p class="footer-info">SSQ Hub · 数据共 {{ historyIndex.total || 0 }} 期 · <a href="https://github.com/zhouminghan/ssq-hub" target="_blank">GitHub</a></p>
+    </footer>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

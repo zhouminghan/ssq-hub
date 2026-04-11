@@ -1,9 +1,17 @@
-# 🔴🔵 双色球数据中心 (SSQ Hub)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg"/>
+    <source media="(prefers-color-scheme: light)" srcset="assets/logo.svg"/>
+    <img src="assets/logo.svg" alt="双色球数据中心" width="520"/>
+  </picture>
+</p>
 
-[![GitHub Pages](https://img.shields.io/badge/🌐_在线访问-GitHub_Pages-blue?style=for-the-badge)](https://zhouminghan.github.io/ssq-hub/)
-[![GitHub](https://img.shields.io/badge/📦_源码仓库-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/zhouminghan/ssq-hub)
-[![Data](https://img.shields.io/badge/📊_数据量-3436期-red?style=for-the-badge)](https://github.com/zhouminghan/ssq-hub/tree/mastser/data)
-[![Auto Update](https://img.shields.io/badge/🤖_自动更新-GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/zhouminghan/ssq-hub/actions)
+<p align="center">
+  <a href="https://zhouminghan.github.io/ssq-hub/"><img src="https://img.shields.io/badge/在线访问-GitHub_Pages-E8192C?style=for-the-badge&logo=googlechrome&logoColor=white" alt="在线访问"/></a>
+  <a href="https://github.com/zhouminghan/ssq-hub"><img src="https://img.shields.io/badge/源码仓库-GitHub-181717?style=for-the-badge&logo=github" alt="GitHub"/></a>
+  <a href="https://github.com/zhouminghan/ssq-hub/tree/mastser/data"><img src="https://img.shields.io/badge/数据量-3436期-2A5CAA?style=for-the-badge&logo=databricks&logoColor=white" alt="数据量"/></a>
+  <a href="https://github.com/zhouminghan/ssq-hub/actions"><img src="https://img.shields.io/badge/自动更新-GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" alt="自动更新"/></a>
+</p>
 
 > 一个可在 GitHub Pages 上一键部署、自动更新数据的双色球历史查询 + 智能选号 Web 应用。
 >

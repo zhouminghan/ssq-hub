@@ -118,21 +118,23 @@ def verify_history_files(idx):
 
 
 def verify_stats_latest(idx):
-    """校验 stats.json 和 latest.json"""
+    """校验 stats.json 和 latest.json（适配走势图精简版字段）"""
     print('\n🔍 [3/5] 校验 stats.json 和 latest.json ...')
 
     stats_path = os.path.join(DATA_DIR, 'stats.json')
     latest_path = os.path.join(DATA_DIR, 'latest.json')
 
-    # stats.json
+    # stats.json：精简版只需要 total / latest_issue / 频次 / 遗漏
     if check(os.path.exists(stats_path), 'stats.json 不存在'):
         with open(stats_path, 'r', encoding='utf-8') as f:
             stats = json.load(f)
 
         check('total' in stats, 'stats.json 缺少 total 字段')
         check('latest_issue' in stats, 'stats.json 缺少 latest_issue 字段')
-        check('red_scores' in stats, 'stats.json 缺少 red_scores 字段')
-        check('blue_scores' in stats, 'stats.json 缺少 blue_scores 字段')
+        check('red_freq_global' in stats, 'stats.json 缺少 red_freq_global 字段')
+        check('blue_freq_global' in stats, 'stats.json 缺少 blue_freq_global 字段')
+        check('red_missing' in stats, 'stats.json 缺少 red_missing 字段')
+        check('blue_missing' in stats, 'stats.json 缺少 blue_missing 字段')
 
         if idx:
             check(stats.get('total') == idx['total'],
@@ -140,83 +142,27 @@ def verify_stats_latest(idx):
 
         print(f'  ✅ stats.json: total={stats.get("total")}, latest={stats.get("latest_issue")}')
 
-    # latest.json
+    # latest.json：精简版仅有 latest_draw + updated + total
     if check(os.path.exists(latest_path), 'latest.json 不存在'):
         with open(latest_path, 'r', encoding='utf-8') as f:
             latest = json.load(f)
 
-        check('latest_draw' in latest, 'latest.json 缺少 latest_draw')
-        check('picks' in latest, 'latest.json 缺少 picks')
-        picks = latest.get('picks', {})
+        if check('latest_draw' in latest, 'latest.json 缺少 latest_draw'):
+            ld = latest['latest_draw']
+            check('issue' in ld and 'date' in ld and 'red' in ld and 'blue' in ld,
+                  'latest_draw 字段不完整（issue/date/red/blue）')
+            if isinstance(ld.get('red'), list):
+                check(len(ld['red']) == 6 and all(1 <= r <= 33 for r in ld['red']),
+                      'latest_draw.red 不是 6 个合法红球')
+            check(isinstance(ld.get('blue'), int) and 1 <= ld['blue'] <= 16,
+                  'latest_draw.blue 越界')
 
-        # 单式方案校验 (plan_a ~ plan_c)
-        for plan in ['plan_a', 'plan_b', 'plan_c']:
-            if check(plan in picks, f'latest.json 缺少 picks.{plan}'):
-                p = picks[plan]
-                check(p.get('type') == 'single',
-                      f'{plan}.type 应为 "single"，实际为 "{p.get("type")}"',
-                      is_warning=True)
-                check(isinstance(p.get('red'), list) and len(p['red']) == 6,
-                      f'{plan}.red 不是6个红球')
-                check(isinstance(p.get('blue'), int) and 1 <= p['blue'] <= 16,
-                      f'{plan}.blue 不在1-16范围')
-                # 红球范围校验
-                if isinstance(p.get('red'), list):
-                    check(all(1 <= r <= 33 for r in p['red']),
-                          f'{plan}.red 中存在超出1-33范围的号码')
-                    check(len(set(p['red'])) == len(p['red']),
-                          f'{plan}.red 中存在重复号码')
+        if idx:
+            check(latest.get('total') == idx['total'],
+                  f'latest.total ({latest.get("total")}) != index.total ({idx["total"]})',
+                  is_warning=True)
 
-        # 复式方案校验 (plan_d ~ plan_e)
-        for plan in ['plan_d', 'plan_e']:
-            if check(plan in picks, f'latest.json 缺少 picks.{plan}'):
-                p = picks[plan]
-                check(p.get('type') == 'complex',
-                      f'{plan}.type 应为 "complex"，实际为 "{p.get("type")}"',
-                      is_warning=True)
-
-                # 红球: 7~20个，范围1-33
-                red = p.get('red', [])
-                check(isinstance(red, list) and 7 <= len(red) <= 20,
-                      f'{plan}.red 应为7-20个红球，实际 {len(red) if isinstance(red, list) else "非数组"}')
-                if isinstance(red, list):
-                    check(all(1 <= r <= 33 for r in red),
-                          f'{plan}.red 中存在超出1-33范围的号码')
-                    check(len(set(red)) == len(red),
-                          f'{plan}.red 中存在重复号码')
-
-                # 蓝球: 可以是单个int或数组
-                blue = p.get('blue')
-                if isinstance(blue, list):
-                    check(len(blue) >= 1 and len(blue) <= 16,
-                          f'{plan}.blue 数组长度应为1-16，实际 {len(blue)}')
-                    check(all(isinstance(b, int) and 1 <= b <= 16 for b in blue),
-                          f'{plan}.blue 数组中存在超出1-16范围的号码')
-                    check(len(set(blue)) == len(blue),
-                          f'{plan}.blue 数组中存在重复号码')
-                elif isinstance(blue, int):
-                    check(1 <= blue <= 16,
-                          f'{plan}.blue={blue} 不在1-16范围')
-                else:
-                    check(False, f'{plan}.blue 类型异常：{type(blue).__name__}')
-
-                # 注数与费用校验
-                if isinstance(red, list) and len(red) >= 7:
-                    from math import comb
-                    blue_count = len(blue) if isinstance(blue, list) else 1
-                    expected_notes = comb(len(red), 6) * blue_count
-                    actual_notes = p.get('note_count')
-                    if actual_notes is not None:
-                        check(actual_notes == expected_notes,
-                              f'{plan}.note_count={actual_notes}，期望 C({len(red)},6)×{blue_count}={expected_notes}',
-                              is_warning=True)
-                    actual_cost = p.get('cost')
-                    if actual_cost is not None:
-                        check(actual_cost == expected_notes * 2,
-                              f'{plan}.cost={actual_cost}，期望 {expected_notes}×2={expected_notes*2}',
-                              is_warning=True)
-
-        print(f'  ✅ latest.json: 推荐期号={picks.get("target_issue")}, 单式×3 + 复式×2')
+        print(f'  ✅ latest.json: latest={latest.get("latest_draw", {}).get("issue")}')
 
 
 def verify_readme(idx):
@@ -263,20 +209,37 @@ def verify_readme(idx):
 
 
 def verify_file_structure():
-    """校验项目必要文件是否齐全"""
+    """校验项目必要文件是否齐全（适配走势图模块化架构）"""
     print('\n🔍 [5/5] 校验项目文件结构 ...')
 
     required_files = [
         'index.html',
-        'css/style.css',
-        'js/app.js',
+        'css/reset.css',
+        'css/theme.css',
+        'css/layout.css',
+        'css/filter-bar.css',
+        'css/picker.css',
+        'css/trend-table.css',
+        'css/trend-overlay.css',
+        'css/responsive.css',
+        'js/main.js',
+        'js/store.js',
+        'js/data-loader.js',
+        'js/filter-bar.js',
+        'js/picker.js',
+        'js/trend-table.js',
+        'js/trend-overlay.js',
+        'js/utils/dom.js',
+        'js/utils/format.js',
+        'js/utils/lottery.js',
         'data/history_index.json',
         'data/stats.json',
         'data/latest.json',
         'scripts/fetch_latest.py',
         'scripts/calc_all.py',
         'scripts/update_readme.py',
-        '.github/workflows/update_data.yml',
+        '.github/workflows/update-data.yml',
+        '.github/workflows/deploy-pages.yml',
     ]
 
     missing = []

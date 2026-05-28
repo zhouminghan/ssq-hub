@@ -1,0 +1,146 @@
+/* ── 走势表格 ── */
+.trend-table {
+  width: max-content;
+  min-width: 100%;
+  font-size: 12px;
+  background: var(--bg-card);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.trend-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--border-strong);
+  border-right: 1px solid var(--border);
+  padding: 6px 4px;
+  font-weight: 600;
+  color: var(--text-2);
+  z-index: 5;
+  text-align: center;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.trend-table thead th.col-issue {
+  position: sticky;
+  background: var(--bg-soft);
+  z-index: 7; /* 高于 thead th 的 5 + tbody td.col-issue 的 4，确保横向滚动时盖住红/蓝球 */
+  left: 0;
+  min-width: 80px;
+  box-shadow: 2px 0 0 var(--border-strong);
+}
+
+.trend-table thead th.zone-red { background: linear-gradient(180deg, #fef2f3, var(--red-soft)); color: var(--red-deep); }
+.trend-table thead th.zone-blue { background: linear-gradient(180deg, #f0f6fc, var(--blue-soft)); color: var(--blue-deep); }
+.trend-table thead th.zone-aux { background: #f6f4ed; color: #8a6d1c; }
+
+.trend-table tbody td {
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid #f0f1f3;
+  padding: 0;
+  text-align: center;
+  height: 30px;
+  min-width: 26px;
+  vertical-align: middle;
+  background: var(--bg-card);
+  position: relative;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.trend-table tbody tr:hover td {
+  background: #fffaf5;
+}
+
+/* 期号固定列 */
+.trend-table tbody td.col-issue {
+  position: sticky;
+  z-index: 4; /* 高于普通 td（默认 auto）和 .ball 等子元素，确保横向滚动时红/蓝球不穿透 */
+  background: var(--bg-card);
+  font-weight: 500;
+  color: var(--text-2);
+  padding: 0 8px;
+  left: 0;
+  min-width: 80px;
+  box-shadow: 2px 0 0 var(--border-strong);
+}
+
+.trend-table tbody tr:hover td.col-issue {
+  background: #fffaf5;
+}
+
+/* 球：未命中显示遗漏值（小灰字），命中显示彩色圆球 */
+.trend-table .ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ball);
+  height: var(--ball);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+.trend-table td.hit .ball.red {
+  background: radial-gradient(circle at 35% 30%, #ff7b81, var(--red) 65%, var(--red-deep));
+  box-shadow: 0 1px 2px rgba(227, 77, 89, 0.45);
+}
+
+.trend-table td.hit .ball.blue {
+  background: radial-gradient(circle at 35% 30%, #7fb1ec, var(--blue) 65%, var(--blue-deep));
+  box-shadow: 0 1px 2px rgba(74, 144, 226, 0.45);
+}
+
+/* 蓝球分隔 */
+.trend-table td.col-blue { border-left: 1px dashed var(--border-strong); }
+.trend-table td.col-aux { background: #fafaf3; }
+.trend-table tbody tr:hover td.col-aux { background: #fdf8e2; }
+
+/* 遗漏值数字 */
+.trend-table td .miss {
+  color: #c9cdd4;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-table td.miss-hot .miss { color: #f7b731; font-weight: 700; }
+.trend-table td.miss-cold .miss { color: var(--blue); font-weight: 600; }
+
+/* 辅助列：和值/奇偶/大小/区间/质合 */
+.trend-table td.col-aux {
+  font-size: 11px;
+  color: var(--text-2);
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.trend-table td.col-aux .sum-val {
+  font-weight: 700;
+  color: var(--red-deep);
+}
+
+/* 同期对比模式：每行年份 chip */
+.trend-table tbody td.col-issue .year-tag {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--blue-deep);
+  background: var(--blue-soft);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* 空态 */
+.trend-empty {
+  text-align: center;
+  padding: 60px 16px;
+  color: var(--text-3);
+  font-size: 14px;
+}

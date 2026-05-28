@@ -1,197 +1,168 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg"/>
-    <source media="(prefers-color-scheme: light)" srcset="assets/logo.svg"/>
-    <img src="assets/logo.svg" alt="双色球数据中心" width="520"/>
-  </picture>
-</p>
+# 🎱 ssq-hub · 双色球走势图
 
-<p align="center">
-  <a href="https://zhouminghan.github.io/ssq-hub/"><img src="https://img.shields.io/badge/在线访问-GitHub_Pages-E8192C?style=for-the-badge&logo=googlechrome&logoColor=white" alt="在线访问"/></a>
-  <a href="https://github.com/zhouminghan/ssq-hub"><img src="https://img.shields.io/badge/源码仓库-GitHub-181717?style=for-the-badge&logo=github" alt="GitHub"/></a>
-  <a href="https://github.com/zhouminghan/ssq-hub/tree/mastser/data"><img src="https://img.shields.io/badge/数据量-3436期-2A5CAA?style=for-the-badge&logo=databricks&logoColor=white" alt="数据量"/></a>
-  <a href="https://github.com/zhouminghan/ssq-hub/actions"><img src="https://img.shields.io/badge/自动更新-GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" alt="自动更新"/></a>
-</p>
+[![Pages](https://img.shields.io/badge/GitHub_Pages-自动部署-blue)](#-部署)
+[![Data](https://img.shields.io/badge/📊_数据量-3456期-red)](#-数据来源)
+[![Stack](https://img.shields.io/badge/Stack-纯原生JS-green)](#-技术栈)
+[![License](https://img.shields.io/badge/License-MIT-orange)](#-license)
 
-> 一个可在 GitHub Pages 上一键部署、自动更新数据的双色球历史查询 + 智能选号 Web 应用。
+> 纯前端双色球走势图 Web 应用，零成本部署到 GitHub Pages，开奖数据通过 GitHub Actions 定时抓取并自动 commit 入库。
 >
-> 数据覆盖 **2003-02-23 ~ 至今**（自动更新），当前共 **3436** 期完整开奖记录。
+> **本应用仅用于走势研究与数据可视化学习，与任何真实购彩行为无关。**
 
 ---
 
-## ✨ 功能特性
+## ✨ 核心功能
 
-|       功能模块       | 说明                                                                    |
-| :------------------: | ----------------------------------------------------------------------- |
-| 📊**历史查询** | 3436 期开奖数据，支持按期号 / 日期 / 号码搜索，年份筛选，分页浏览       |
-| 🎯**智能选号** | 基于频率分析的多维度推荐引擎，4 项权重滑块自由调节，加权随机选号        |
-| 🎲**随机选号** | 带约束条件的随机选号器（区间均衡 / 奇偶均衡），摇一摇动画               |
-| 📈**统计分析** | 红球频率、蓝球频率、遗漏追踪、评分排名 4 种图表 + 结构特征可视化        |
-| 🏆**最新开奖** | 显示最新一期开奖结果 + 3 套下期推荐方案（均衡型 / 热号追击 / 冷号回补） |
-| 🔄**动态刷新** | 下期推荐支持「换一批」一键刷新，前端基于统计数据加权随机实时重算        |
-| 🤖**自动更新** | GitHub Actions 定时抓取最新开奖数据，无需手动维护                       |
+- 📊 **走势图主表**：左 sticky 期号列 / 中红 33 + 蓝 16 球矩阵 / 右辅助列（**和值 · 奇偶 · 大小 · 区间 · 质合**）
+- 🎨 **遗漏值与连号轨迹**：每个号码格显示遗漏值，蓝球用 SVG 连号轨迹叠加
+- 🔍 **三模式筛选**：近 N 期 / 指定年份 / 同期对比（如 2023055 vs 2024055 vs 2025055）
+- 🎟 **支付宝风格模拟选号**：表内 sticky 选号行 + 底部 dock
+  - 自动归类草稿：≤6 红 + ≤1 蓝 = 单式草稿；≥7 红 或 ≥2 蓝 = 复式草稿
+  - 草稿合法时草稿条上有红色「+ 加注」按钮
+  - 单式上限 5 注（满后再加自动淘汰最旧的一注）
+  - 新加入的注永远在 `#1`，老的下沉
+- 🤖 **数据自动更新**：GitHub Actions 定时（周二/四/日 22:30 北京时间）抓取最新开奖
+- 📱 **响应式设计**：移动端、平板、桌面全适配
+- 🚫 **零构建零依赖**：纯原生 ESM + 模块化 CSS，push 即生效
 
-## 🖼️ 界面预览
+## 📦 数据信息
 
-前端采用 **Vue 3** + **Chart.js** 构建，纯静态页面，响应式设计，支持移动端。
+<!-- DATA-INFO -->
+- 数据期数：**3456** 期
+- 时间范围：2003-02-23 ~ 2026-05-26
+- 最新期号：2026059
+<!-- /DATA-INFO -->
 
-- 🔴 红球渐变立体球样式
-- 🔵 蓝球渐变立体球样式
-- 📱 移动端自适应布局
-- ✨ 刷新方案时带淡出→淡入过渡动画
+## 🛠 技术栈
 
-## 🚀 快速开始
+| 层 | 技术 | 说明 |
+|---|---|---|
+| HTML | 原生 HTML5 | 单页应用，无构建 |
+| CSS | 模块化 CSS（每组件一文件） | 设计 tokens via CSS variables |
+| JS | 原生 ES Modules | 零依赖、零构建 |
+| 渲染 | HTML Table + SVG Overlay | 表格语义保留 + 49 条连号轨迹 |
+| 数据 | JSON 静态文件 | 按年分文件 + 索引 |
+| 自动化 | GitHub Actions | 定时抓取 + 自动 commit + Pages 部署 |
 
-### 方式一：在线访问
-
-👉 **[https://zhouminghan.github.io/ssq-hub/](https://zhouminghan.github.io/ssq-hub/)**
-
-### 方式二：Fork 部署
-
-1. 点击右上角 **[Fork](https://github.com/zhouminghan/ssq-hub/fork)** 本仓库
-2. 进入你 Fork 的仓库 → **Settings** → **Pages** → Source 选择 `main` 分支
-3. 等待约 1 分钟，访问 `https://<你的用户名>.github.io/ssq-hub/`
-
-> 💡 Fork 后 GitHub Actions 会自动在每个开奖日（周二 / 四 / 日）22:30（北京时间）更新数据。
-
-### 方式三：本地运行
-
-```bash
-# 克隆仓库
-git clone https://github.com/zhouminghan/ssq-hub.git
-cd ssq-hub
-
-# 直接用任意 HTTP 服务器打开即可（纯静态页面）
-python3 -m http.server 8080
-# 或
-npx serve .
-```
-
-浏览器打开 `http://localhost:8080` 即可。
-
-## 🏗️ 项目结构
+## 📂 项目结构
 
 ```
 ssq-hub/
-├── index.html                  # 主页面（Vue 3 SFC 模板）
-├── css/
-│   └── style.css               # 全局样式（CSS Variables + 响应式 + 动画）
-├── js/
-│   └── app.js                  # Vue 3 应用逻辑（Composition API）
-├── data/
-│   ├── history_index.json      # 年份索引（总期数、各年期数/范围）
-│   ├── history/                # 按年存储的历史开奖数据
-│   │   ├── 2003.json ~ 2026.json
-│   ├── stats.json              # 统计分析数据（频率/评分/遗漏/结构）
-│   └── latest.json             # 最新开奖 + 推荐号码
-├── scripts/
-│   ├── fetch_latest.py         # 福彩官网 API 增量抓取（按年存储 + 更新索引）
-│   ├── calc_all.py             # 统计计算 → stats.json + latest.json
-│   ├── update_readme.py        # 自动更新 README 期数与日期范围
-│   └── verify_data.py          # 数据完整性自检（格式/一致性/结构）
-├── .github/
-│   └── workflows/
-│       └── update-data.yml     # GitHub Actions 自动更新
-└── README.md                   # 本文件
+├── index.html              # 单页入口
+├── css/                    # 模块化样式
+│   ├── reset.css
+│   ├── theme.css           # 设计 tokens
+│   ├── layout.css
+│   ├── filter-bar.css
+│   ├── trend-table.css
+│   ├── trend-overlay.css
+│   ├── picker.css
+│   └── responsive.css
+├── js/                     # ES Modules
+│   ├── main.js             # 入口
+│   ├── store.js            # pub/sub 状态
+│   ├── data-loader.js      # 数据加载层
+│   ├── filter-bar.js       # 筛选栏
+│   ├── trend-table.js      # 走势表
+│   ├── trend-overlay.js    # SVG 连号轨迹
+│   ├── picker.js           # 选号器
+│   └── utils/
+│       ├── dom.js
+│       ├── format.js
+│       └── lottery.js
+├── data/                   # 静态数据（自动更新）
+│   ├── history/            # 按年存储 2003.json ... 2026.json
+│   ├── history_index.json  # 年份索引
+│   ├── latest.json         # 最新一期
+│   └── stats.json          # 频次/遗漏/结构
+├── scripts/                # Python 数据脚本
+│   ├── fetch_latest.py     # 多源容错抓取
+│   ├── calc_all.py         # 重算 stats/latest
+│   ├── verify_data.py      # 数据自检
+│   └── update_readme.py    # 更新 README 期数
+├── .github/workflows/
+│   ├── update-data.yml     # 定时抓取
+│   └── deploy-pages.yml    # 部署 Pages
+└── requirements.txt
 ```
 
-## 📊 评分算法
+## 🚀 部署
 
-### 红球综合评分公式
+### 在线访问（GitHub Pages）
 
-```
-综合评分 = 全局频率 × 0.15 + 近50期频率 × 0.30 + 近10期频率 × 0.30 + 冷号回补 × 0.25
-```
+仓库设置启用 GitHub Pages：
+- Source: GitHub Actions（推荐，由 `deploy-pages.yml` 自动发布）
+- 或：Deploy from a branch → main / `(root)`
 
-其中 **冷号回补** 触发条件：全局频率 > 18% 且近 50 期频率 < 14%
+任何 push 到 `main` 都会自动部署。
 
-### 热度等级
+### 本地预览
 
-|   等级   | 条件                |
-| :-------: | ------------------- |
-|  🔥 极热  | 近 10 期频率 ≥ 40% |
-|   🔥 热   | 近 10 期频率 ≥ 20% |
-|    温    | 近 10 期频率 ≥ 10% |
-|   偏冷   | 近 50 期频率 > 6%   |
-| ❄️ 冷号 | 近 50 期频率 ≤ 6%  |
+任意静态服务器即可，例如：
 
-### 三套推荐方案
+```bash
+# Python 3
+python3 -m http.server 8080
 
-|     方案     | 策略                                    | 动态刷新行为                             |
-| :-----------: | --------------------------------------- | ---------------------------------------- |
-|   🎯 均衡型   | 综合评分前列，按一 / 二 / 三区各取 2 个 | 从评分 Top15 按区间加权随机，每区选 2 个 |
-|  🔥 热号追击  | 近 10 期出现频率最高的红球              | 从近 10 期高频 Top10 中加权随机选 6 个   |
-| ❄️ 冷号回补 | 全局热门但近期沉寂的冷号 + 热号         | 冷号池随机 4 个 + 热号补齐 2 个          |
-
-> 💡 初始加载时方案来自 `latest.json`（静态），点击「🔄 换一批」后基于 `stats.json` 中的统计数据**前端加权随机实时重算**，每次点击结果不同，但偏好高评分号码。
-
-### 加权随机算法
-
-选号器（智能选号、下期推荐刷新）均采用 **加权随机** 而非简单取 Top-N：
-
-1. 将候选球的评分归一化为概率权重
-2. 按权重分布随机抽取，评分越高被选中概率越大
-3. 已选中的球从候选池中移除，避免重复
-
-## 🔧 数据管线
-
-```
-┌─────────────┐     ┌──────────────┐     ┌───────────────────┐
-│  福彩官网API │────▶│fetch_latest.py│────▶│ history/年份.json  │
-└─────────────┘     └──────────────┘     │ history_index.json │
-                                          └────────┬──────────┘
-                                                   │
-                                                   ▼
-                    ┌──────────────┐     ┌──────────────┐
-                    │  stats.json  │◀────│  calc_all.py │
-                    │  latest.json │     └──────────────┘
-                    └──────────────┘
-                          ▲
-                          │ 前端加权随机
-                    ┌──────────────┐
-                    │  🔄 换一批   │
-                    │（app.js 实时） │
-                    └──────────────┘
+# Node.js（如已安装）
+npx serve .
 ```
 
-- **`fetch_latest.py`** — 调用福彩官网 API 增量抓取最近 30 期，按年存储到 `history/` + 更新 `history_index.json`
-- **`calc_all.py`** — 合并 `history/*.json` 全量数据，计算全局/近 50 期/近 10 期频率、评分、遗漏、结构特征，生成推荐号码
-- **`app.js` (前端)** — 先加载年份索引，按需加载对应年份数据；点击「换一批」基于 stats.json 前端加权随机实时重算
+然后访问 `http://localhost:8080`。
 
-## 🤖 自动更新 (GitHub Actions)
+## 🤖 数据自动更新
 
-项目配置了 [GitHub Actions 工作流](https://github.com/zhouminghan/ssq-hub/blob/mastser/.github/workflows/update-data.yml)，自动在每周 **二、四、日** 的 **22:30**（北京时间 / UTC 14:30）执行：
+双色球开奖时间：**周二 / 四 / 日 21:15 北京时间**。
 
-1. 抓取最新开奖数据 (`fetch_latest.py`)
-2. 重新计算统计指标 (`calc_all.py`)
-3. 自动提交并推送更新
+`update-data.yml` 多次重试以保证开奖数据能稳定入库：
 
-也支持在 Actions 页面手动触发 (`workflow_dispatch`)。
+| 时间（北京时间） | 用途 |
+|---|---|
+| 开奖日 22:30 | 首次抓取（开奖后约 1 小时，数据源已就绪） |
+| 开奖日 23:30 | 重试 1（首次没抓到时兜底，例如官方源延迟） |
+| 次日 08:00 | 重试 2（极端情况，仍未抓到时最后一次兜底） |
+| 每月 1 日 02:00 | 强制重算 stats / latest（即便无新数据） |
+| 手动触发 | GitHub 网页 → Actions → Run workflow（可选 incremental / full 模式） |
 
-## 🛠️ 技术栈
+> 多次重试都是幂等的：抓到新期 → commit；没抓到 → 静默跳过，不污染仓库历史。
 
-|    层    | 技术                                                 |
-| :------: | ---------------------------------------------------- |
-| 前端框架 | [Vue 3](https://vuejs.org/) (CDN, Composition API)      |
-|  图表库  | [Chart.js 4](https://www.chartjs.org/)                  |
-|   样式   | 原生 CSS (CSS Variables + Flexbox + Grid + 过渡动画) |
-| 数据脚本 | Python 3.11                                          |
-|  数据源  | 福彩官网 API（自动增量抓取）                         |
-|  CI/CD  | GitHub Actions                                       |
-|   部署   | GitHub Pages（纯静态）                               |
+抓取数据源（按优先级 fallback）：
+
+1. **福彩官方 API**（cwl.gov.cn）— 国内首选，需先取 cookie
+2. **idcd.com** — 海外可用（GitHub Actions runner 在海外）
+3. **mxnzp.com** — 兜底（仅返回最新一期）
+
+任意一个成功即可，全部失败时跳过本次（不阻塞仓库）。
+
+## 🧪 本地数据维护
+
+```bash
+pip install -r requirements.txt    # 仅依赖 requests
+
+# 抓取最新开奖
+python3 scripts/fetch_latest.py
+
+# 重算 stats / latest
+python3 scripts/calc_all.py
+
+# 数据自检（必须全过）
+python3 scripts/verify_data.py
+
+# 更新 README 期数 badge
+python3 scripts/update_readme.py
+```
+
+## 📊 数据来源
+
+- 官方：[中国福利彩票发行管理中心 - 双色球](https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/)
+- 备用：idcd.com / mxnzp.com 第三方公开 API
 
 ## ⚠️ 免责声明
 
-> 🎰 彩票开奖为**完全随机事件**，以上统计分析仅供**娱乐参考**，不构成任何购买建议。请理性购彩！
+- 本项目仅作为前端数据可视化与编程学习用途
+- 历史开奖数据**不能预测未来**；任何"高分推荐 / 玄学选号"皆为娱乐
+- 请理性对待彩票，量力而行，未成年人请勿购彩
 
-## 📄 License
+## 📜 License
 
-[MIT](https://opensource.org/licenses/MIT) © 2026
-
----
-
-<p align="center">
-  <a href="https://github.com/zhouminghan/ssq-hub">⭐ Star this repo</a> ·
-  <a href="https://github.com/zhouminghan/ssq-hub/issues">🐛 Report Bug</a> ·
-  <a href="https://github.com/zhouminghan/ssq-hub/fork">🍴 Fork</a>
-</p>
+MIT

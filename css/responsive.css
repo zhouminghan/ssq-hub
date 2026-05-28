@@ -1,0 +1,46 @@
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  :root {
+    --header-h: 48px;
+    --ball: 22px;
+  }
+
+  .app-header h1 { font-size: 14px; }
+
+  .filter-bar {
+    padding: 8px 12px;
+    gap: 6px 10px;
+  }
+
+  .filter-tab { padding: 5px 10px; font-size: 12px; }
+  .quick-btn { padding: 4px 8px; font-size: 12px; }
+  .filter-input { width: 60px; font-size: 12px; }
+
+  .trend-table { font-size: 11px; }
+  .trend-table tbody td { height: 26px; min-width: 22px; }
+  .trend-table .ball { width: 20px; height: 20px; font-size: 11px; }
+
+  .trend-table thead th.col-issue,
+  .trend-table tbody td.col-issue,
+  .trend-table tfoot.picker-tfoot td.picker-title-cell { min-width: 64px; }
+  .trend-table thead th.col-date,
+  .trend-table tbody td.col-date { min-width: 72px; left: 64px; }
+
+  .picker { padding: 12px; }
+  .picker-zone { padding: 10px 12px; }
+  .picker-balls.red-grid { grid-template-columns: repeat(7, 1fr); }
+  .picker-balls.blue-grid { grid-template-columns: repeat(8, 1fr); }
+  .pick-ball { font-size: 12px; }
+
+  .picker-bar { flex-wrap: wrap; gap: 8px; }
+  .picker-bar .actions { width: 100%; justify-content: space-between; }
+  .btn-confirm { flex: 1; }
+
+  .app-footer { font-size: 11px; padding: 0 12px; }
+}
+
+@media (max-width: 480px) {
+  .filter-bar { font-size: 12px; }
+  .picker-balls.red-grid { grid-template-columns: repeat(7, 1fr); }
+  .trend-table thead th { font-size: 10px; padding: 4px 2px; }
+}

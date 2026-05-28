@@ -1,0 +1,54 @@
+name: 🌐 部署到 GitHub Pages
+
+# ─────────────────────────────────────────────────────────
+# 把仓库根目录作为静态站点发布到 GitHub Pages
+# 触发时机：
+#   · push 到 main / master，且影响站点的文件有变动
+#     （包括 update-data workflow 自动推上来的 data/ 变更）
+#   · 手动触发
+# ─────────────────────────────────────────────────────────
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'index.html'
+      - 'css/**'
+      - 'js/**'
+      - 'data/**'
+      - '.nojekyll'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+# GitHub Pages 需要的权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 防并发：同一时间只跑一个 deploy
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 拉取代码
+        uses: actions/checkout@v4
+
+      - name: ⚙️ 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 📦 打包站点 artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 整个仓库根目录作为静态站点（.git / .github 由 action 自动排除）
+          path: '.'
+
+      - name: 🚀 发布到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

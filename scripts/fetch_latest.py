@@ -3,9 +3,10 @@
 从网络抓取最新双色球开奖数据，覆盖更新按年存储的历史数据
 写入: data/history/{year}.json + data/history_index.json
 
-更新策略: 增量追加 + 同期号覆盖
+更新策略: 增量追加 + 同期号覆盖 + 按内容比对写入
   - 新期号 → 追加
   - 已有期号 → 用最新数据覆盖（确保数据勘误能同步）
+  - 写入前 byte 级比对：内容未变化的年份文件跳过写入（节省 IO + mtime 真实反映变更）
 
 支持多数据源自动切换:
   1. 福彩官方 API (cwl.gov.cn) — 国内首选
@@ -53,12 +54,24 @@ def load_all_draws():
 
 # ───────── 数据源 1: 福彩官方 ─────────
 def fetch_from_cwl():
-    """从福彩官网 API 获取数据"""
+    """从福彩官网 API 获取数据（需先访问首页拿 cookie，否则会 302/403）"""
     url = 'https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice'
     params = {'name': 'ssq', 'issueCount': 30}
-    headers = {**COMMON_HEADERS, 'Referer': 'https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/'}
+    headers = {
+        **COMMON_HEADERS,
+        'Referer': 'https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/',
+        'Accept': 'application/json, text/plain, */*',
+        'X-Requested-With': 'XMLHttpRequest',
+    }
     try:
-        resp = requests.get(url, params=params, headers=headers, timeout=30)
+        # 关键：先用 session 访问列表页，触发 cookie 下发
+        sess = requests.Session()
+        sess.headers.update(COMMON_HEADERS)
+        try:
+            sess.get('https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/', timeout=15)
+        except Exception:
+            pass  # cookie 拿不到也试一次直连
+        resp = sess.get(url, params=params, headers=headers, timeout=30)
         resp.raise_for_status()
         data = resp.json()
         draws = []
@@ -192,8 +205,31 @@ def draws_map_to_sorted_list(draws_map):
     return sorted(draws_map.values(), key=lambda x: x['issue'])
 
 
+def _write_if_changed(path, payload_str):
+    """如果磁盘上的文件内容与新内容 byte-级一致则跳过写入
+
+    增量优化：避免每次 fetch 都把全部 24 年文件重写一遍
+    - 节省 IO（实际场景下只有当年文件会变）
+    - 让 mtime 真实反映"哪一年发生了变更"，便于排查
+    - git diff 行为不变（git 本来就按内容比对）
+
+    Returns:
+        True 表示实际写入了，False 表示跳过
+    """
+    if os.path.exists(path):
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                if f.read() == payload_str:
+                    return False
+        except Exception:
+            pass  # 读不到/编码异常 → 走正常写入路径
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(payload_str)
+    return True
+
+
 def save_by_year(all_draws):
-    """按年份写入文件 + 更新索引"""
+    """按年份写入文件 + 更新索引（仅写入实际有变化的文件）"""
     os.makedirs(HISTORY_DIR, exist_ok=True)
 
     # 按年分组
@@ -202,27 +238,39 @@ def save_by_year(all_draws):
         year = d['date'][:4]
         by_year[year].append(d)
 
-    # 写入各年文件
+    # 写入各年文件（内容未变则跳过）
     years_info = []
+    written_years = []
+    skipped_years = []
     for year in sorted(by_year.keys()):
         year_draws = by_year[year]
         year_file = os.path.join(HISTORY_DIR, f'{year}.json')
-        with open(year_file, 'w', encoding='utf-8') as f:
-            json.dump(year_draws, f, ensure_ascii=False, indent=2)
+        payload = json.dumps(year_draws, ensure_ascii=False, indent=2)
+        if _write_if_changed(year_file, payload):
+            written_years.append(year)
+        else:
+            skipped_years.append(year)
         years_info.append({
             'year': year,
             'count': len(year_draws),
             'range': [year_draws[0]['date'], year_draws[-1]['date']],
         })
 
-    # 写入索引
+    # 写入索引（同样按内容比对）
     index = {
         'total': len(all_draws),
         'range': [all_draws[0]['date'], all_draws[-1]['date']],
         'years': years_info,
     }
-    with open(INDEX_FILE, 'w', encoding='utf-8') as f:
-        json.dump(index, f, ensure_ascii=False, indent=2)
+    index_payload = json.dumps(index, ensure_ascii=False, indent=2)
+    index_changed = _write_if_changed(INDEX_FILE, index_payload)
+
+    # 增量摘要
+    if written_years:
+        print(f'   ✏️  写入 {len(written_years)} 个年份文件: {", ".join(written_years)}')
+    if skipped_years:
+        print(f'   ⏭  跳过 {len(skipped_years)} 个未变化的年份文件')
+    print(f'   📑 history_index.json: {"已更新" if index_changed else "未变化（跳过）"}')
 
     return years_info
 

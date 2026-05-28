@@ -1,2 +1,2 @@
+# 抓取脚本唯一依赖（所有数据源都返回 JSON，不需要 HTML 解析）
 requests>=2.28
-beautifulsoup4>=4.12

@@ -1,0 +1,42 @@
+/* ── 设计 tokens ── */
+:root {
+  /* 颜色 */
+  --bg: #f5f6fa;
+  --bg-card: #ffffff;
+  --bg-soft: #fafbfc;
+  --border: #e6e8eb;
+  --border-strong: #d0d4d9;
+
+  --text: #1d2129;
+  --text-2: #4e5969;
+  --text-3: #86909c;
+  --text-4: #c9cdd4;
+
+  --red: #e34d59;
+  --red-deep: #c62a36;
+  --red-soft: #fde8ea;
+  --red-line: rgba(227, 77, 89, 0.55);
+
+  --blue: #4a90e2;
+  --blue-deep: #2c6cb0;
+  --blue-soft: #e6f0fa;
+  --blue-line: rgba(74, 144, 226, 0.55);
+
+  --gold: #f7b731;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* 尺寸 */
+  --header-h: 52px;
+  --filter-h: 56px;
+  --footer-h: 36px;
+  --picker-h: 320px;
+
+  --ball: 28px;
+  --ball-sm: 22px;
+
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+}

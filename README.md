@@ -7,20 +7,19 @@
 [![Data](https://img.shields.io/badge/dynamic/json?label=%E6%95%B0%E6%8D%AE%E9%87%8F&query=%24.total&url=https%3A%2F%2Fzhouminghan.github.io%2Fssq-hub%2Fdata%2Flatest.json&suffix=%E6%9C%9F&color=red)](https://zhouminghan.github.io/ssq-hub/data/latest.json)
 [![Latest](https://img.shields.io/badge/dynamic/json?label=%E6%9C%80%E6%96%B0%E6%9C%9F&query=%24.latest_draw.issue&url=https%3A%2F%2Fzhouminghan.github.io%2Fssq-hub%2Fdata%2Flatest.json&color=orange)](https://zhouminghan.github.io/ssq-hub/data/latest.json)
 [![Stack](https://img.shields.io/badge/Stack-纯原生JS-green)](#-技术栈)
-[![Update](https://img.shields.io/badge/数据更新-周二/四/日_22:30-purple)](#-数据自动更新)
 [![License](https://img.shields.io/badge/License-MIT-orange)](#-license)
 
-> 纯前端双色球走势图 Web 应用，零成本部署到 GitHub Pages，开奖数据通过 GitHub Actions 定时抓取并自动 commit 入库。
+> 纯前端双色球走势图 Web 应用，零成本部署到 GitHub Pages，开奖数据通过 GitHub Actions 自动入库。
 >
 > **本应用仅用于走势研究与数据可视化学习，与任何真实购彩行为无关。**
-
-> 上方两个红/橙色 badge 由 shields.io 实时拉取 `data/latest.json` 渲染，README 本身不需要每期更新。
 
 ---
 
 ## ✨ 核心功能
 
-- 📊 **走势图主表**：左 sticky 期号列 / 中红 33 + 蓝 16 球矩阵 / 右辅助列（**和值 · 奇偶 · 大小 · 区间 · 质合**）
+- 📊 **走势图主表**：左 sticky 期号列 / 中红 33 + 蓝 16 球矩阵 / 右 8 列辅助（**和值 · 跨度 · 大小形态 · 大小比 · 奇偶形态 · 奇偶比 · 质合形态 · 质合比**）
+  - 形态列按红球升序逐位标注，6 字串如 `小小小大大大` / `奇偶奇奇偶奇` / `质合合质合合`
+  - 字符双色编码：**小 / 偶 / 合 → 蓝**，**大 / 奇 / 质 → 红**，扫一眼即可感知形态分布
 - 🎨 **遗漏值与连号轨迹**：每个号码格显示遗漏值，蓝球用 SVG 连号轨迹叠加
 - 🔍 **三模式筛选**：近 N 期 / 指定年份 / 同期对比（如 2023055 vs 2024055 vs 2025055）
 - 🎟 **支付宝风格模拟选号**：表内 sticky 选号行 + 底部 dock
@@ -28,7 +27,8 @@
   - 草稿合法时草稿条上有红色「+ 加注」按钮
   - 单式上限 5 注（满后再加自动淘汰最旧的一注）
   - 新加入的注永远在 `#1`，老的下沉
-- 🤖 **数据自动更新**：GitHub Actions 定时（周二/四/日 22:30 北京时间）抓取最新开奖
+- 🧭 **右上角实时元信息**：`共 X 期 · 最新 YYYYNNN（日期）· 下期 YYYYNNN+1`，下期期号自动跨年进位（基于 `history_index.years[].count` 推算）
+- 🤖 **数据自动更新**：开奖日 GitHub Actions 自动抓取并 commit
 - 📱 **响应式设计**：移动端、平板、桌面全适配
 - 🚫 **零构建零依赖**：纯原生 ESM + 模块化 CSS，push 即生效
 
@@ -97,43 +97,22 @@ ssq-hub/
 
 ### 本地预览
 
-任意静态服务器即可，例如：
-
 ```bash
-# Python 3
 python3 -m http.server 8080
-
-# Node.js（如已安装）
-npx serve .
+# 或：npx serve .
 ```
 
-然后访问 `http://localhost:8080`。
+访问 `http://localhost:8080`。
 
 ## 🤖 数据自动更新
 
-双色球开奖时间：**周二 / 四 / 日 21:15 北京时间**。
-
-`update-data.yml` 多次重试以保证开奖数据能稳定入库：
-
-| 时间（北京时间） | 用途 |
-|---|---|
-| 开奖日 22:30 | 首次抓取（开奖后约 1 小时，数据源已就绪） |
-| 开奖日 23:30 | 重试 1（首次没抓到时兜底，例如官方源延迟） |
-| 次日 08:00 | 重试 2（极端情况，仍未抓到时最后一次兜底） |
-| 每月 1 日 02:00 | 强制重算 stats / latest（即便无新数据） |
-| 手动触发 | GitHub 网页 → Actions → Run workflow（可选 incremental / full 模式） |
-
-> 多次重试都是幂等的：抓到新期 → commit；没抓到 → 静默跳过，不污染仓库历史。
->
-> README 本身不会因数据更新而频繁变动 —— 期数和最新期号显示交给 shields.io 实时 badge。
+开奖日（周二 / 四 / 日）由 GitHub Actions 自动抓取并 commit 入库；详细机制见 [`CLAUDE.md`](./CLAUDE.md)。
 
 抓取数据源（按优先级 fallback）：
 
-1. **福彩官方 API**（cwl.gov.cn）— 国内首选，需先取 cookie
+1. **福彩官方 API**（cwl.gov.cn）— 国内首选
 2. **idcd.com** — 海外可用（GitHub Actions runner 在海外）
 3. **mxnzp.com** — 兜底（仅返回最新一期）
-
-任意一个成功即可，全部失败时跳过本次（不阻塞仓库）。
 
 ## 🧪 本地数据维护
 
@@ -160,6 +139,11 @@ python3 scripts/verify_data.py
 - 本项目仅作为前端数据可视化与编程学习用途
 - 历史开奖数据**不能预测未来**；任何"高分推荐 / 玄学选号"皆为娱乐
 - 请理性对待彩票，量力而行，未成年人请勿购彩
+
+延伸阅读（本仓库 `docs/`）：
+
+- [双色球概率统计](./docs/双色球概率统计.md) — 一等奖 1/1772 万、长期期望必亏的数学推导
+- [双色球真相](./docs/双色球真相.md) — 历史事件 / 管理腐败 / 制度公信力梳理
 
 ## 📜 License
 

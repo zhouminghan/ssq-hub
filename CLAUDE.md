@@ -79,7 +79,7 @@ ssq-hub/
 │   ├── verify_data.py      # 数据完整性 + 项目结构自检
 │   └── update_readme.py    # 更新 README 期数 badge
 └── .github/workflows/
-    ├── update-data.yml     # 开奖日 22:30 + 23:30 + 次日 08:00 三次重试 + 月初强制重算
+    ├── update-data.yml     # 开奖日 22:00 + 23:00 两次重试 + 月初强制重算
     └── deploy-pages.yml    # push 到 main 自动部署
 ```
 
@@ -87,7 +87,12 @@ ssq-hub/
 
 **`utils/format.js`** —— `structure(red[6])` 返回：
 ```js
-{ sum, odd, even, small, big, prime, composite, zone: '1:2:3', z1, z2, z3 }
+{
+  sum, span,                                  // 和值、跨度（max-min）
+  odd, even, small, big, prime, composite,    // 各类计数
+  zone: '1:2:3', z1, z2, z3,                  // 三区分布（保留，UI 已不展示）
+  bigSmallShape, oddEvenShape, primeShape,    // 升序后的形态串，如 "小小小大大大"
+}
 ```
 红球范围 1-33 的质数集：`[2,3,5,7,11,13,17,19,23,29,31]`。
 
@@ -104,14 +109,22 @@ ssq-hub/
 - 单式满 5 注后再加：数组首部最旧的被淘汰（即视觉上的 `#5`，老的下沉到底部被挤掉）
 - 数据结构和淘汰算法保持不变，"新的在顶"是纯渲染层处理 → 不影响 `data-idx` 索引映射
 
-**`trend-table.js` 列顺序**（共 55 列）：
+**`trend-table.js` 列顺序**（共 58 列）：
 ```
-期号 | 红1..33 | 蓝1..16 | 和值 | 奇偶 | 大小 | 区间 | 质合
+期号 | 红1..33 | 蓝1..16 | 和值 | 跨度 | 大小形态 | 大小比 | 奇偶形态 | 奇偶比 | 质合形态 | 质合比
 ```
+
+**形态列视觉约定**（`td.col-aux.col-shape`）：
+- 渲染：红球升序后逐字符 `<span class="s-xxx">`，等宽字体 + `letter-spacing: -0.5px`，`font-weight: 600`
+- 配色（CSS 变量来自 `theme.css`）：
+  - `.s-small` / `.s-even` / `.s-composite` → `var(--blue-deep)`
+  - `.s-big` / `.s-odd` / `.s-prime` → `var(--red-deep)`
+- 想加新形态列时：在 `format.js::structure()` 输出 `xxxShape` 字符串，在 `trend-table.js` 用同样的 `[...str].map(ch => h('span.s-xxx', null, ch))` 模式渲染
+
 任何加列/删列必须同步：
 1. `index.html` 中的 colspan（如有）
-2. `picker.js` 中 `picker-aux-fill` 的 `colspan`（当前为 5）
-3. `trend-table.js` 中空状态行的 `colspan: 55`
+2. `picker.js` 中 `picker-aux-fill` 的 `colspan`（当前为 8）
+3. `trend-table.js` 中空状态行的 `colspan: 58`
 4. `responsive.css` 中相应列宽
 
 ---
@@ -138,8 +151,15 @@ ssq-hub/
 
 - 工作流改动后，先用 `actionlint`（如本地有）或人工 review YAML
 - 时区：cron 用的是 UTC，注释里写明北京时间换算
-- `update-data.yml` 已有 `continue-on-error` 容错 + concurrency 互斥 + 多次重试（22:30 / 23:30 / 次日 08:00），不要随意收紧
-- 每次重试都是幂等的：抓到新期才 commit，否则静默跳过 → 不会污染历史
+- `update-data.yml` 当前节奏：
+  - **开奖日（周二/四/日）22:00**：首抓
+  - **开奖日 23:00**：兜底重试（仅在 22:00 没抓到时实际跑后续步骤）
+  - **每月 1 日 02:00**：强制重算 stats / latest（mode=full）
+  - 手动触发：GitHub 网页 Actions → Run workflow，可选 `incremental` / `full`
+- **幂等跳过逻辑**：每次抓取前先 check `data/latest.json`，若 `latest_draw.date == 今日（北京时间）` 则整流程跳过（fetch / calc / commit 全部 skip），避免无意义重复
+  - 例外：`mode=full` 与手动触发不会跳过（用户明确意图优先）
+- 抓不到新期时，`git diff --cached --quiet` 让 commit 静默跳过 → 不会污染历史
+- `continue-on-error` + concurrency 互斥已在位，不要随意收紧
 
 ### 增量更新设计约定
 
@@ -187,7 +207,7 @@ python3 scripts/verify_data.py
 
 ### 1. `picker.js` 的列对齐
 
-走势表有 55 列。模拟选号行（`tr.picker-row`）必须严格对齐 thead 列宽。
+走势表有 58 列。模拟选号行（`tr.picker-row`）必须严格对齐 thead 列宽。
 新增辅助列时，记得改 `picker-aux-fill` 的 colspan，否则右侧背景会缺一块。
 
 ### 2. `dock` 高度同步
@@ -215,6 +235,12 @@ import { qs } from './utils/dom';
 
 任何 `js/` 或 `css/` 下的文件增删，都要同步更新这个清单，否则 Action 自检会假绿/假红。
 
+### 6. 「下期期号」推算依赖 `history_index.years[].count`
+
+`utils/format.js::nextIssue(latest, idx)` 用当年 `count` 判定是否年末末期，再决定 `seq+1` 还是进位 `(year+1)001`。
+- 改 `history_index.json` 结构（删 `years[].count` / 改字段名）会让右上角"下期"回退到 `seq+1`，年末跨年那一两期会显示错误。
+- 跨年那几天（今年最后一期已开 ~ 次年首期入库前）`hasNextYear=false`，会临时显示同年 `seq+1`，下次抓取后自纠 —— 这是有意为之的兜底，别去"修"它。
+
 ---
 
 ## 📞 用户偏好
@@ -228,4 +254,4 @@ import { qs } from './utils/dom';
 
 ---
 
-最后更新：2026-05-28
+最后更新：2026-05-28（v3：辅助列扩 8 + 形态字符配色 + 下期跨年推算）

@@ -88,7 +88,7 @@ export function mountPickerInTable(table, dock) {
       ]),
     );
   }
-  tr.appendChild(h('td.col-aux.picker-aux-fill', { colspan: 5 }));
+  tr.appendChild(h('td.col-aux.picker-aux-fill', { colspan: 8 }));
 
   tfoot.appendChild(tr);
   table.appendChild(tfoot);

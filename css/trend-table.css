@@ -112,7 +112,7 @@
 .trend-table td.miss-hot .miss { color: #f7b731; font-weight: 700; }
 .trend-table td.miss-cold .miss { color: var(--blue); font-weight: 600; }
 
-/* 辅助列：和值/奇偶/大小/区间/质合 */
+/* 辅助列：和值/跨度/大小形态/大小比/奇偶形态/奇偶比/质合形态/质合比 */
 .trend-table td.col-aux {
   font-size: 11px;
   color: var(--text-2);
@@ -124,6 +124,23 @@
   font-weight: 700;
   color: var(--red-deep);
 }
+
+/* 形态列（大小/奇偶/质合）：6 个汉字串，字距收紧 + 等宽 */
+.trend-table td.col-aux.col-shape {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: -0.5px;
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+/* 形态字符配色：小/偶/合 → 蓝；大/奇/质 → 红 */
+.trend-table td.col-shape .s-small,
+.trend-table td.col-shape .s-even,
+.trend-table td.col-shape .s-composite { color: var(--blue-deep); }
+
+.trend-table td.col-shape .s-big,
+.trend-table td.col-shape .s-odd,
+.trend-table td.col-shape .s-prime { color: var(--red-deep); }
 
 /* 同期对比模式：每行年份 chip */
 .trend-table tbody td.col-issue .year-tag {

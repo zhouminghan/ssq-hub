@@ -6,6 +6,7 @@ import { mountFilterBar } from './filter-bar.js';
 import { renderTrend } from './trend-table.js';
 import { bindOverlay } from './trend-overlay.js';
 import { mountPickerInTable } from './picker.js';
+import { nextIssue } from './utils/format.js';
 
 const $meta = qs('#meta-info');
 const $loading = qs('#trend-loading');
@@ -22,8 +23,8 @@ async function init() {
     // 1. 加载基础信息
     const [idx, latest] = await Promise.all([loadIndex(), loadLatest()]);
     const draw = latest.latest_draw;
-    const nextIssue = String(Number(draw.issue) + 1).padStart(7, '0');
-    $meta.innerHTML = `共 <strong>${idx.total}</strong> 期 · 最新 <strong>${draw.issue}</strong>（${draw.date}）· 下期 <strong>${nextIssue}</strong>`;
+    const next = nextIssue(draw.issue, idx);
+    $meta.innerHTML = `共 <strong>${idx.total}</strong> 期 · 最新 <strong>${draw.issue}</strong>（${draw.date}）· 下期 <strong>${next}</strong>`;
 
     // 2. 装配筛选栏
     await mountFilterBar($filterBar);
@@ -83,11 +84,26 @@ async function renderByFilter() {
   disposeOverlay = bindOverlay($svg, $table, $scroll);
 
   // 滚动到底部（最新期数在最下方）
+  // 注意：renderTrend → mountPickerInTable → bindOverlay 后，布局还在收敛中，
+  // 单次 rAF 拿到的 scrollHeight 不一定是最终值。这里用双 rAF + 一次延迟兜底，
+  // 确保字体/sticky tfoot/SVG overlay 全部 layout 完成后再定位。
   if (draws.length > 0) {
-    requestAnimationFrame(() => {
-      $scroll.scrollTop = $scroll.scrollHeight;
-    });
+    scrollToBottom();
   }
+}
+
+/** 滚到走势表底部（多次兜底，确保布局收敛后是真正的底） */
+function scrollToBottom() {
+  const stick = () => {
+    $scroll.scrollTop = $scroll.scrollHeight;
+  };
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      stick();
+      // 再兜一次，防止 ResizeObserver 触发的 dock 高度变化让底部又长出来
+      setTimeout(stick, 80);
+    });
+  });
 }
 
 function showLoading() {

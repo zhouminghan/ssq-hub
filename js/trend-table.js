@@ -14,7 +14,7 @@ export function renderTrend(table, draws, opts = {}) {
   if (!draws || draws.length === 0) {
     const tbody = h('tbody', null, [
       h('tr', null, [
-        h('td', { colspan: 55 }, [
+        h('td', { colspan: 58 }, [
           h('div.trend-empty', null, '暂无数据，请调整筛选条件'),
         ]),
       ]),
@@ -23,7 +23,7 @@ export function renderTrend(table, draws, opts = {}) {
     return;
   }
 
-  // ── 表头：单行（期号 + 1..33 红 + 1..16 蓝 + 4 列辅助） ──
+  // ── 表头：单行（期号 + 1..33 红 + 1..16 蓝 + 8 列辅助） ──
   const thead = h('thead');
 
   const redHeads = [];
@@ -39,10 +39,13 @@ export function renderTrend(table, draws, opts = {}) {
     ...redHeads,
     ...blueHeads,
     h('th.zone-aux', null, '和值'),
-    h('th.zone-aux', null, '奇偶'),
-    h('th.zone-aux', null, '大小'),
-    h('th.zone-aux', null, '区间'),
-    h('th.zone-aux', null, '质合'),
+    h('th.zone-aux', null, '跨度'),
+    h('th.zone-aux', null, '大小形态'),
+    h('th.zone-aux', null, '大小比'),
+    h('th.zone-aux', null, '奇偶形态'),
+    h('th.zone-aux', null, '奇偶比'),
+    h('th.zone-aux', null, '质合形态'),
+    h('th.zone-aux', null, '质合比'),
   ]);
 
   thead.appendChild(tr);
@@ -113,11 +116,20 @@ export function renderTrend(table, draws, opts = {}) {
       }
     }
 
-    // 辅助列：和值 / 奇偶 / 大小 / 区间 / 质合
+    // 辅助列：和值 / 跨度 / 大小形态 / 大小比 / 奇偶形态 / 奇偶比 / 质合形态 / 质合比
     cells.push(h('td.col-aux', null, [h('span.sum-val', null, struct.sum)]));
-    cells.push(h('td.col-aux', null, `${struct.odd}:${struct.even}`));
+    cells.push(h('td.col-aux', null, struct.span));
+    cells.push(h('td.col-aux.col-shape', null,
+      [...struct.bigSmallShape].map((ch) =>
+        h(ch === '小' ? 'span.s-small' : 'span.s-big', null, ch))));
     cells.push(h('td.col-aux', null, `${struct.small}:${struct.big}`));
-    cells.push(h('td.col-aux', null, struct.zone));
+    cells.push(h('td.col-aux.col-shape', null,
+      [...struct.oddEvenShape].map((ch) =>
+        h(ch === '奇' ? 'span.s-odd' : 'span.s-even', null, ch))));
+    cells.push(h('td.col-aux', null, `${struct.odd}:${struct.even}`));
+    cells.push(h('td.col-aux.col-shape', null,
+      [...struct.primeShape].map((ch) =>
+        h(ch === '质' ? 'span.s-prime' : 'span.s-composite', null, ch))));
     cells.push(h('td.col-aux', null, `${struct.prime}:${struct.composite}`));
 
     const tr = h('tr', { dataset: { issue: d.issue } }, cells);

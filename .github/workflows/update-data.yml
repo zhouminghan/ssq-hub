@@ -1,21 +1,18 @@
 name: 🎰 更新双色球数据
 
-# 自动更新双色球开奖数据 workflow
 # 触发：
-#   · 开奖日（周二/四/日）22:30 + 23:30 + 次日 08:00 北京时间（多次重试，避免数据源未及时同步导致漏抓）
-#   · 每月 1 日 02:00 北京时间（强制重算）
+#   · 开奖日（周二/四/日）22:00 + 23:00 北京时间（首抓 + 一次兜底重试）
+#   · 每月 1 日 02:00 北京时间（强制重算 stats）
 #   · 手动触发
 #
-# 双色球开奖时间：周二/四/日 21:15 北京时间
-# 数据源同步通常在 21:30~22:00 之间完成，22:30 是首次抓取的合理时机
+# 双色球开奖时间：周二/四/日 21:15 北京时间，数据源 21:30~22:00 同步完成。
+# 幂等：抓取前先检查 data/latest.json，date == 今日（北京时间）则整流程跳过。
 "on":
   schedule:
-    # 开奖日 22:30 北京时间 = 14:30 UTC（首抓）
-    - cron: '30 14 * * 0,2,4'
-    # 开奖日 23:30 北京时间 = 15:30 UTC（重试 1：兜底数据源延迟）
-    - cron: '30 15 * * 0,2,4'
-    # 次日 08:00 北京时间 = 00:00 UTC（重试 2：极端情况下兜底）
-    - cron: '0 0 * * 1,3,5'
+    # 开奖日 22:00 北京时间 = 14:00 UTC（首抓）
+    - cron: '0 14 * * 0,2,4'
+    # 开奖日 23:00 北京时间 = 15:00 UTC（兜底重试，仅在 22:00 没抓到时实际执行）
+    - cron: '0 15 * * 0,2,4'
     # 每月 1 日凌晨 2:00 北京时间 = 18:00 UTC（前一天），强制重算
     - cron: '0 18 1 * *'
   # 允许手动在 GitHub 网页上点按钮触发
@@ -79,33 +76,67 @@ jobs:
           fi
           echo "触发模式: $(cat $GITHUB_OUTPUT)"
 
-      # 5. 抓取最新开奖数据（多源容错；fetch_latest.py 内部已按顺序尝试 3 个数据源）
+      # 5. 幂等检查：incremental 模式下，若 latest.json 的 date 已经是今天（北京时间），
+      #    说明本期已抓取过，后续重试无需再跑——节省资源、避免噪音 commit
+      #    full 模式 / 手动触发的 incremental 不跳过（用户的明确意图优先）
+      - name: ⏭️  检查是否已抓取本期
+        id: check
+        run: |
+          TODAY=$(TZ='Asia/Shanghai' date '+%Y-%m-%d')
+          echo "今日（北京时间）: $TODAY"
+
+          if [ "${{ steps.mode.outputs.mode }}" = "full" ]; then
+            echo "→ full 模式，不跳过"
+            echo "skip=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "→ 手动触发，不跳过"
+            echo "skip=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          LATEST_DATE=$(python -c "import json; print(json.load(open('data/latest.json'))['latest_draw']['date'])" 2>/dev/null || echo "")
+          echo "latest.json 中最新一期: $LATEST_DATE"
+
+          if [ "$LATEST_DATE" = "$TODAY" ]; then
+            echo "✅ 本期数据已存在，跳过本次重试"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "→ 本期尚未抓取，继续执行"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 6. 抓取最新开奖数据（多源容错；fetch_latest.py 内部已按顺序尝试 3 个数据源）
       - name: 🌐 抓取最新开奖数据
         id: fetch
+        if: steps.check.outputs.skip != 'true'
         continue-on-error: true
         run: |
           python scripts/fetch_latest.py
           echo "fetch_ok=true" >> $GITHUB_OUTPUT
 
-      # 6. 重算统计：增量模式仅在抓取成功时跑；full 模式无条件跑
+      # 7. 重算统计：增量模式仅在抓取成功时跑；full 模式无条件跑
       - name: 📊 重算统计数据
-        if: steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full'
+        if: steps.check.outputs.skip != 'true' && (steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full')
         run: python scripts/calc_all.py
 
-      # 7. 更新 README 期数信息
+      # 8. 更新 README 期数信息
       - name: 📝 更新 README 期数 badge
-        if: steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full'
+        if: steps.check.outputs.skip != 'true' && (steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full')
         run: python scripts/update_readme.py
 
-      # 8. 数据自检（不阻塞 commit，但要在日志里能看到结果）
+      # 9. 数据自检（不阻塞 commit，但要在日志里能看到结果）
       - name: 🔍 数据自检
-        if: steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full'
+        if: steps.check.outputs.skip != 'true' && (steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full')
         run: python scripts/verify_data.py
         continue-on-error: true
 
-      # 9. 如果 data/ 或 README 有变化，commit 回主分支
-      #    重试 cron 的好处：本次抓到了新期 → 触发 commit；没抓到 → 静默跳过
+      # 10. 如果 data/ 或 README 有变化，commit 回主分支
+      #     重试 cron 的好处：本次抓到了新期 → 触发 commit；没抓到 → 静默跳过
       - name: 💾 提交数据变更
+        if: steps.check.outputs.skip != 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -119,3 +150,4 @@ jobs:
             git push
             echo "✅ 数据已更新并推送"
           fi
+

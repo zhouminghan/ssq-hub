@@ -9,13 +9,14 @@
   - 写入前 byte 级比对：内容未变化的年份文件跳过写入（节省 IO + mtime 真实反映变更）
 
 支持多数据源自动切换:
-  1. 福彩官方 API (cwl.gov.cn) — 国内首选
-  2. 备用 API (idcd.com) — 海外 GitHub Actions 可用
-  3. 备用 API (mxnzp.com) — 兜底
+  1. 福彩官方 API (cwl.gov.cn) — 国内 IP 首选；GitHub Actions 海外段会 403
+  2. 500 彩票网 (datachart.500.com) — 海外可用，HTML 表格解析，无需 key
+  3. 备用 API (idcd.com) — 第三方 JSON，曾返回空
 """
 
 import json
 import os
+import re
 import sys
 import glob
 import time
@@ -131,36 +132,67 @@ def fetch_from_idcd():
         return []
 
 
-# ───────── 数据源 3: mxnzp.com 备用 ─────────
-def fetch_from_mxnzp():
-    """从 mxnzp.com 通用彩票 API 获取数据"""
-    url = 'https://www.mxnzp.com/api/lottery/common/latest'
-    params = {'code': 'ssq'}
+# ───────── 数据源 3: 500 彩票网 ─────────
+# datachart.500.com 返回 HTML 表格，对 UA 宽松、无需 cookie/referer
+# 海外（GitHub Actions）实测可用，是 cwl.gov.cn 被 403 时的主力替补
+# 行格式（一行一期，紧凑无换行）：
+#   <tr class="t_tr1"><!--<td>2</td>--><td>26060</td>
+#     <td class="t_cfont2">07</td>...<td class="t_cfont2">27</td>   ← 6 个红球
+#     <td class="t_cfont4">11</td>                                   ← 蓝球
+#     <td class="t_cfont4">&nbsp;</td><td>奖池</td>...<td>2026-05-28</td>
+#   </tr>
+_RE_ROW = re.compile(r'<tr class="t_tr1">.*?</tr>', re.DOTALL)
+_RE_RED = re.compile(r'<td class="t_cfont2">(\d+)</td>')
+_RE_BLUE = re.compile(r'<td class="t_cfont4">(\d+)</td>')
+_RE_ISSUE = re.compile(r'<td>(\d{5})</td>')         # 期号 5 位（如 26060）
+_RE_DATE = re.compile(r'<td>(\d{4}-\d{2}-\d{2})</td>')
+
+
+def fetch_from_500():
+    """从 500 彩票网 datachart 获取数据（解析 HTML 表格）
+
+    - 一次抓最近 30 期
+    - 期号在页面里是 5 位（年份后两位 + 3 位序号），需补全为 7 位（如 26060 → 2026060）
+    """
+    url = 'https://datachart.500.com/ssq/history/newinc/history.php'
+    # start 留空让它默认返回最近期，end 给一个未来值确保覆盖到最新
+    # 经测：仅传 limit 不行，需要 start+end；用宽口径让站点自己截最近 30 期
+    params = {'start': '03001', 'end': '99999', 'limit': 30}
     try:
         resp = requests.get(url, params=params, headers=COMMON_HEADERS, timeout=30)
         resp.raise_for_status()
-        data = resp.json()
-        if data.get('code') != 1:
-            print(f'  ⚠️ mxnzp.com API 返回错误: {data.get("msg")}')
+        # 站点 charset 是 gb2312，但我们只关心数字和日期 ASCII，不解码也行
+        html = resp.text
+        rows = _RE_ROW.findall(html)
+        if not rows:
+            print('  ⚠️ 500 彩票网 未匹配到数据行')
             return []
-        item = data.get('data', {})
-        if not item:
-            return []
-        try:
-            opencode = item.get('openCode', '')
-            parts = opencode.split('+')
-            red = sorted([int(x) for x in parts[0].split(',')])
-            blue = int(parts[1].strip()) if len(parts) > 1 else 0
-            issue = item.get('expect', '')
-            date = item.get('openTime', '')[:10]
-            if red and blue and issue and date:
-                print(f'  ✅ mxnzp.com API 返回 1 期 (最新期)')
-                return [{'issue': issue, 'date': date, 'red': red, 'blue': blue}]
-        except (ValueError, TypeError, IndexError):
-            pass
-        return []
+        draws = []
+        for row in rows:
+            issue_m = _RE_ISSUE.search(row)
+            reds = _RE_RED.findall(row)
+            blue_m = _RE_BLUE.search(row)
+            date_m = _RE_DATE.search(row)
+            if not (issue_m and len(reds) == 6 and blue_m and date_m):
+                continue
+            short_issue = issue_m.group(1)          # "26060"
+            date = date_m.group(1)                  # "2026-05-28"
+            year = date[:4]                         # "2026"
+            # 补全期号：年份前两位 + 5 位短期号 = 7 位
+            issue = year[:2] + short_issue
+            draws.append({
+                'issue': issue,
+                'date': date,
+                'red': sorted(int(x) for x in reds),
+                'blue': int(blue_m.group(1)),
+            })
+        # 500 默认按期号倒序，统一翻成升序方便后续合并
+        draws.sort(key=lambda x: x['issue'])
+        if draws:
+            print(f'  ✅ 500 彩票网 返回 {len(draws)} 期 (最新 {draws[-1]["issue"]})')
+        return draws
     except Exception as e:
-        print(f'  ⚠️ mxnzp.com API 失败: {e}')
+        print(f'  ⚠️ 500 彩票网 失败: {e}')
         return []
 
 
@@ -168,8 +200,8 @@ def fetch_latest_draws():
     """依次尝试多个数据源，返回获取到的开奖数据"""
     sources = [
         ('福彩官方', fetch_from_cwl),
+        ('500 彩票网', fetch_from_500),
         ('idcd.com', fetch_from_idcd),
-        ('mxnzp.com', fetch_from_mxnzp),
     ]
     for name, fetcher in sources:
         print(f'🔄 尝试数据源: {name}')

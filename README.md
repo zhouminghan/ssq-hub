@@ -1,13 +1,20 @@
 # 🎱 ssq-hub · 双色球走势图
 
-[![Pages](https://img.shields.io/badge/GitHub_Pages-自动部署-blue)](#-部署)
-[![Data](https://img.shields.io/badge/📊_数据量-3456期-red)](#-数据来源)
+🌐 **在线访问**：[https://zhouminghan.github.io/ssq-hub/](https://zhouminghan.github.io/ssq-hub/)
+🛠 **GitHub 仓库**：[github.com/zhouminghan/ssq-hub](https://github.com/zhouminghan/ssq-hub)
+
+[![Pages](https://img.shields.io/badge/GitHub_Pages-自动部署-blue)](https://zhouminghan.github.io/ssq-hub/)
+[![Data](https://img.shields.io/badge/dynamic/json?label=%E6%95%B0%E6%8D%AE%E9%87%8F&query=%24.total&url=https%3A%2F%2Fzhouminghan.github.io%2Fssq-hub%2Fdata%2Flatest.json&suffix=%E6%9C%9F&color=red)](https://zhouminghan.github.io/ssq-hub/data/latest.json)
+[![Latest](https://img.shields.io/badge/dynamic/json?label=%E6%9C%80%E6%96%B0%E6%9C%9F&query=%24.latest_draw.issue&url=https%3A%2F%2Fzhouminghan.github.io%2Fssq-hub%2Fdata%2Flatest.json&color=orange)](https://zhouminghan.github.io/ssq-hub/data/latest.json)
 [![Stack](https://img.shields.io/badge/Stack-纯原生JS-green)](#-技术栈)
+[![Update](https://img.shields.io/badge/数据更新-周二/四/日_22:30-purple)](#-数据自动更新)
 [![License](https://img.shields.io/badge/License-MIT-orange)](#-license)
 
 > 纯前端双色球走势图 Web 应用，零成本部署到 GitHub Pages，开奖数据通过 GitHub Actions 定时抓取并自动 commit 入库。
 >
 > **本应用仅用于走势研究与数据可视化学习，与任何真实购彩行为无关。**
+
+> 上方两个红/橙色 badge 由 shields.io 实时拉取 `data/latest.json` 渲染，README 本身不需要每期更新。
 
 ---
 
@@ -24,14 +31,6 @@
 - 🤖 **数据自动更新**：GitHub Actions 定时（周二/四/日 22:30 北京时间）抓取最新开奖
 - 📱 **响应式设计**：移动端、平板、桌面全适配
 - 🚫 **零构建零依赖**：纯原生 ESM + 模块化 CSS，push 即生效
-
-## 📦 数据信息
-
-<!-- DATA-INFO -->
-- 数据期数：**3456** 期
-- 时间范围：2003-02-23 ~ 2026-05-26
-- 最新期号：2026059
-<!-- /DATA-INFO -->
 
 ## 🛠 技术栈
 
@@ -73,13 +72,13 @@ ssq-hub/
 ├── data/                   # 静态数据（自动更新）
 │   ├── history/            # 按年存储 2003.json ... 2026.json
 │   ├── history_index.json  # 年份索引
-│   ├── latest.json         # 最新一期
+│   ├── latest.json         # 最新一期（badge 数据来源）
 │   └── stats.json          # 频次/遗漏/结构
 ├── scripts/                # Python 数据脚本
 │   ├── fetch_latest.py     # 多源容错抓取
 │   ├── calc_all.py         # 重算 stats/latest
 │   ├── verify_data.py      # 数据自检
-│   └── update_readme.py    # 更新 README 期数
+│   └── update_readme.py    # README 检查（已不再写入，保留为兼容）
 ├── .github/workflows/
 │   ├── update-data.yml     # 定时抓取
 │   └── deploy-pages.yml    # 部署 Pages
@@ -125,6 +124,8 @@ npx serve .
 | 手动触发 | GitHub 网页 → Actions → Run workflow（可选 incremental / full 模式） |
 
 > 多次重试都是幂等的：抓到新期 → commit；没抓到 → 静默跳过，不污染仓库历史。
+>
+> README 本身不会因数据更新而频繁变动 —— 期数和最新期号显示交给 shields.io 实时 badge。
 
 抓取数据源（按优先级 fallback）：
 
@@ -147,9 +148,6 @@ python3 scripts/calc_all.py
 
 # 数据自检（必须全过）
 python3 scripts/verify_data.py
-
-# 更新 README 期数 badge
-python3 scripts/update_readme.py
 ```
 
 ## 📊 数据来源

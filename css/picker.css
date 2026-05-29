@@ -38,7 +38,12 @@
   text-align: left;
   padding: 0 8px;
   background: linear-gradient(180deg, #fffaf5 0%, #fff 100%);
-  box-shadow: 2px 0 0 var(--border-strong), 0 -3px 8px rgba(0, 0, 0, 0.05);
+  /* 右侧分隔用 border + 上方阴影保留作为 dock 视觉提示；快速滚动穿透由 isolation+translateZ 阻止 */
+  border-right: 1px solid var(--border-strong);
+  box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.05);
+  isolation: isolate;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .trend-table tfoot.picker-tfoot td.picker-title-cell .title-main {

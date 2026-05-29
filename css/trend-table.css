@@ -25,11 +25,17 @@
 
 .trend-table thead th.col-issue {
   position: sticky;
-  background: var(--bg-soft);
+  /* 不透明纯色背景：避免 var(--bg-soft) 在某些移动端 GPU 合成层渲染时被误判半透明 */
+  background-color: #f8f9fb;
   z-index: 7; /* 高于 thead th 的 5 + tbody td.col-issue 的 4，确保横向滚动时盖住红/蓝球 */
   left: 0;
   min-width: 80px;
-  box-shadow: 2px 0 0 var(--border-strong);
+  /* border-right 比 box-shadow 更稳：iOS Safari 快速滚动时 box-shadow 会因合成层未及时绘制而出现"穿透" */
+  border-right: 1px solid var(--border-strong);
+  /* 隔离合成上下文 + 强制 GPU 层 → 阻止快速滚动时下层红球的 paint 漏出来 */
+  isolation: isolate;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .trend-table thead th.zone-red { background: linear-gradient(180deg, #fef2f3, var(--red-soft)); color: var(--red-deep); }
@@ -58,17 +64,23 @@
 .trend-table tbody td.col-issue {
   position: sticky;
   z-index: 4; /* 高于普通 td（默认 auto）和 .ball 等子元素，确保横向滚动时红/蓝球不穿透 */
-  background: var(--bg-card);
+  /* 不透明纯色背景：iOS Safari 快速滚动时 var(--bg-card) 偶尔会被合成层判为透明 */
+  background-color: #ffffff;
   font-weight: 500;
   color: var(--text-2);
   padding: 0 8px;
   left: 0;
   min-width: 80px;
-  box-shadow: 2px 0 0 var(--border-strong);
+  /* border-right 替代 box-shadow，避免快速滚动时 GPU 合成层延迟绘制造成红球穿透 */
+  border-right: 1px solid var(--border-strong);
+  /* 隔离合成上下文 + 强制 GPU 层 */
+  isolation: isolate;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .trend-table tbody tr:hover td.col-issue {
-  background: #fffaf5;
+  background-color: #fffaf5;
 }
 
 /* 球：未命中显示遗漏值（小灰字），命中显示彩色圆球 */

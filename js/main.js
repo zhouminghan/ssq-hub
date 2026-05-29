@@ -32,6 +32,8 @@ async function init() {
     // 3. dock 高度同步给 trend-scroll padding-bottom（picker tfoot 在 renderByFilter 中挂载）
     syncDockHeight();
     new ResizeObserver(syncDockHeight).observe($pickerDock);
+    // picker.js 折叠/展开/数据变更后会派发，主动触发一次重算
+    window.addEventListener('picker:layoutChange', syncDockHeight);
 
     // 4. 订阅 filter 变化 → 重新加载并渲染
     store.subscribe(async (key) => {

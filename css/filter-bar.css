@@ -182,3 +182,47 @@
 }
 
 .btn-ghost:hover { color: var(--red); border-color: var(--red); }
+
+/* 「自定义…」按钮：稍微淡一点，避免抢镜 */
+.btn-custom {
+  font-size: 12px;
+  padding: 0 10px;
+  color: var(--text-3);
+  border-style: dashed;
+}
+.btn-custom:hover { color: var(--red); border-style: solid; }
+
+/* 自定义期数 popover：浮在按钮下方 */
+.custom-popover {
+  z-index: 100;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+  animation: popIn 0.15s ease-out;
+}
+
+.custom-popover-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.custom-popover .filter-input {
+  flex: 1;
+  width: auto;
+}
+
+.custom-popover .filter-hint {
+  font-size: 11px;
+  color: var(--text-3);
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: center;
+}

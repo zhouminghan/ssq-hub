@@ -50,6 +50,9 @@ const state = {
   reds: new Set(),
   blues: new Set(),
   bets: [],
+  // dock 折叠态（仅移动端生效）：默认折叠，点击 toggle 展开
+  // 桌面端通过 CSS 强制不折叠（display），不读这个值
+  collapsed: true,
 };
 
 let dockEl = null;
@@ -119,6 +122,19 @@ function applySelection(tr) {
 function initDock(dock) {
   clear(dock);
 
+  // ── 折叠条（仅移动端可见，CSS 控制）──
+  // 显示当前合计（让用户在折叠态也能看到金额），点击切换展开/折叠
+  const toggleBar = h('button.picker-toggle', { id: 'picker-toggle', type: 'button' }, [
+    h('span.toggle-label', null, '🎲 模拟选号'),
+    h('span.toggle-summary', { id: 'toggle-summary' }, '0 注 · ¥0'),
+    h('span.toggle-caret', { id: 'toggle-caret' }, '▾'),
+  ]);
+  dock.appendChild(toggleBar);
+  toggleBar.addEventListener('click', () => {
+    state.collapsed = !state.collapsed;
+    syncCollapsedClass();
+  });
+
   // 投注结果面板：左单式 / 右复式 / 底部合计
   const resultPanel = h('div.picker-result', { id: 'picker-result' }, [
     h('div.result-cols', null, [
@@ -184,7 +200,19 @@ function initDock(dock) {
     applyAndRefresh();
   });
 
+  syncCollapsedClass();
   refreshDock();
+}
+
+/** 同步折叠态到 dock 根元素的 class（CSS 据此显示/隐藏 result 面板）
+ *  桌面端 CSS 用 media query 强制忽略此 class，永远展开 */
+function syncCollapsedClass() {
+  if (!dockEl) return;
+  dockEl.classList.toggle('is-collapsed', state.collapsed);
+  const caret = qs('#toggle-caret', dockEl);
+  if (caret) caret.textContent = state.collapsed ? '▾' : '▴';
+  // 高度变了通知 main.js 重算 trend-scroll padding
+  window.dispatchEvent(new CustomEvent('picker:layoutChange'));
 }
 
 function addSingleBets(n) {
@@ -432,6 +460,11 @@ function refreshDock() {
   qs('#total-detail', dockEl).textContent =
     `单式 ¥${singleTotal} + 复式 ¥${multiTotal}`;
   qs('#bet-total', dockEl).textContent = `¥${grandTotal}`;
+
+  // 折叠条上的总注数 + 总金额（移动端折叠态也能看到）
+  const totalNotes = singleNotes + curSingleNotes + multiNotes + curMultiNotes;
+  const summaryEl = qs('#toggle-summary', dockEl);
+  if (summaryEl) summaryEl.textContent = `${totalNotes} 注 · ¥${grandTotal}`;
 
   // 通知 main.js 同步 dock 高度（CSS 变量）
   window.dispatchEvent(new CustomEvent('picker:layoutChange'));

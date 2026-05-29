@@ -1,20 +1,43 @@
 /* ── 响应式 ── */
+
+/* 桌面端微调：把 picker dock 列表高度从 160 → 140，给走势图多一点空间 */
+@media (min-width: 769px) {
+  .result-list { height: 140px; }
+}
+
 @media (max-width: 768px) {
   :root {
-    --header-h: 48px;
+    --header-h: 44px; /* 桌面 52 → 44，再省 8px */
+    --filter-h: 40px; /* 桌面 56 → 40，单行紧凑 */
+    --footer-h: 28px; /* 桌面 36 → 28 */
     --ball: 22px;
   }
 
-  .app-header h1 { font-size: 14px; }
-
-  .filter-bar {
-    padding: 8px 12px;
-    gap: 6px 10px;
+  .app-header {
+    padding: 0 12px;
   }
+  .app-header h1 { font-size: 14px; }
+  .app-header .meta { font-size: 10px; }
 
-  .filter-tab { padding: 5px 10px; font-size: 12px; }
-  .quick-btn { padding: 4px 8px; font-size: 12px; }
-  .filter-input { width: 60px; font-size: 12px; }
+  /* filter-bar：移动端强制单行，padding 收紧 */
+  .filter-bar {
+    padding: 5px 10px;
+    gap: 6px;
+    flex-wrap: nowrap; /* 不换行：A 改造后控件少，可以放下 */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+
+  .filter-tabs { padding: 2px; }
+  .filter-tab { padding: 4px 10px; font-size: 12px; }
+  .filter-panel { gap: 6px; flex-wrap: nowrap; }
+  .filter-select { height: 28px; font-size: 12px; }
+  .btn-ghost, .btn-custom { height: 28px; font-size: 12px; padding: 0 10px; }
+  .filter-label { font-size: 11px; }
+
+  /* popover 移动端：贴左不贴边 */
+  .custom-popover { min-width: 180px; }
 
   .trend-table { font-size: 11px; }
   .trend-table tbody td { height: 26px; min-width: 22px; }
@@ -43,14 +66,19 @@
   .picker-bar .actions { width: 100%; justify-content: space-between; }
   .btn-confirm { flex: 1; }
 
-  .app-footer { font-size: 11px; padding: 0 12px; }
+  .app-footer { font-size: 10px; padding: 0 10px; }
 
-  /* ── 模拟选号 dock：移动端改为单列堆叠（单式上 / 复式下）── */
-  /* 桌面端的 1fr 1fr 在 ~360px 屏宽下每列只剩 ~120px 球区，
-   * 一注 7 球（含序号 + 删除）≈200px，必折行；复式更挤。
-   * 改成单列后每条注横向有 ~330px，单式正好不折，复式再用两行布局兜底。 */
-  .picker-dock { padding: 6px 10px 8px; gap: 4px; }
+  /* ── 模拟选号 dock：移动端启用折叠模式 ── */
+  /* 折叠条移动端可见 */
+  .picker-toggle { display: inline-flex; }
 
+  /* dock 容器移动端紧凑 */
+  .picker-dock { padding: 5px 8px 7px; gap: 5px; }
+
+  /* 折叠态：隐藏 result 面板，只剩折叠条（dock 高度 ≈ 44px，比展开 240px 省 ~200px） */
+  .picker-dock.is-collapsed .picker-result { display: none; }
+
+  /* 展开态：复用之前的"单列堆叠"策略 */
   .result-cols {
     grid-template-columns: 1fr;
   }
@@ -64,8 +92,8 @@
   .result-col-head .head-meta { font-size: 10px; }
   .btn-mini { font-size: 10px; padding: 2px 6px; }
 
-  /* 列表区高度：堆叠后单/复各 96px（合计与桌面端 160 持平，dock 总高不爆） */
-  .result-list { height: 96px; padding: 3px 8px; }
+  /* 列表区高度：堆叠后单/复各 88px（再缩 8px）*/
+  .result-list { height: 88px; padding: 3px 8px; }
 
   /* mini-ball：20 → 18，给一注内更多球留空间 */
   .mini-ball { width: 18px; height: 18px; font-size: 10px; }
@@ -117,4 +145,7 @@
   .mini-ball { width: 16px; height: 16px; font-size: 9px; }
   .result-item .idx { width: 20px; }
   .result-item.multi .balls { padding-left: 20px; }
+
+  /* 极窄屏 filter：tab 文字再缩一档 */
+  .filter-tab { padding: 3px 8px; font-size: 11px; }
 }

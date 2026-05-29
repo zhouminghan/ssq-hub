@@ -121,6 +121,38 @@
   gap: 6px;
 }
 
+/* ── 折叠条（仅移动端可见，桌面端 display:none）── */
+.picker-toggle {
+  display: none; /* 桌面默认隐藏 */
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: linear-gradient(90deg, #fff5f6 0%, #fffaf5 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.picker-toggle .toggle-label { flex: 0 0 auto; }
+.picker-toggle .toggle-summary {
+  flex: 1 1 auto;
+  text-align: right;
+  color: var(--red-deep);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.picker-toggle .toggle-caret {
+  flex: 0 0 auto;
+  color: var(--text-3);
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+
 /* trend-scroll 给 dock 留出空间（动态高度，由 --picker-dock-h 控制） */
 .trend-wrap { padding-bottom: 0; }
 .trend-scroll { padding-bottom: var(--picker-dock-h, 220px); }

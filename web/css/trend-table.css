@@ -6,6 +6,10 @@
   background: var(--bg-card);
   border-collapse: separate;
   border-spacing: 0;
+  /* 移动端兜底：表格内的 sticky 单元格（col-issue / picker-row）有
+   * transform+isolation 形成独立合成层，iOS 上偶尔会单独拦截手势导致
+   * 横滑/纵滑失效。显式声明 pan-x pan-y 让所有子元素共享同一手势策略。 */
+  touch-action: pan-x pan-y;
 }
 
 .trend-table thead th {

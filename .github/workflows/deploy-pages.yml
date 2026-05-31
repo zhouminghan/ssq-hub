@@ -11,11 +11,7 @@ on:
   push:
     branches: [main, master]
     paths:
-      - 'index.html'
-      - 'css/**'
-      - 'js/**'
-      - 'data/**'
-      - '.nojekyll'
+      - 'web/**'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -46,8 +42,8 @@ jobs:
       - name: 📦 打包站点 artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # 整个仓库根目录作为静态站点（.git / .github 由 action 自动排除）
-          path: '.'
+          # 仅 web/ 目录作为静态站点（其余 scripts/.github/docs 等不发布）
+          path: './web'
 
       - name: 🚀 发布到 GitHub Pages
         id: deployment

@@ -27,6 +27,9 @@
   - 草稿合法时草稿条上有红色「+ 加注」按钮
   - 单式上限 5 注（满后再加自动淘汰最旧的一注）
   - 新加入的注永远在 `#1`，老的下沉
+  - **6 种机选策略**：均匀随机 / 偏冷号 / 偏热号 / 大遗漏 / 三区均衡 / 奇偶均衡（仅加权随机，不构成投注建议）
+- 🔎 **号码画像抽屉**：点走势表任意红/蓝号码 → 右抽屉滑出，展示频次（全局/近 100/近 50）、当前遗漏、历史最长遗漏（含发生期号）、最近 5 次出现期号；移动端全屏
+- ✨ **最近 5 期命中高亮**：仅最末 5 行命中球加柔和金边脉冲，肉眼一秒定位本期号码
 - 🧭 **右上角实时元信息**：`共 X 期 · 最新 YYYYNNN（日期）· 下期 YYYYNNN+1`，下期期号自动跨年进位（基于 `history_index.years[].count` 推算）
 - 🤖 **数据自动更新**：开奖日 GitHub Actions 自动抓取并 commit
 - 📱 **响应式设计**：移动端、平板、桌面全适配
@@ -47,44 +50,48 @@
 
 ```
 ssq-hub/
-├── index.html              # 单页入口
-├── css/                    # 模块化样式
-│   ├── reset.css
-│   ├── theme.css           # 设计 tokens
-│   ├── layout.css
-│   ├── filter-bar.css
-│   ├── trend-table.css
-│   ├── trend-overlay.css
-│   ├── picker.css
-│   └── responsive.css
-├── js/                     # ES Modules
-│   ├── main.js             # 入口
-│   ├── store.js            # pub/sub 状态
-│   ├── data-loader.js      # 数据加载层
-│   ├── filter-bar.js       # 筛选栏
-│   ├── trend-table.js      # 走势表
-│   ├── trend-overlay.js    # SVG 连号轨迹
-│   ├── picker.js           # 选号器
-│   └── utils/
-│       ├── dom.js
-│       ├── format.js
-│       └── lottery.js
-├── data/                   # 静态数据（自动更新）
-│   ├── history/            # 按年存储 2003.json ... 2026.json
-│   ├── history_index.json  # 年份索引
-│   ├── latest.json         # 最新一期（badge 数据来源）
-│   └── stats.json          # 频次/遗漏/结构
-├── scripts/                # Python 数据脚本
-│   ├── fetch_latest.py     # 多源容错抓取
-│   ├── calc_all.py         # 重算 stats/latest
-│   ├── verify_data.py      # 数据自检
-│   └── update_readme.py    # README 检查（已不再写入，保留为兼容）
+├── web/                     # 🌐 前端静态资源（GitHub Pages 发布根）
+│   ├── index.html
+│   ├── .nojekyll            # 避免 Jekyll 处理
+│   ├── css/                 # 模块化样式
+│   │   ├── reset.css
+│   │   ├── theme.css        # 设计 tokens
+│   │   ├── layout.css
+│   │   ├── filter-bar.css
+│   │   ├── trend-table.css
+│   │   ├── trend-overlay.css
+│   │   ├── picker.css
+│   │   ├── number-profile.css  # 号码画像抽屉
+│   │   └── responsive.css
+│   ├── js/                  # ES Modules
+│   │   ├── main.js          # 入口
+│   │   ├── store.js         # pub/sub 状态
+│   │   ├── data-loader.js   # 数据加载层（含 loadStats）
+│   │   ├── filter-bar.js    # 筛选栏
+│   │   ├── trend-table.js   # 走势表（号码点击 → 画像抽屉）
+│   │   ├── trend-overlay.js # SVG 连号轨迹
+│   │   ├── picker.js        # 选号器（含 6 种策略机选）
+│   │   ├── number-profile.js   # 号码画像抽屉
+│   │   └── utils/
+│   │       ├── dom.js
+│   │       ├── format.js
+│   │       └── lottery.js   # 含 randomPickByStrategy + STRATEGIES
+│   └── data/                # 静态数据（自动更新）
+│       ├── history/         # 按年存储 2003.json ... 2026.json
+│       ├── history_index.json
+│       ├── latest.json      # badge 数据来源
+│       └── stats.json       # 频次/遗漏/每号画像/连号/同尾/AC 值
+├── scripts/                 # Python 数据脚本
+│   ├── fetch_latest.py      # 多源容错抓取
+│   ├── calc_all.py          # 重算 stats/latest（含每号画像 + 模式分布）
+│   ├── verify_data.py       # 数据自检（含 stats 新鲜度检查）
+│   └── update_readme.py     # README 检查（已不再写入，保留为兼容）
+├── docs/                    # 延伸阅读（概率/历史事件）
 ├── .github/workflows/
-│   ├── update-data.yml     # 定时抓取
-│   └── deploy-pages.yml    # 部署 Pages
+│   ├── update-data.yml      # 定时抓取
+│   └── deploy-pages.yml     # 部署 Pages（发布根 = web/）
 └── requirements.txt
 ```
-
 ## 🚀 部署
 
 ### 在线访问（GitHub Pages）
@@ -98,8 +105,8 @@ ssq-hub/
 ### 本地预览
 
 ```bash
-python3 -m http.server 8080
-# 或：npx serve .
+cd web && python3 -m http.server 8080
+# 或：npx serve ./web
 ```
 
 访问 `http://localhost:8080`。
@@ -111,8 +118,8 @@ python3 -m http.server 8080
 抓取数据源（按优先级 fallback）：
 
 1. **福彩官方 API**（cwl.gov.cn）— 国内首选
-2. **idcd.com** — 海外可用（GitHub Actions runner 在海外）
-3. **mxnzp.com** — 兜底（仅返回最新一期）
+2. **500 彩票网**（datachart.500.com）— 海外可用（GitHub Actions runner 在海外），HTML 表格解析无需 key
+3. **idcd.com** — 兜底（第三方 JSON 公开接口）
 
 ## 🧪 本地数据维护
 
@@ -132,7 +139,7 @@ python3 scripts/verify_data.py
 ## 📊 数据来源
 
 - 官方：[中国福利彩票发行管理中心 - 双色球](https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/)
-- 备用：idcd.com / mxnzp.com 第三方公开 API
+- 备用：500 彩票网 datachart / idcd.com 第三方公开接口
 
 ## ⚠️ 免责声明
 

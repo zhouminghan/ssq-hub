@@ -6,6 +6,7 @@ import { mountFilterBar } from './filter-bar.js';
 import { renderTrend } from './trend-table.js';
 import { bindOverlay } from './trend-overlay.js';
 import { mountPickerInTable } from './picker.js';
+import { mountNumberProfile } from './number-profile.js';
 import { nextIssue } from './utils/format.js';
 
 const $meta = qs('#meta-info');
@@ -28,6 +29,9 @@ async function init() {
 
     // 2. 装配筛选栏
     await mountFilterBar($filterBar);
+
+    // 装配号码画像抽屉（一次性挂到 body，按需打开）
+    mountNumberProfile();
 
     // 3. dock 高度同步给 trend-scroll padding-bottom（picker tfoot 在 renderByFilter 中挂载）
     syncDockHeight();

@@ -280,6 +280,29 @@
   border-color: var(--red);
 }
 
+/* 策略下拉（机选按钮旁边）：用 select 但保持 mini 按钮风格 */
+.strategy-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-3) 50%),
+    linear-gradient(-45deg, transparent 50%, var(--text-3) 50%);
+  background-position:
+    calc(100% - 9px) 50%,
+    calc(100% - 5px) 50%;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+  padding-right: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 110px;
+}
+
+.strategy-select:hover {
+  color: var(--red);
+  border-color: var(--red);
+}
+
 /* ── 注列表：固定高度 + 内部滚动，使 dock 整体高度恒定 ── */
 .result-list {
   padding: 4px 10px;

@@ -20,9 +20,10 @@
 import { h, qs, clear } from './utils/dom.js';
 import { pad2 } from './utils/format.js';
 import {
-  randomPickMany,
+  randomPickByStrategy, STRATEGIES,
   RED_MAX, BLUE_MAX, RED_PICK, BLUE_PICK, PRICE_PER_BET,
 } from './utils/lottery.js';
+import { loadStats } from './data-loader.js';
 
 /** 单式区最大条目数 */
 const MAX_SINGLE = 5;
@@ -53,7 +54,22 @@ const state = {
   // dock 折叠态（仅移动端生效）：默认折叠，点击 toggle 展开
   // 桌面端通过 CSS 强制不折叠（display），不读这个值
   collapsed: true,
+  // 当前机选策略 id，默认均匀随机；用户从下拉切换
+  strategy: 'uniform',
 };
+
+// stats 数据缓存（首次点策略机选时按需加载，失败则退回 uniform）
+let statsForStrategy = null;
+let statsLoading = null;
+async function ensureStats() {
+  if (statsForStrategy) return statsForStrategy;
+  if (!statsLoading) {
+    statsLoading = loadStats()
+      .then((s) => { statsForStrategy = s; return s; })
+      .catch(() => null);
+  }
+  return statsLoading;
+}
 
 let dockEl = null;
 let inited = false;
@@ -144,8 +160,9 @@ function initDock(dock) {
           h('span.head-title', null, '🎯 单式'),
           h('span.head-meta', { id: 'single-meta' }, '0 / 5'),
           h('span.head-actions', null, [
-            h('button.btn-mini', { id: 'pick-rand1', title: '机选 1 注（追加）' }, '机选 1'),
-            h('button.btn-mini', { id: 'pick-rand5', title: '机选 5 注（直接填满）' }, '机选 5'),
+            buildStrategySelect(),
+            h('button.btn-mini', { id: 'pick-rand1', title: '按当前策略机选 1 注（追加）' }, '机选 1'),
+            h('button.btn-mini', { id: 'pick-rand5', title: '按当前策略机选 5 注（直接填满）' }, '机选 5'),
             h('button.btn-mini.danger', { id: 'clear-single', title: '清空单式' }, '清空'),
           ]),
         ]),
@@ -173,18 +190,27 @@ function initDock(dock) {
 
   dock.appendChild(resultPanel);
 
-  // 机选 1：往单式区追加 1 注（不动当前 reds/blues 草稿）；满 5 替换最旧
-  qs('#pick-rand1', dock).addEventListener('click', () => {
-    addSingleBets(1);
+  // 机选 1：按当前策略追加 1 注（不动当前 reds/blues 草稿）；满 5 替换最旧
+  qs('#pick-rand1', dock).addEventListener('click', async () => {
+    await addSingleBets(1);
     refreshDock();
   });
 
-  // 机选 5：直接覆盖为 5 注新机选（更符合"快速一注一注换"的直觉）
-  qs('#pick-rand5', dock).addEventListener('click', () => {
+  // 机选 5：直接覆盖为 5 注按当前策略新机选
+  qs('#pick-rand5', dock).addEventListener('click', async () => {
     state.bets = state.bets.filter((e) => e.type !== 'single');
-    addSingleBets(MAX_SINGLE);
+    await addSingleBets(MAX_SINGLE);
     refreshDock();
   });
+
+  // 策略下拉：切换 state.strategy；非 uniform 时预热 stats（首次切换会触发加载）
+  const sel = qs('#pick-strategy', dock);
+  if (sel) {
+    sel.addEventListener('change', () => {
+      state.strategy = sel.value;
+      if (state.strategy !== 'uniform') ensureStats();
+    });
+  }
 
   // 清空单式
   qs('#clear-single', dock).addEventListener('click', () => {
@@ -215,8 +241,27 @@ function syncCollapsedClass() {
   window.dispatchEvent(new CustomEvent('picker:layoutChange'));
 }
 
-function addSingleBets(n) {
-  const picks = randomPickMany(n);
+/** 构建策略下拉（独立小函数：dock 创建时 inline 调用） */
+function buildStrategySelect() {
+  const sel = h('select.btn-mini.strategy-select', {
+    id: 'pick-strategy',
+    title: '机选策略：选择不同的加权方式（仅娱乐，无预测意义）',
+  });
+  for (const s of STRATEGIES) {
+    const opt = h('option', { value: s.id, title: s.desc }, s.label);
+    if (s.id === state.strategy) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  return sel;
+}
+
+async function addSingleBets(n) {
+  // uniform 不需要 stats；其它策略懒加载（失败/超时退回 uniform）
+  let stats = null;
+  if (state.strategy !== 'uniform') {
+    stats = await ensureStats();
+  }
+  const picks = randomPickByStrategy(n, state.strategy, stats);
   for (const p of picks) {
     state.bets.push({ type: 'single', red: p.red, blue: p.blue });
   }

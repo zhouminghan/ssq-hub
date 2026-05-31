@@ -23,7 +23,7 @@ import time
 import requests
 from collections import defaultdict
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
+DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'web', 'data')
 HISTORY_DIR = os.path.join(DATA_DIR, 'history')
 INDEX_FILE = os.path.join(DATA_DIR, 'history_index.json')
 

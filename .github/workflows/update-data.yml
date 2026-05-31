@@ -97,7 +97,7 @@ jobs:
             exit 0
           fi
 
-          LATEST_DATE=$(python -c "import json; print(json.load(open('data/latest.json'))['latest_draw']['date'])" 2>/dev/null || echo "")
+          LATEST_DATE=$(python -c "import json; print(json.load(open('web/data/latest.json'))['latest_draw']['date'])" 2>/dev/null || echo "")
           echo "latest.json 中最新一期: $LATEST_DATE"
 
           if [ "$LATEST_DATE" = "$TODAY" ]; then
@@ -122,25 +122,23 @@ jobs:
         if: steps.check.outputs.skip != 'true' && (steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full')
         run: python scripts/calc_all.py
 
-      # 8. 更新 README 期数信息
-      - name: 📝 更新 README 期数 badge
-        if: steps.check.outputs.skip != 'true' && (steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full')
-        run: python scripts/update_readme.py
-
-      # 9. 数据自检（不阻塞 commit，但要在日志里能看到结果）
+      # 8. 数据自检（不阻塞 commit，但要在日志里能看到结果）
+      #    注：早期还会调 update_readme.py 写期数 badge，现在 README 改用 shields.io
+      #    dynamic JSON badge 实时拉 latest.json，README 本身不需写回——该 step 已删。
       - name: 🔍 数据自检
         if: steps.check.outputs.skip != 'true' && (steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full')
         run: python scripts/verify_data.py
         continue-on-error: true
 
-      # 10. 如果 data/ 或 README 有变化，commit 回主分支
+      # 9. 如果 web/data/ 有变化，commit 回主分支
       #     重试 cron 的好处：本次抓到了新期 → 触发 commit；没抓到 → 静默跳过
       - name: 💾 提交数据变更
         if: steps.check.outputs.skip != 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data/ README.md
+          # 仅提交 web/data/：README 不再随数据变动（期数依赖 dynamic badge）
+          git add web/data/
           if git diff --cached --quiet; then
             echo "⚠️  数据无变化，跳过 commit"
           else

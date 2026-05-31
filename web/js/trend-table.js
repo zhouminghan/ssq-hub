@@ -1,6 +1,7 @@
 // ── 走势表渲染 ──
 import { h, clear } from './utils/dom.js';
 import { structure, pad2, issueYear, issueSeq } from './utils/format.js';
+import { showProfile } from './number-profile.js';
 
 /**
  * 渲染走势表
@@ -58,7 +59,12 @@ export function renderTrend(table, draws, opts = {}) {
   const redMiss = new Array(34).fill(0);   // index 1..33
   const blueMiss = new Array(17).fill(0);  // index 1..16
 
-  for (const d of draws) {
+  // 最近 5 期高亮：仅对最末 5 行的命中球应用脉冲动效，避免长表全闪干扰阅读
+  const total = draws.length;
+  const recentThreshold = total - 5;
+
+  for (let i = 0; i < draws.length; i++) {
+    const d = draws[i];
     const redSet = new Set(d.red);
     const blue = d.blue;
     const struct = structure(d.red);
@@ -132,9 +138,23 @@ export function renderTrend(table, draws, opts = {}) {
         h(ch === '质' ? 'span.s-prime' : 'span.s-composite', null, ch))));
     cells.push(h('td.col-aux', null, `${struct.prime}:${struct.composite}`));
 
-    const tr = h('tr', { dataset: { issue: d.issue } }, cells);
+    const trAttrs = { dataset: { issue: d.issue } };
+    if (i >= recentThreshold) trAttrs.class = 'recent-5';
+    const tr = h('tr', trAttrs, cells);
     tbody.appendChild(tr);
   }
 
   table.appendChild(tbody);
+
+  // ── 事件代理：点击 tbody 中任意红/蓝号码格 → 打开号码画像抽屉 ──
+  // 仅 tbody 触发；thead / tfoot.picker-row 由各自模块接管事件。
+  // 用 onclick 直接覆盖，每次 renderTrend 重建 tbody 时事件自动随节点 GC。
+  tbody.onclick = (e) => {
+    const td = e.target.closest('td.col-red, td.col-blue');
+    if (!td) return;
+    const num = Number(td.dataset.ball);
+    const color = td.dataset.color;
+    if (!num || !color) return;
+    showProfile(color, num);
+  };
 }

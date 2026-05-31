@@ -14,9 +14,11 @@ import os
 import re
 import sys
 import glob
+from datetime import datetime, timedelta
 
 BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
-DATA_DIR = os.path.join(BASE_DIR, 'data')
+WEB_DIR = os.path.join(BASE_DIR, 'web')
+DATA_DIR = os.path.join(WEB_DIR, 'data')
 HISTORY_DIR = os.path.join(DATA_DIR, 'history')
 INDEX_FILE = os.path.join(DATA_DIR, 'history_index.json')
 README_PATH = os.path.join(BASE_DIR, 'README.md')
@@ -135,10 +137,46 @@ def verify_stats_latest(idx):
         check('blue_freq_global' in stats, 'stats.json 缺少 blue_freq_global 字段')
         check('red_missing' in stats, 'stats.json 缺少 red_missing 字段')
         check('blue_missing' in stats, 'stats.json 缺少 blue_missing 字段')
+        # 扩展字段（每号画像 + 模式分布），用于号码画像抽屉
+        check('red_per_number' in stats, 'stats.json 缺少 red_per_number 字段')
+        check('blue_per_number' in stats, 'stats.json 缺少 blue_per_number 字段')
+        rpn = stats.get('red_per_number', {})
+        bpn = stats.get('blue_per_number', {})
+        check(len(rpn) == 33, f'red_per_number 应有 33 项，当前 {len(rpn)}')
+        check(len(bpn) == 16, f'blue_per_number 应有 16 项，当前 {len(bpn)}')
+        # 抽样一项校验子字段完整性
+        if rpn:
+            sample = next(iter(rpn.values()))
+            for f in ('freq_global', 'freq_50', 'freq_100', 'current_miss',
+                      'max_miss', 'max_miss_issue', 'recent_5_issues'):
+                check(f in sample, f'red_per_number 子项缺少 {f} 字段')
 
         if idx:
             check(stats.get('total') == idx['total'],
                   f'stats.total ({stats.get("total")}) != index.total ({idx["total"]})')
+
+        # 新鲜度：updated 字段距今 ≤ 7 天 → 正常；> 7 天 → 警告；> 30 天 → 错误
+        # 防止线上 GitHub Actions 抓数链路坏掉、stats 数月不更新而无人察觉
+        updated_str = stats.get('updated', '')
+        if updated_str:
+            try:
+                updated_dt = datetime.strptime(updated_str, '%Y-%m-%d')
+                age_days = (datetime.now() - updated_dt).days
+                if age_days > 30:
+                    check(False,
+                          f'stats.json 已 {age_days} 天未更新（updated={updated_str}），'
+                          f'数据链路可能已中断')
+                elif age_days > 7:
+                    check(False,
+                          f'stats.json 距今 {age_days} 天未更新（updated={updated_str}），'
+                          f'若长时间无开奖请关注',
+                          is_warning=True)
+                else:
+                    print(f'  ✅ stats.json 新鲜度: 距今 {age_days} 天')
+            except ValueError:
+                check(False,
+                      f'stats.json updated 字段格式异常: {updated_str!r}',
+                      is_warning=True)
 
         print(f'  ✅ stats.json: total={stats.get("total")}, latest={stats.get("latest_issue")}')
 
@@ -213,28 +251,31 @@ def verify_file_structure():
     print('\n🔍 [5/5] 校验项目文件结构 ...')
 
     required_files = [
-        'index.html',
-        'css/reset.css',
-        'css/theme.css',
-        'css/layout.css',
-        'css/filter-bar.css',
-        'css/picker.css',
-        'css/trend-table.css',
-        'css/trend-overlay.css',
-        'css/responsive.css',
-        'js/main.js',
-        'js/store.js',
-        'js/data-loader.js',
-        'js/filter-bar.js',
-        'js/picker.js',
-        'js/trend-table.js',
-        'js/trend-overlay.js',
-        'js/utils/dom.js',
-        'js/utils/format.js',
-        'js/utils/lottery.js',
-        'data/history_index.json',
-        'data/stats.json',
-        'data/latest.json',
+        'web/index.html',
+        'web/.nojekyll',
+        'web/css/reset.css',
+        'web/css/theme.css',
+        'web/css/layout.css',
+        'web/css/filter-bar.css',
+        'web/css/picker.css',
+        'web/css/trend-table.css',
+        'web/css/trend-overlay.css',
+        'web/css/number-profile.css',
+        'web/css/responsive.css',
+        'web/js/main.js',
+        'web/js/store.js',
+        'web/js/data-loader.js',
+        'web/js/filter-bar.js',
+        'web/js/picker.js',
+        'web/js/trend-table.js',
+        'web/js/trend-overlay.js',
+        'web/js/number-profile.js',
+        'web/js/utils/dom.js',
+        'web/js/utils/format.js',
+        'web/js/utils/lottery.js',
+        'web/data/history_index.json',
+        'web/data/stats.json',
+        'web/data/latest.json',
         'scripts/fetch_latest.py',
         'scripts/calc_all.py',
         'scripts/update_readme.py',

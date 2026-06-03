@@ -199,8 +199,8 @@ def fetch_from_500():
 def fetch_latest_draws():
     """依次尝试多个数据源，返回获取到的开奖数据"""
     sources = [
-        ('福彩官方', fetch_from_cwl),
         ('500 彩票网', fetch_from_500),
+        ('福彩官方', fetch_from_cwl),
         ('idcd.com', fetch_from_idcd),
     ]
     for name, fetcher in sources:

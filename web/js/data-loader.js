@@ -32,11 +32,12 @@ function resolveUrl(relPath) {
   return `${base}/${relPath}`;
 }
 
-async function fetchJson(relPath) {
+async function fetchJson(relPath, cacheBuster) {
   // 主源：相对路径 fetch（cache: 'no-cache' 避免部署后 24h 浏览器命中旧版）
   if (primaryHealthy !== false) {
     try {
-      const res = await fetch(`${DATA_BASE}/${relPath}`, { cache: 'no-cache' });
+      const url = cacheBuster ? `${DATA_BASE}/${relPath}?v=${cacheBuster}` : `${DATA_BASE}/${relPath}`;
+      const res = await fetch(url, { cache: 'no-cache' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       primaryHealthy = true;
       return await res.json();
@@ -60,9 +61,9 @@ async function fetchJson(relPath) {
 }
 
 /** 加载 history_index.json */
-export async function loadIndex() {
-  if (indexCache) return indexCache;
-  indexCache = await fetchJson('history_index.json');
+export async function loadIndex(cacheBuster) {
+  if (indexCache && !cacheBuster) return indexCache;
+  indexCache = await fetchJson('history_index.json', cacheBuster);
   return indexCache;
 }
 
@@ -76,9 +77,9 @@ export async function loadYear(year) {
 }
 
 /** 加载 latest.json */
-export async function loadLatest() {
-  if (latestCache) return latestCache;
-  latestCache = await fetchJson('latest.json');
+export async function loadLatest(cacheBuster) {
+  if (latestCache && !cacheBuster) return latestCache;
+  latestCache = await fetchJson('latest.json', cacheBuster);
   return latestCache;
 }
 

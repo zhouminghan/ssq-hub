@@ -7,7 +7,7 @@ import { renderTrend } from './trend-table.js';
 import { bindOverlay } from './trend-overlay.js';
 import { mountPickerInTable } from './picker.js';
 import { mountNumberProfile } from './number-profile.js';
-import { nextIssue } from './utils/format.js';
+import { nextIssue, nextDrawDate } from './utils/format.js';
 
 const $meta = qs('#meta-info');
 const $loading = qs('#trend-loading');
@@ -25,7 +25,8 @@ async function init() {
     const [idx, latest] = await Promise.all([loadIndex(), loadLatest()]);
     const draw = latest.latest_draw;
     const next = nextIssue(draw.issue, idx);
-    $meta.innerHTML = `共 <strong>${idx.total}</strong> 期 · 最新 <strong>${draw.issue}</strong>（${draw.date}）· 下期 <strong>${next}</strong>`;
+    const nextDate = nextDrawDate(draw.date);
+    $meta.innerHTML = `下期 <strong>${next}</strong>（${nextDate}）`;
 
     // 2. 装配筛选栏
     await mountFilterBar($filterBar);

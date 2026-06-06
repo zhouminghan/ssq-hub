@@ -41,10 +41,13 @@ export function nextIssue(latestIssue, idx) {
  * @returns {string} 下期开奖日期，格式 "YYYY-MM-DD"
  */
 export function nextDrawDate(latestDate) {
-  const date = new Date(latestDate);
-  
+  // 用本地 midnight 解析，避免 `new Date('YYYY-MM-DD')` 解析为 UTC midnight
+  // 导致非 UTC+8 时区 getDate()/getDay() 差一天
+  const [y, m, d] = latestDate.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+
   // 双色球开奖规律：周二、周四、周日
-  const nextDay = new Date(date);
+  const nextDay = new Date(y, m - 1, d);
   
   // 计算下一个开奖日
   const dayOfWeek = date.getDay(); // 0=周日, 1=周一, ..., 6=周六

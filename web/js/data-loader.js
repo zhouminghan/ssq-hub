@@ -14,10 +14,14 @@ const DATA_BASE = './data';
 // 这里给一个稳定备份：jsdelivr 用的是 GitHub raw + 它自己的全球 CDN
 const CDN_BASE = 'https://cdn.jsdelivr.net/gh/zhouminghan/ssq-hub@main/web/data';
 
-const yearCache = new Map(); // year -> draws[]
+const yearCache = new Map(); // year -> {data, time}
+const CACHE_TTL = 5 * 60 * 1000; // 5 分钟（内存缓存有效期）
 let indexCache = null;
+let indexCacheTime = 0;
 let latestCache = null;
+let latestCacheTime = 0;
 let statsCache = null;
+let statsCacheTime = 0;
 
 // 主源是否健康：null=未试过 / true=用主源 / false=已退化到 CDN
 // 只在首次失败时切换；切换后整 session 都用 CDN，避免反复试探
@@ -50,6 +54,11 @@ async function fetchJson(relPath, cacheBuster) {
         );
       }
       primaryHealthy = false;
+      // 30 分钟后重置，下次请求时重试主源（防止 CDN 降级后永远不恢复）
+      setTimeout(() => {
+        primaryHealthy = null;
+        console.log('[data-loader] 主源健康状态已重置，下次请求将重试主源');
+      }, 30 * 60 * 1000);
     }
   }
 
@@ -60,33 +69,56 @@ async function fetchJson(relPath, cacheBuster) {
   return res.json();
 }
 
-/** 加载 history_index.json */
+/** 加载 history_index.json（5 分钟 TTL） */
 export async function loadIndex(cacheBuster) {
-  if (indexCache && !cacheBuster) return indexCache;
+  const now = Date.now();
+  if (indexCache && !cacheBuster && (now - indexCacheTime) < CACHE_TTL) {
+    return indexCache;
+  }
   indexCache = await fetchJson('history_index.json', cacheBuster);
+  indexCacheTime = now;
   return indexCache;
 }
 
-/** 加载某年的全部开奖数据 */
-export async function loadYear(year) {
+/** 加载某年的全部开奖数据（5 分钟 TTL，传 cacheBuster 强制刷新） */
+export async function loadYear(year, cacheBuster) {
   const y = String(year);
-  if (yearCache.has(y)) return yearCache.get(y);
-  const draws = await fetchJson(`history/${y}.json`);
-  yearCache.set(y, draws);
+  const now = Date.now();
+  if (yearCache.has(y)) {
+    const entry = yearCache.get(y);
+    if (!cacheBuster && (now - entry.time) < CACHE_TTL) {
+      return entry.data;
+    }
+  }
+  const draws = await fetchJson(`history/${y}.json`, cacheBuster);
+  yearCache.set(y, { data: draws, time: now });
   return draws;
 }
 
-/** 加载 latest.json */
+/** 清空年份缓存（供刷新按钮调用） */
+export function clearYearCache() {
+  yearCache.clear();
+}
+
+/** 加载 latest.json（5 分钟 TTL） */
 export async function loadLatest(cacheBuster) {
-  if (latestCache && !cacheBuster) return latestCache;
+  const now = Date.now();
+  if (latestCache && !cacheBuster && (now - latestCacheTime) < CACHE_TTL) {
+    return latestCache;
+  }
   latestCache = await fetchJson('latest.json', cacheBuster);
+  latestCacheTime = now;
   return latestCache;
 }
 
-/** 加载 stats.json（每号画像 + 全局/近 N 频次/遗漏） */
+/** 加载 stats.json（每号画像 + 全局/近 N 频次/遗漏，5 分钟 TTL） */
 export async function loadStats() {
-  if (statsCache) return statsCache;
+  const now = Date.now();
+  if (statsCache && (now - statsCacheTime) < CACHE_TTL) {
+    return statsCache;
+  }
   statsCache = await fetchJson('stats.json');
+  statsCacheTime = now;
   return statsCache;
 }
 

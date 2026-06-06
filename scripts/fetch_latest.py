@@ -197,10 +197,14 @@ def fetch_from_500():
 
 
 def fetch_latest_draws():
-    """依次尝试多个数据源，返回获取到的开奖数据"""
+    """依次尝试多个数据源，返回获取到的开奖数据
+
+    优先级: 福彩官方 → 500 彩票网 → idcd.com
+    （与 CLAUDE.md 文档保持一致；GitHub Actions 海外环境访问 cwl 会 403，自动 fallback 到 500）
+    """
     sources = [
-        ('500 彩票网', fetch_from_500),
         ('福彩官方', fetch_from_cwl),
+        ('500 彩票网', fetch_from_500),
         ('idcd.com', fetch_from_idcd),
     ]
     for name, fetcher in sources:

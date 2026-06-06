@@ -19,7 +19,10 @@ const $pickerDock = qs('#picker-dock');
 
 let disposeOverlay = null;
 
-async function init() {
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000;
+
+async function init(retryCount = 0) {
   try {
     // 1. 加载基础信息
     const [idx, latest] = await Promise.all([loadIndex(), loadLatest()]);
@@ -50,8 +53,19 @@ async function init() {
     // 初次渲染
     await renderByFilter();
   } catch (err) {
-    console.error(err);
-    $loading.innerHTML = `<span style="color:#e34d59">⚠️ 加载失败：${err.message}</span>`;
+    console.error(`Attempt ${retryCount + 1} failed:`, err);
+    if (retryCount < MAX_RETRIES) {
+      console.log(`Retrying in ${RETRY_DELAY * (retryCount + 1)}ms...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
+      return init(retryCount + 1);
+    }
+    $loading.hidden = false;
+    $scroll.hidden = true;
+    $loading.innerHTML = `
+      <span style="color:#e34d59">⚠️ 加载失败：${err.message}</span>
+      <button id="retry-btn" style="margin-left:12px;padding:4px 12px;cursor:pointer">重试</button>
+    `;
+    qs('#retry-btn').addEventListener('click', () => location.reload());
   }
 }
 

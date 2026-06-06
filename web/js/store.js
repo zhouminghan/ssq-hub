@@ -10,9 +10,16 @@ export const store = {
     state[key] = value;
     subs.forEach((fn) => fn(key, value, prev));
   },
-  /** 批量设置（同步触发，每个 key 单独广播） */
+  /** 批量设置（一次性广播，避免 N 次冗余渲染） */
   patch(obj) {
-    for (const k in obj) this.set(k, obj[k]);
+    const changed = [];
+    for (const k in obj) {
+      if (state[k] !== obj[k]) {
+        state[k] = obj[k];
+        changed.push(k);
+      }
+    }
+    changed.forEach(k => subs.forEach(fn => fn(k, state[k], obj[k])));
   },
   subscribe(fn) {
     subs.add(fn);

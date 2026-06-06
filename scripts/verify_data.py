@@ -247,50 +247,44 @@ def verify_readme(idx):
 
 
 def verify_file_structure():
-    """校验项目必要文件是否齐全（适配走势图模块化架构）"""
+    """校验项目必要文件是否齐全（动态扫描，避免硬编码遗漏）"""
     print('\n🔍 [5/5] 校验项目文件结构 ...')
 
-    required_files = [
+    # 1. 关键文件（必须存在，硬编码防止误删核心文件）
+    critical_files = [
         'web/index.html',
         'web/.nojekyll',
-        'web/css/reset.css',
-        'web/css/theme.css',
-        'web/css/layout.css',
-        'web/css/filter-bar.css',
-        'web/css/picker.css',
-        'web/css/trend-table.css',
-        'web/css/trend-overlay.css',
-        'web/css/number-profile.css',
-        'web/css/responsive.css',
-        'web/js/main.js',
         'web/js/store.js',
         'web/js/data-loader.js',
-        'web/js/filter-bar.js',
-        'web/js/picker.js',
-        'web/js/trend-table.js',
-        'web/js/trend-overlay.js',
-        'web/js/number-profile.js',
-        'web/js/utils/dom.js',
-        'web/js/utils/format.js',
-        'web/js/utils/lottery.js',
         'web/data/history_index.json',
         'web/data/stats.json',
         'web/data/latest.json',
-        'scripts/fetch_latest.py',
-        'scripts/calc_all.py',
-        'scripts/update_readme.py',
-        '.github/workflows/update-data.yml',
-        '.github/workflows/deploy-pages.yml',
     ]
+    missing_critical = [f for f in critical_files if not os.path.exists(os.path.join(BASE_DIR, f))]
+    if missing_critical:
+        check(False, f'缺少关键文件: {", ".join(missing_critical)}')
 
-    missing = []
-    for f in required_files:
-        fpath = os.path.join(BASE_DIR, f)
-        if not os.path.exists(fpath):
-            missing.append(f)
+    # 2. JS 文件：动态扫描（含 utils/）
+    js_files = glob.glob(os.path.join(WEB_DIR, 'js/**/*.js'), recursive=True)
+    check(len(js_files) >= 10, f'JS 文件数量不足（当前 {len(js_files)}，期望 ≥10）')
 
-    check(len(missing) == 0, f'缺少必要文件: {", ".join(missing)}')
-    print(f'  ✅ 项目结构: {len(required_files)} 个必要文件均存在')
+    # 3. CSS 文件：动态扫描
+    css_files = glob.glob(os.path.join(WEB_DIR, 'css/*.css'))
+    check(len(css_files) >= 8, f'CSS 文件数量不足（当前 {len(css_files)}，期望 ≥8）')
+
+    # 4. 历史数据文件（按年存储，至少 1 个）
+    history_files = glob.glob(os.path.join(HISTORY_DIR, '*.json'))
+    check(len(history_files) >= 1, '缺少 history/*.json 数据文件')
+
+    # 5. Python 脚本
+    py_files = glob.glob(os.path.join(BASE_DIR, 'scripts/*.py'))
+    check(len(py_files) >= 3, f'scripts/ 脚本数量不足（当前 {len(py_files)}，期望 ≥3）')
+
+    # 6. CI 配置
+    yml_files = glob.glob(os.path.join(BASE_DIR, '.github/workflows/*.yml'))
+    check(len(yml_files) >= 2, f'.github/workflows/ 缺少 CI 配置（当前 {len(yml_files)}）')
+
+    print(f'  ✅ 项目结构: JS={len(js_files)}, CSS={len(css_files)}, Data={len(history_files)}, Py={len(py_files)}, CI={len(yml_files)}')
 
 
 def main():

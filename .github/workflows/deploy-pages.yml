@@ -13,6 +13,12 @@ on:
     paths:
       - 'web/**'
       - '.github/workflows/deploy-pages.yml'
+  # 关键：update-data 用 GITHUB_TOKEN push 不会触发 push 事件，
+  # 通过 workflow_run 在其完成后自动触发部署
+  workflow_run:
+    workflows: ['🎰 更新双色球数据']
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 # GitHub Pages 需要的权限

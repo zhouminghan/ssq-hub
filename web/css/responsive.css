@@ -1,10 +1,6 @@
 /* ── 响应式 ── */
 
-/* 桌面端微调：把 picker dock 列表高度从 160 → 140，给走势图多一点空间 */
-@media (min-width: 769px) {
-  .result-list { height: 140px; }
-}
-
+/* ── 移动端基础断点 ── */
 @media (max-width: 768px) {
   :root {
     --header-h: 44px; /* 桌面 52 → 44，再省 8px */
@@ -16,14 +12,15 @@
   .app-header {
     padding: 0 12px;
   }
-  .app-header h1 { font-size: 14px; }
-  .app-header .meta { font-size: 10px; }
+  .header-brand h1 { font-size: 13px; }
+  .header-meta { font-size: 10px; }
+  .header-meta strong { font-size: 12px; }
 
   /* filter-bar：移动端强制单行，padding 收紧 */
   .filter-bar {
     padding: 5px 10px;
     gap: 6px;
-    flex-wrap: nowrap; /* 不换行：A 改造后控件少，可以放下 */
+    flex-wrap: nowrap; /* 不换行：改造后控件少，可以放下 */
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -46,106 +43,23 @@
   /* 移动端冻结列：宽度收窄 + 加固防穿透
    * iOS Safari 在快速滚动时 sticky 元素的 paint 可能滞后于普通 cell，
    * 表现为下层红球"透"出来。下面的 will-change + 不透明背景 + isolation
-   * 是经验证的组合拳，在 trend-table.css 已设置基础值，这里覆盖 min-width 即可。 */
+   * 是经验证的组合拳。 */
   .trend-table thead th.col-issue,
-  .trend-table tbody td.col-issue,
-  .trend-table tfoot.picker-tfoot td.picker-title-cell {
+  .trend-table tbody td.col-issue {
     min-width: 64px;
     will-change: transform; /* 移动端提前申请 GPU 合成层 */
   }
-  .trend-table thead th.col-date,
-  .trend-table tbody td.col-date { min-width: 72px; left: 64px; }
-
-  .picker { padding: 12px; }
-  .picker-zone { padding: 10px 12px; }
-  .picker-balls.red-grid { grid-template-columns: repeat(7, 1fr); }
-  .picker-balls.blue-grid { grid-template-columns: repeat(8, 1fr); }
-  .pick-ball { font-size: 12px; }
-
-  .picker-bar { flex-wrap: wrap; gap: 8px; }
-  .picker-bar .actions { width: 100%; justify-content: space-between; }
-  .btn-confirm { flex: 1; }
 
   .app-footer { font-size: 10px; padding: 0 10px; }
-
-  /* ── 模拟选号 dock：移动端启用折叠模式 ── */
-  /* 折叠条移动端可见 */
-  .picker-toggle { display: inline-flex; }
-
-  /* dock 容器移动端紧凑 */
-  .picker-dock { padding: 5px 8px 7px; gap: 5px; }
-
-  /* 折叠态：隐藏 result 面板，只剩折叠条（dock 高度 ≈ 44px，比展开 240px 省 ~200px） */
-  .picker-dock.is-collapsed .picker-result { display: none; }
-
-  /* 展开态：复用之前的"单列堆叠"策略 */
-  .result-cols {
-    grid-template-columns: 1fr;
-  }
-  .result-col.col-single {
-    border-right: none;
-    border-bottom: 1px dashed var(--border-strong);
-  }
-
-  /* 列头更紧凑 */
-  .result-col-head { padding: 4px 8px; font-size: 10px; gap: 6px; }
-  .result-col-head .head-meta { font-size: 10px; }
-  .btn-mini { font-size: 10px; padding: 2px 6px; }
-
-  /* 列表区高度：堆叠后单/复各 88px（再缩 8px）*/
-  .result-list { height: 88px; padding: 3px 8px; }
-
-  /* mini-ball：20 → 18，给一注内更多球留空间 */
-  .mini-ball { width: 18px; height: 18px; font-size: 10px; }
-
-  /* 单式条目：序号 + 球 + 删除，不折行 */
-  .result-item { padding: 3px 0; font-size: 10px; gap: 5px; }
-  .result-item .idx { width: 22px; font-size: 10px; }
-  .result-item .balls { gap: 2px; flex-wrap: nowrap; }
-  .result-item .balls .sep { margin: 0 1px; }
-  .result-item .del { width: 18px; height: 18px; font-size: 13px; }
-
-  /* 复式条目：DOM 是 [#idx][badge][balls][del]，球可能 9~16 个，单行放不下。
-   * 用 flex-wrap 让 badge + 球绕到第二行；序号和删除按钮始终在第一行两端。 */
-  .result-item.multi {
-    flex-wrap: wrap;
-    row-gap: 2px;
-    padding: 4px 0 5px;
-  }
-  /* 第一行：#idx 和 × 按钮（badge 也在第一行右侧、del 之前） */
-  .result-item.multi .bet-badge {
-    font-size: 9px;
-    padding: 1px 5px;
-  }
-  /* 球区在 wrap 后独占一行：通过 flex-basis: 100% 强制换行
-   * 注意 DOM 顺序：idx → badge → balls → del
-   * 我们让 balls 占满整行（推到第二行），del 因此被挤回第一行末尾 */
-  .result-item.multi .balls {
-    flex-basis: 100%;
-    flex-wrap: wrap;
-    gap: 3px;
-    padding-left: 22px; /* 与 #idx 宽度对齐，视觉缩进 */
-  }
-
-  /* 草稿条上的 + 加注按钮 */
-  .btn-draft-add { font-size: 10px; padding: 2px 7px; }
-  .result-item.draft .draft-hint { font-size: 9px; }
-
-  /* 合计栏紧凑 */
-  .result-total { padding: 5px 10px; font-size: 11px; gap: 6px; }
-  .result-total .total-amount { font-size: 14px; }
 }
 
 @media (max-width: 480px) {
   .filter-bar { font-size: 12px; }
-  .picker-balls.red-grid { grid-template-columns: repeat(7, 1fr); }
   .trend-table thead th { font-size: 10px; padding: 4px 2px; }
-
-  /* 极窄屏：mini-ball 再缩一档 */
-  .mini-ball { width: 16px; height: 16px; font-size: 9px; }
-  .result-item .idx { width: 20px; }
-  .result-item.multi .balls { padding-left: 20px; }
 
   /* 极窄屏 filter：tab 文字再缩一档 */
   .filter-tab { padding: 3px 8px; font-size: 11px; }
+
+  /* 极窄屏 header：隐藏标题文字，只保留 Logo */
+  .header-brand h1 { display: none; }
 }

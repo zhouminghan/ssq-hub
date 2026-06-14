@@ -6,7 +6,7 @@
   background: var(--bg-card);
   border-collapse: separate;
   border-spacing: 0;
-  /* 移动端兜底：表格内的 sticky 单元格（col-issue / picker-row）有
+  /* 移动端兜底：表格内的 sticky 单元格（col-issue）有
    * transform+isolation 形成独立合成层，iOS 上偶尔会单独拦截手势导致
    * 横滑/纵滑失效。显式声明 pan-x pan-y 让所有子元素共享同一手势策略。 */
   touch-action: pan-x pan-y;
@@ -25,12 +25,16 @@
   text-align: center;
   font-size: 11px;
   white-space: nowrap;
+  /* 防止快速滚动时下层内容穿透（暗色模式尤甚） */
+  isolation: isolate;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .trend-table thead th.col-issue {
   position: sticky;
-  /* 不透明纯色背景：避免 var(--bg-soft) 在某些移动端 GPU 合成层渲染时被误判半透明 */
-  background-color: #f8f9fb;
+  /* 不透明纯色背景：暗色模式必须硬编码避免 GPU 合成层误判半透明 */
+  background-color: var(--issue-head-bg);
   z-index: 7; /* 高于 thead th 的 5 + tbody td.col-issue 的 4，确保横向滚动时盖住红/蓝球 */
   left: 0;
   min-width: 80px;
@@ -42,13 +46,34 @@
   -webkit-transform: translateZ(0);
 }
 
+/* 暗色模式：强制所有表头为不透明纯色，防止 GPU 合成层穿透 */
+:root[data-theme="dark"] .trend-table thead th {
+  background-color: #2a2a2a;
+}
+:root[data-theme="dark"] .trend-table thead th.col-issue {
+  background-color: #1c1c1e;
+}
+:root[data-theme="dark"] .trend-table thead th.zone-red {
+  background: linear-gradient(180deg, #3d2526, #2a1a1b);
+  color: #ff6b6b;
+}
+:root[data-theme="dark"] .trend-table thead th.zone-blue {
+  background: linear-gradient(180deg, #1b2836, #151e2b);
+  color: #5ba0e8;
+}
+:root[data-theme="dark"] .trend-table thead th.zone-aux {
+  background-color: #252520;
+  color: #d4b44a;
+}
+
+/* 亮色模式表头 */
 .trend-table thead th.zone-red { background: linear-gradient(180deg, #fef2f3, var(--red-soft)); color: var(--red-deep); }
 .trend-table thead th.zone-blue { background: linear-gradient(180deg, #f0f6fc, var(--blue-soft)); color: var(--blue-deep); }
-.trend-table thead th.zone-aux { background: #f6f4ed; color: #8a6d1c; }
+.trend-table thead th.zone-aux { background: var(--bg-aux); color: var(--text-aux); }
 
 .trend-table tbody td {
   border-bottom: 1px solid var(--border);
-  border-right: 1px solid #f0f1f3;
+  border-right: 1px solid var(--line-soft);
   padding: 0;
   text-align: center;
   height: 30px;
@@ -61,7 +86,7 @@
 }
 
 .trend-table tbody tr:hover td {
-  background: #fffaf5;
+  background: var(--bg-warm);
 }
 
 /* 期号固定列 */
@@ -69,7 +94,7 @@
   position: sticky;
   z-index: 4; /* 高于普通 td（默认 auto）和 .ball 等子元素，确保横向滚动时红/蓝球不穿透 */
   /* 不透明纯色背景：iOS Safari 快速滚动时 var(--bg-card) 偶尔会被合成层判为透明 */
-  background-color: #ffffff;
+  background-color: var(--issue-body-bg);
   font-weight: 500;
   color: var(--text-2);
   padding: 0 8px;
@@ -84,7 +109,7 @@
 }
 
 .trend-table tbody tr:hover td.col-issue {
-  background-color: #fffaf5;
+  background-color: var(--bg-warm);
 }
 
 /* 球：未命中显示遗漏值（小灰字），命中显示彩色圆球 */
@@ -104,23 +129,23 @@
 }
 
 .trend-table td.hit .ball.red {
-  background: radial-gradient(circle at 35% 30%, #ff7b81, var(--red) 65%, var(--red-deep));
+  background: radial-gradient(circle at 35% 30%, var(--red-hl), var(--red) 65%, var(--red-deep));
   box-shadow: 0 1px 2px rgba(227, 77, 89, 0.45);
 }
 
 .trend-table td.hit .ball.blue {
-  background: radial-gradient(circle at 35% 30%, #7fb1ec, var(--blue) 65%, var(--blue-deep));
+  background: radial-gradient(circle at 35% 30%, var(--blue-hl), var(--blue) 65%, var(--blue-deep));
   box-shadow: 0 1px 2px rgba(74, 144, 226, 0.45);
 }
 
 /* 蓝球分隔 */
 .trend-table td.col-blue { border-left: 1px dashed var(--border-strong); }
-.trend-table td.col-aux { background: #fafaf3; }
-.trend-table tbody tr:hover td.col-aux { background: #fdf8e2; }
+.trend-table td.col-aux { background: var(--bg-aux); }
+.trend-table tbody tr:hover td.col-aux { background: var(--bg-warm); }
 
 /* 遗漏值数字 */
 .trend-table td .miss {
-  color: #c9cdd4;
+  color: var(--text-4);
   font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
@@ -178,51 +203,15 @@
   font-size: 14px;
 }
 
-/* 最近 5 期命中号金边脉冲：仅最末 5 行触发，避免长表全闪干扰扫读 */
+/* 最近 5 期命中号静态金边：区分最新数据但不干扰扫读 */
 .trend-table tbody tr.recent-5 td.hit .ball.red {
   box-shadow:
     0 1px 2px rgba(227, 77, 89, 0.45),
     0 0 0 2px rgba(255, 196, 87, 0.55);
-  animation: ball-pulse-red 2.4s ease-in-out infinite;
 }
 
 .trend-table tbody tr.recent-5 td.hit .ball.blue {
   box-shadow:
     0 1px 2px rgba(74, 144, 226, 0.45),
     0 0 0 2px rgba(255, 196, 87, 0.55);
-  animation: ball-pulse-blue 2.4s ease-in-out infinite;
-}
-
-@keyframes ball-pulse-red {
-  0%, 100% {
-    box-shadow:
-      0 1px 2px rgba(227, 77, 89, 0.45),
-      0 0 0 2px rgba(255, 196, 87, 0.55);
-  }
-  50% {
-    box-shadow:
-      0 1px 2px rgba(227, 77, 89, 0.45),
-      0 0 0 4px rgba(255, 196, 87, 0.85);
-  }
-}
-
-@keyframes ball-pulse-blue {
-  0%, 100% {
-    box-shadow:
-      0 1px 2px rgba(74, 144, 226, 0.45),
-      0 0 0 2px rgba(255, 196, 87, 0.55);
-  }
-  50% {
-    box-shadow:
-      0 1px 2px rgba(74, 144, 226, 0.45),
-      0 0 0 4px rgba(255, 196, 87, 0.85);
-  }
-}
-
-/* 系统动效偏好为 reduce 时关闭脉冲，仅保留静态金边 */
-@media (prefers-reduced-motion: reduce) {
-  .trend-table tbody tr.recent-5 td.hit .ball.red,
-  .trend-table tbody tr.recent-5 td.hit .ball.blue {
-    animation: none;
-  }
 }

@@ -37,7 +37,7 @@ export async function mountFilterBar(root) {
     const defaultIssues = defaultCompareIssues(nextIssueSeq());
     store.set('filter', {
       mode: 'recent',
-      recent: 100,
+      recent: 50,
       year: idx.years[idx.years.length - 1].year,
       compareIssues: defaultIssues,
     });

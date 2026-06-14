@@ -1,4 +1,4 @@
-/* ── 整体三栏布局：header / filter / trend / picker / footer ── */
+/* ── 整体三栏布局：header / filter / trend / footer ── */
 /* 注：iOS Safari 的 100vh 会包含动态地址栏高度，导致页面比可视区高出一截，
  * 进而出现"底部被遮挡 / 触摸区错位 / 横滑无响应"等怪象。
  * 这里改用 100% 配合 html/body { height: 100% }（reset.css 已设），
@@ -18,34 +18,124 @@ body {
   justify-content: space-between;
   padding: 0 16px;
   background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 30;
 }
 
-.app-header .brand {
+/* 左侧区：品牌 + 期数信息紧邻 */
+.header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
-.app-header .logo {
-  font-size: 22px;
-  filter: drop-shadow(0 1px 2px rgba(227, 77, 89, 0.3));
+/* 品牌区 */
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
 }
 
-.app-header h1 {
-  font-size: 16px;
+.logo-icon {
+  color: var(--red);
+  flex-shrink: 0;
+}
+
+.header-brand h1 {
+  font-size: 14px;
   font-weight: 600;
   color: var(--text);
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
-.app-header .meta {
-  font-size: 12px;
+/* 信息区：竖线分隔 */
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+  font-size: 11px;
   color: var(--text-3);
+}
+
+.header-meta strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 三态主题分段控制器 ── */
+.theme-segment {
+  display: flex;
+  background: #f0f0f0;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.theme-segment button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-3);
+  transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+  padding: 0;
+}
+
+.theme-segment button:hover {
+  opacity: 0.7;
+}
+
+.theme-segment button:focus-visible {
+  outline: 2px solid var(--blue, #3794ff);
+  outline-offset: 1px;
+}
+
+/* 激活态 */
+.theme-segment button[aria-checked="true"] {
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  color: inherit;
+}
+
+/* 未激活态 */
+.theme-segment button[aria-checked="false"] {
+  opacity: 0.4;
+}
+
+/* 各图标激活色 */
+.theme-segment button[data-theme="light"][aria-checked="true"] { color: #f59e0b; }
+.theme-segment button[data-theme="dark"][aria-checked="true"] { color: #a0c4ff; }
+.theme-segment button[data-theme="auto"][aria-checked="true"] { color: var(--text-2); }
+
+/* 暗色模式覆盖 */
+:root[data-theme="dark"] .theme-segment {
+  background: #333;
+}
+
+:root[data-theme="dark"] .theme-segment button[aria-checked="true"] {
+  background: #444;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme="dark"] .theme-segment button[aria-checked="false"] {
+  opacity: 0.35;
 }
 
 .trend-wrap {
@@ -138,7 +228,7 @@ body {
 .modal-mask {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--mask-bg);
   animation: fadeIn 0.2s;
 }
 
@@ -201,13 +291,13 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ff6b6b, var(--red));
+  background: linear-gradient(135deg, var(--red-hl), var(--red));
   color: #fff;
   padding: 8px 20px;
   border-radius: 999px;
   font-weight: 600;
   font-size: 14px;
-  box-shadow: 0 2px 6px rgba(227, 77, 89, 0.3);
+  box-shadow: 0 2px 6px var(--red-line);
   transition: transform 0.15s;
 }
 

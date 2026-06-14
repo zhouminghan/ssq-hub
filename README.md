@@ -21,16 +21,11 @@
   - 形态列按红球升序逐位标注，6 字串如 `小小小大大大` / `奇偶奇奇偶奇` / `质合合质合合`
   - 字符双色编码：**小 / 偶 / 合 → 蓝**，**大 / 奇 / 质 → 红**，扫一眼即可感知形态分布
 - 🎨 **遗漏值与连号轨迹**：每个号码格显示遗漏值，蓝球用 SVG 连号轨迹叠加
-- 🔍 **三模式筛选**：近 N 期 / 指定年份 / 同期对比（如 2023055 vs 2024055 vs 2025055）
-- 🎟 **支付宝风格模拟选号**：表内 sticky 选号行 + 底部 dock
-  - 自动归类草稿：≤6 红 + ≤1 蓝 = 单式草稿；≥7 红 或 ≥2 蓝 = 复式草稿
-  - 草稿合法时草稿条上有红色「+ 加注」按钮
-  - 单式上限 5 注（满后再加自动淘汰最旧的一注）
-  - 新加入的注永远在 `#1`，老的下沉
-  - **6 种机选策略**：均匀随机 / 偏冷号 / 偏热号 / 大遗漏 / 三区均衡 / 奇偶均衡（仅加权随机，不构成投注建议）
-- 🔎 **号码画像抽屉**：点走势表任意红/蓝号码 → 右抽屉滑出，展示频次（全局/近 100/近 50）、当前遗漏、历史最长遗漏（含发生期号）、最近 5 次出现期号；移动端全屏
-- ✨ **最近 5 期命中高亮**：仅最末 5 行命中球加柔和金边脉冲，肉眼一秒定位本期号码
-- 🧭 **右上角实时元信息**：`共 X 期 · 最新 YYYYNNN（日期）· 下期 YYYYNNN+1`，下期期号自动跨年进位（基于 `history_index.years[].count` 推算）
+- 🔍 **三模式筛选**：近 N 期（默认50期）/ 指定年份 / 同期对比（如 2023055 vs 2024055 vs 2025055）
+- 🔎 **号码画像抽屉**：点走势表任意红/蓝号码 → 右抽屉滑出，展示频次（全局/近100/近50）、当前遗漏、历史最长遗漏（含发生期号）、最近 5 次出现期号；移动端全屏
+- ✨ **最近 5 期命中高亮**：仅最末 5 行命中球加静态金色边框，肉眼一秒定位本期号码
+- 🌓 **三态主题切换**：跟随系统(auto) / 浅色(light) / 深色(dark)，SVG 分段控制器，默认跟随系统
+- 🧭 **紧凑 Header**：左侧品牌+元信息紧邻排列，右侧主题切换器；移动端自适应隐藏标题
 - 🤖 **数据自动更新**：开奖日 GitHub Actions 自动抓取并 commit
 - 📱 **响应式设计**：移动端、平板、桌面全适配
 - 🚫 **零构建零依赖**：纯原生 ESM + 模块化 CSS，push 即生效
@@ -42,7 +37,7 @@
 | HTML | 原生 HTML5 | 单页应用，无构建 |
 | CSS | 模块化 CSS（每组件一文件） | 设计 tokens via CSS variables |
 | JS | 原生 ES Modules | 零依赖、零构建 |
-| 渲染 | HTML Table + SVG Overlay | 表格语义保留 + 49 条连号轨迹 |
+| 渲染 | HTML Table + SVG Overlay | 表格语义保留 + 连号轨迹 |
 | 数据 | JSON 静态文件 | 按年分文件 + 索引 |
 | 自动化 | GitHub Actions | 定时抓取 + 自动 commit + Pages 部署 |
 
@@ -52,30 +47,26 @@
 ssq-hub/
 ├── web/                     # 🌐 前端静态资源（GitHub Pages 发布根）
 │   ├── index.html
-│   ├── .nojekyll            # 避免 Jekyll 处理
 │   ├── css/                 # 模块化样式
 │   │   ├── reset.css
-│   │   ├── theme.css        # 设计 tokens
+│   │   ├── theme.css        # 设计 tokens + 主题色
 │   │   ├── layout.css
 │   │   ├── filter-bar.css
 │   │   ├── trend-table.css
 │   │   ├── trend-overlay.css
-│   │   ├── picker.css
-│   │   ├── number-profile.css  # 号码画像抽屉
+│   │   ├── number-profile.css
 │   │   └── responsive.css
 │   ├── js/                  # ES Modules
-│   │   ├── main.js          # 入口
+│   │   ├── main.js          # 入口 + 主题切换逻辑
 │   │   ├── store.js         # pub/sub 状态
 │   │   ├── data-loader.js   # 数据加载层（含 loadStats）
-│   │   ├── filter-bar.js    # 筛选栏
+│   │   ├── filter-bar.js    # 筛选栏（默认近50期）
 │   │   ├── trend-table.js   # 走势表（号码点击 → 画像抽屉）
 │   │   ├── trend-overlay.js # SVG 连号轨迹
-│   │   ├── picker.js        # 选号器（含 6 种策略机选）
-│   │   ├── number-profile.js   # 号码画像抽屉
+│   │   ├── number-profile.js# 号码画像抽屉
 │   │   └── utils/
-│   │       ├── dom.js
-│   │       ├── format.js
-│   │       └── lottery.js   # 含 randomPickByStrategy + STRATEGIES
+│   │       ├── dom.js       # DOM 操作工具
+│   │       └── format.js    # 格式化工具（期号/日期/特征串）
 │   └── data/                # 静态数据（自动更新）
 │       ├── history/         # 按年存储 2003.json ... 2026.json
 │       ├── history_index.json
@@ -90,8 +81,10 @@ ssq-hub/
 ├── .github/workflows/
 │   ├── update-data.yml      # 定时抓取
 │   └── deploy-pages.yml     # 部署 Pages（发布根 = web/）
+├── AGENT.md                 # AI 协作指南
 └── requirements.txt
 ```
+
 ## 🚀 部署
 
 ### 在线访问（GitHub Pages）
@@ -105,15 +98,14 @@ ssq-hub/
 ### 本地预览
 
 ```bash
-cd web && python3 -m http.server 8080
-# 或：npx serve ./web
+cd web && python3 -m http.server 5173
 ```
 
-访问 `http://localhost:8080`。
+访问 `http://localhost:5173`。
 
 ## 🤖 数据自动更新
 
-开奖日（周二 / 四 / 日）由 GitHub Actions 自动抓取并 commit 入库；详细机制见 [`CLAUDE.md`](./CLAUDE.md)。
+开奖日（周二 / 四 / 日）由 GitHub Actions 自动抓取并 commit 入库。详细机制见 [`AGENT.md`](./AGENT.md)。
 
 抓取数据源（按优先级 fallback）：
 
@@ -139,7 +131,7 @@ python3 scripts/verify_data.py
 ## 📊 数据来源
 
 - 官方：[中国福利彩票发行管理中心 - 双色球](https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/)
-- 备用：500 彩票网 datachart / idcd.com 第三方公开接口
+- 备用：[500彩票网 - 双色球开奖](https://datachart.500.com/ssq/) / [idcd.com](https://www.idcd.com/)
 
 ## ⚠️ 免责声明
 

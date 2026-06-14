@@ -47,34 +47,6 @@
   flex-wrap: wrap;
 }
 
-/* 近 N 期：快捷按钮组 */
-.quick-btns {
-  display: inline-flex;
-  gap: 4px;
-}
-
-.quick-btn {
-  padding: 5px 12px;
-  font-size: 13px;
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text-2);
-  transition: all 0.15s;
-}
-
-.quick-btn:hover {
-  border-color: var(--red);
-  color: var(--red);
-}
-
-.quick-btn.active {
-  background: var(--red);
-  border-color: var(--red);
-  color: #fff;
-  font-weight: 600;
-}
-
 .filter-input {
   height: 30px;
   padding: 0 10px;
@@ -117,47 +89,6 @@
   color: var(--text-3);
 }
 
-/* 同期对比 chip 列表 */
-.compare-chips {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-
-.compare-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 6px 3px 10px;
-  background: var(--blue-soft);
-  color: var(--blue-deep);
-  font-size: 12px;
-  border-radius: 999px;
-  border: 1px solid #c8dcf2;
-}
-
-.compare-chip .chip-x {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgba(74, 144, 226, 0.2);
-  color: var(--blue-deep);
-  font-size: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.compare-chip .chip-x:hover { background: rgba(74, 144, 226, 0.4); }
-
-.compare-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
 .btn-apply {
   height: 30px;
   padding: 0 14px;
@@ -191,6 +122,17 @@
   border-style: dashed;
 }
 .btn-custom:hover { color: var(--red); border-style: solid; }
+
+/* 焦点指示器（键盘导航） */
+.filter-tab:focus-visible,
+.filter-input:focus-visible,
+.filter-select:focus-visible,
+.btn-apply:focus-visible,
+.btn-ghost:focus-visible,
+.btn-custom:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 1px;
+}
 
 /* 自定义期数 popover：浮在按钮下方 */
 .custom-popover {

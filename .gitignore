@@ -1,25 +1,60 @@
-# macOS
+# ========== OS ==========
 .DS_Store
+Thumbs.db
+Desktop.ini
+.Spotlight-V100
+.Trashes
 
-# Python
+# ========== Python ==========
 __pycache__/
 *.py[cod]
 *.egg-info/
+*.egg
 venv/
 .env
+.env.*
+!.env.example
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.so
+*.pyd
 
-# IDE
+# ========== Node (防御性) ==========
+node_modules/
+.next/
+dist/
+build/
+
+# ========== IDE / 编辑器 ==========
 .vscode/
 .idea/
+.codebuddy/
+.codex/
+.cursor/
+.claude/
+.windsurf/
+.aider*
+*.swp
+*.swo
+*~
 
-# Logs
-*.log
-
-# AI tools temp
+# ========== AI 工具临时文件 ==========
 .superpowers/
-
-# Process files
 *.pid
 
-# Node (defensive)
-node_modules/
+# ========== 日志 / 缓存 / 临时 ==========
+*.log
+*.tmp
+*.temp
+*.bak
+*.backup
+.cache/
+tmp/
+temp/
+
+# ========== 其他 ==========
+*.orig
+*.rej

@@ -2,9 +2,15 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="description" content="双色球走势图 · 纯前端 · GitHub Pages 自动更新数据" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="双色球走势图：红蓝球遗漏值、连号轨迹、号码画像、三模式筛选。纯前端实现，GitHub Pages 自动更新开奖数据。" />
   <title>双色球走势图 · ssq-hub</title>
+  <link rel="canonical" href="https://zhouminghan.github.io/ssq-hub/" />
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="双色球走势图 · ssq-hub" />
+  <meta property="og:description" content="双色球走势图：红蓝球遗漏值、连号轨迹、号码画像、三模式筛选" />
+  <meta property="og:url" content="https://zhouminghan.github.io/ssq-hub/" />
   <!-- 防闪烁：在 CSS 加载前读取用户偏好或系统主题 -->
   <script>
     (function(){
@@ -24,6 +30,8 @@
   <link rel="stylesheet" href="./css/responsive.css?v=20260604" />
 </head>
 <body>
+  <!-- 键盘跳过导航：直达走势图主体 -->
+  <a href="#trend-wrap" class="skip-link">跳到主内容</a>
   <!-- ───────── 顶部信息栏 ───────── -->
   <header class="app-header">
     <div class="header-left">
@@ -47,8 +55,8 @@
 
   <!-- ───────── 走势图主体 ───────── -->
   <main class="trend-wrap" id="trend-wrap">
-    <div class="trend-loading" id="trend-loading">
-      <span class="spinner"></span>
+    <div class="trend-loading" id="trend-loading" role="status" aria-live="polite">
+      <span class="spinner" aria-hidden="true"></span>
       <span>加载走势数据…</span>
     </div>
     <div class="trend-scroll" id="trend-scroll" hidden>
@@ -68,5 +76,6 @@
   </footer>
 
   <script type="module" src="./js/main.js?v=20260604"></script>
+  <noscript><p style="text-align:center;padding:40px;color:var(--text-3)">本应用需要 JavaScript 才能运行。请启用 JavaScript 后刷新页面。</p></noscript>
 </body>
 </html>

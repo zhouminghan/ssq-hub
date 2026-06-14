@@ -156,6 +156,24 @@ body {
   color: var(--text-3);
 }
 
+/* ── Skip Link（键盘跳过导航）── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--red);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 0 0 var(--radius) var(--radius);
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 0;
+}
+
 .spinner {
   width: 16px;
   height: 16px;
@@ -215,100 +233,21 @@ body {
   color: var(--red);
 }
 
-/* ── 弹窗 ── */
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-mask {
-  position: absolute;
-  inset: 0;
-  background: var(--mask-bg);
-  animation: fadeIn 0.2s;
-}
-
-.modal-card {
-  position: relative;
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  width: min(420px, 90vw);
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  animation: popIn 0.2s;
-}
-
-.modal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.modal-head h3 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.modal-close {
-  font-size: 22px;
-  color: var(--text-3);
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-close:hover { background: var(--bg-soft); }
-
-.modal-body {
-  padding: 16px 20px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.modal-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
-  border-top: 1px solid var(--border);
-}
-
-.modal-total {
-  font-size: 18px;
-  font-weight: 700;
+/* 重试按钮 */
+.btn-retry {
+  margin-left: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
   color: var(--red);
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--red-hl), var(--red));
-  color: #fff;
-  padding: 8px 20px;
-  border-radius: 999px;
   font-weight: 600;
-  font-size: 14px;
-  box-shadow: 0 2px 6px var(--red-line);
-  transition: transform 0.15s;
+  border: 1px solid var(--red);
+  border-radius: var(--radius-sm);
+  background: transparent;
 }
-
-.btn-primary:active { transform: scale(0.96); }
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.btn-retry:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 1px;
 }
-
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.92) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+.btn-retry:hover {
+  background: var(--red-soft);
 }

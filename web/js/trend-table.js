@@ -147,7 +147,7 @@ export function renderTrend(table, draws, opts = {}) {
   table.appendChild(tbody);
 
   // ── 事件代理：点击 tbody 中任意红/蓝号码格 → 打开号码画像抽屉 ──
-  // 仅 tbody 触发；thead / tfoot.picker-row 由各自模块接管事件。
+  // 仅 tbody 触发；thead 由各自模块接管事件。
   // 用 onclick 直接覆盖，每次 renderTrend 重建 tbody 时事件自动随节点 GC。
   tbody.onclick = (e) => {
     const td = e.target.closest('td.col-red, td.col-blue');

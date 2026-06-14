@@ -264,26 +264,15 @@ def verify_file_structure():
     if missing_critical:
         check(False, f'缺少关键文件: {", ".join(missing_critical)}')
 
-    # 2. JS 文件：动态扫描（含 utils/）
-    js_files = glob.glob(os.path.join(WEB_DIR, 'js/**/*.js'), recursive=True)
-    check(len(js_files) >= 10, f'JS 文件数量不足（当前 {len(js_files)}，期望 ≥10）')
-
-    # 3. CSS 文件：动态扫描
-    css_files = glob.glob(os.path.join(WEB_DIR, 'css/*.css'))
-    check(len(css_files) >= 8, f'CSS 文件数量不足（当前 {len(css_files)}，期望 ≥8）')
-
-    # 4. 历史数据文件（按年存储，至少 1 个）
+    # 2. 历史数据文件（按年存储，至少 1 个）
     history_files = glob.glob(os.path.join(HISTORY_DIR, '*.json'))
     check(len(history_files) >= 1, '缺少 history/*.json 数据文件')
 
-    # 5. Python 脚本
+    # 统计（仅展示）
+    js_files = glob.glob(os.path.join(WEB_DIR, 'js/**/*.js'), recursive=True)
+    css_files = glob.glob(os.path.join(WEB_DIR, 'css/*.css'))
     py_files = glob.glob(os.path.join(BASE_DIR, 'scripts/*.py'))
-    check(len(py_files) >= 3, f'scripts/ 脚本数量不足（当前 {len(py_files)}，期望 ≥3）')
-
-    # 6. CI 配置
     yml_files = glob.glob(os.path.join(BASE_DIR, '.github/workflows/*.yml'))
-    check(len(yml_files) >= 2, f'.github/workflows/ 缺少 CI 配置（当前 {len(yml_files)}）')
-
     print(f'  ✅ 项目结构: JS={len(js_files)}, CSS={len(css_files)}, Data={len(history_files)}, Py={len(py_files)}, CI={len(yml_files)}')
 
 

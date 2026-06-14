@@ -53,7 +53,7 @@
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, #fffaf5 0%, #fff 100%);
+  background: linear-gradient(180deg, var(--bg-warm) 0%, var(--bg-card) 100%);
   flex: 0 0 auto;
 }
 
@@ -108,7 +108,7 @@
   align-items: center;
   gap: 14px;
   padding: 14px;
-  background: linear-gradient(135deg, #fff5f6 0%, #fffaf5 100%);
+  background: linear-gradient(135deg, var(--red-soft) 0%, var(--bg-warm) 100%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
@@ -129,13 +129,13 @@
 }
 
 .np-bigball.red {
-  background: radial-gradient(circle at 35% 30%, #ff7b81, var(--red) 65%, var(--red-deep));
-  box-shadow: 0 4px 12px rgba(227, 77, 89, 0.35);
+  background: radial-gradient(circle at 35% 30%, var(--red-hl), var(--red) 65%, var(--red-deep));
+  box-shadow: 0 4px 12px var(--red-line);
 }
 
 .np-bigball.blue {
-  background: radial-gradient(circle at 35% 30%, #7fb1ec, var(--blue) 65%, var(--blue-deep));
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.35);
+  background: radial-gradient(circle at 35% 30%, var(--blue-hl), var(--blue) 65%, var(--blue-deep));
+  box-shadow: 0 4px 12px var(--blue-line);
 }
 
 .np-headstats {
@@ -230,9 +230,9 @@
   transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.np-bar-fill.is-high { background: linear-gradient(90deg, #ffb4b8, var(--red)); }
+.np-bar-fill.is-high { background: linear-gradient(90deg, var(--red-hl), var(--red)); }
 .np-bar-fill.is-mid { background: linear-gradient(90deg, var(--text-4), var(--text-3)); }
-.np-bar-fill.is-low { background: linear-gradient(90deg, #c8d8ee, var(--blue)); }
+.np-bar-fill.is-low { background: linear-gradient(90deg, var(--blue-hl), var(--blue)); }
 
 .np-bar-value {
   text-align: right;
@@ -304,8 +304,14 @@
   .np-panel { width: 100vw; }
 }
 
-/* 给走势表号码格加可点击的 hint（picker-row 不受影响，因为它不挂 click） */
+/* 给走势表号码格加可点击的 hint（号码格不挂 click） */
 .trend-table tbody td.col-red,
 .trend-table tbody td.col-blue {
   cursor: pointer;
+}
+
+/* 抽屉关闭按钮焦点 */
+.np-close:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 1px;
 }

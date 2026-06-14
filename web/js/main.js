@@ -124,7 +124,7 @@ async function init(retryCount = 0) {
     $scroll.hidden = true;
     $loading.innerHTML = `
       <span class="error-text">⚠️ 加载失败：${err.message}</span>
-      <button id="retry-btn" style="margin-left:12px;padding:4px 12px;cursor:pointer">重试</button>
+      <button id="retry-btn" class="btn-retry">重试</button>
     `;
     qs('#retry-btn').addEventListener('click', () => location.reload());
   }

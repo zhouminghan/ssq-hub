@@ -14,3 +14,12 @@ venv/
 
 # Logs
 *.log
+
+# AI tools temp
+.superpowers/
+
+# Process files
+*.pid
+
+# Node (defensive)
+node_modules/

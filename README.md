@@ -76,7 +76,6 @@ ssq-hub/
 │   ├── fetch_latest.py      # 多源容错抓取
 │   ├── calc_all.py          # 重算 stats/latest（含每号画像 + 模式分布）
 │   ├── verify_data.py       # 数据自检（含 stats 新鲜度检查）
-│   └── update_readme.py     # README 检查（已不再写入，保留为兼容）
 ├── docs/                    # 延伸阅读（概率/历史事件）
 ├── .github/workflows/
 │   ├── update-data.yml      # 定时抓取

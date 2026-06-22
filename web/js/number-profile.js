@@ -23,7 +23,7 @@ let cachedStats = null;
 export function mountNumberProfile() {
   if (mounted) return;
 
-  rootEl = h('div.np-root', { id: 'np-root', hidden: '' }, [
+  rootEl = h('div.np-root', { id: 'np-root', hidden: true }, [
     h('div.np-mask', { id: 'np-mask' }),
     h('aside.np-panel', { id: 'np-panel', role: 'dialog', 'aria-modal': 'true' }, [
       h('header.np-head', null, [

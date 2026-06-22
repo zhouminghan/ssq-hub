@@ -123,8 +123,6 @@ jobs:
         run: python scripts/calc_all.py
 
       # 8. 数据自检（不阻塞 commit，但要在日志里能看到结果）
-      #    注：早期还会调 update_readme.py 写期数 badge，现在 README 改用 shields.io
-      #    dynamic JSON badge 实时拉 latest.json，README 本身不需写回——该 step 已删。
       - name: 🔍 数据自检
         if: steps.check.outputs.skip != 'true' && (steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full')
         run: python scripts/verify_data.py

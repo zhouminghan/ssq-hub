@@ -21,10 +21,10 @@
   background: rgba(0, 0, 0, 0.32);
   opacity: 0;
   transition: opacity 0.22s ease;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
-.np-root.is-open .np-mask { opacity: 1; }
+.np-root.is-open .np-mask { opacity: 1; pointer-events: auto; }
 
 /* 抽屉面板：右滑入 */
 .np-panel {

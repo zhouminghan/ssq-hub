@@ -8,6 +8,7 @@
   --border-strong: #d0d4d9;
 
   --text: #1d2129;
+  --text-1: #1d2129;   /* 别名，trend-table 形态列引用 */
   --text-2: #4e5969;
   --text-3: #86909c;
   --text-4: #c9cdd4;
@@ -61,6 +62,7 @@
   --border-strong: #444455;
 
   --text: #e8e8e8;
+  --text-1: #e8e8e8;   /* 别名，trend-table 形态列引用 */
   --text-2: #b0b0b0;
   --text-3: #808080;
   --text-4: #505050;

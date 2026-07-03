@@ -66,99 +66,10 @@ export function nextDrawDate(latestDate) {
     else if (dayOfWeek === 6) nextDay.setDate(date.getDate() + 1); // 周六 → 周日
   }
   
-  // 检查节假日停售期
-  const year = nextDay.getFullYear();
-  const month = nextDay.getMonth() + 1;
-  const day = nextDay.getDate();
-  const nextDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  
-  // 春节停售期（农历正月初一前1-2天到初七后1-2天）
-  const springFestivalRanges = {
-    2021: { start: '2021-02-08', end: '2021-02-20' }, // 2月7日最后一期 → 2月21日第一期
-    2022: { start: '2022-01-28', end: '2022-02-07' }, // 1月27日最后一期 → 2月8日第一期
-    2023: { start: '2023-01-18', end: '2023-01-28' }, // 1月17日最后一期 → 1月29日第一期
-    2026: { start: '2026-02-15', end: '2026-02-23' }, // 2月12日最后一期 → 2月24日第一期
-    2027: { start: '2027-02-06', end: '2027-02-12' }, // 2月5日最后一期 → 2月13日第一期
-    2028: { start: '2028-01-26', end: '2028-02-01' }
-  };
-  
-  // 国庆节停售期（10月1日前1-2天到10月7日后1-2天）
-  const nationalDayRanges = {
-    2022: { start: '2022-09-30', end: '2022-10-05' }, // 9月29日最后一期 → 10月6日第一期
-    2023: { start: '2023-09-29', end: '2023-10-04' }, // 9月28日最后一期 → 10月5日第一期
-    2026: { start: '2026-09-30', end: '2026-10-05' },
-    2027: { start: '2027-09-30', end: '2027-10-05' },
-    2028: { start: '2028-09-30', end: '2028-10-05' }
-  };
-  
-  // 特殊情况：2020年新冠疫情停售期
-  const specialRanges = {
-    2020: { start: '2020-01-22', end: '2020-03-11' } // 1月21日最后一期 → 3月12日第一期
-  };
-  
-  // 检查是否在春节停售期内
-  const springRange = springFestivalRanges[year];
-  if (springRange && isInHolidayRange(nextDateStr, springRange, date)) {
-    return getFirstDrawAfterFestival(springRange.end);
-  }
-  
-  // 检查是否在国庆节停售期内
-  const nationalRange = nationalDayRanges[year];
-  if (nationalRange && isInHolidayRange(nextDateStr, nationalRange, date)) {
-    return getFirstDrawAfterFestival(nationalRange.end);
-  }
-  
-  // 检查特殊情况停售期
-  const specialRange = specialRanges[year];
-  if (specialRange && isInHolidayRange(nextDateStr, specialRange, date)) {
-    return getFirstDrawAfterFestival(specialRange.end);
-  }
-  
+  // 直接返回下一个开奖日，不做节假日停售判断。
+  // 节假日期间显示可能偏差 3-10 天，属"预估"语义的正常误差，
+  // 数据源会在开奖日自动更新，无需硬编码维护农历/国庆停售表。
   return formatDate(nextDay);
-}
-
-/** 检查是否在节假日停售期内 */
-function isInHolidayRange(nextDateStr, range, currentDate) {
-  // 检查是否在停售期内
-  if (nextDateStr >= range.start && nextDateStr <= range.end) {
-    return true;
-  }
-  
-  // 检查当前日期是否在节假日前，但下期开奖日刚好在节假日期间
-  const currentDateStr = formatDate(currentDate);
-  if (currentDateStr < range.start && nextDateStr >= range.start && nextDateStr <= range.end) {
-    return true;
-  }
-  
-  return false;
-}
-
-/** 获取节假日后第一个开奖日 */
-function getFirstDrawAfterFestival(festivalEnd) {
-  const afterFestival = new Date(festivalEnd);
-  afterFestival.setDate(afterFestival.getDate() + 1);
-  
-  // 找到节假日后第一个开奖日（周二、周四、周日）
-  const festivalDayOfWeek = afterFestival.getDay();
-  
-  // 如果已经是开奖日，直接返回
-  if (festivalDayOfWeek === 0 || festivalDayOfWeek === 2 || festivalDayOfWeek === 4) {
-    return formatDate(afterFestival);
-  }
-  
-  // 如果不是开奖日，找到下一个开奖日
-  // 优先顺序：周二 > 周四 > 周日
-  if (festivalDayOfWeek === 1) { // 周一 → 周二
-    afterFestival.setDate(afterFestival.getDate() + 1);
-  } else if (festivalDayOfWeek === 3) { // 周三 → 周四
-    afterFestival.setDate(afterFestival.getDate() + 1);
-  } else if (festivalDayOfWeek === 5) { // 周五 → 周日
-    afterFestival.setDate(afterFestival.getDate() + 2);
-  } else if (festivalDayOfWeek === 6) { // 周六 → 周二
-    afterFestival.setDate(afterFestival.getDate() + 3);
-  }
-  
-  return formatDate(afterFestival);
 }
 
 /** 格式化日期为 YYYY-MM-DD */

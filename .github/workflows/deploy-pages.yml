@@ -13,12 +13,6 @@ on:
     paths:
       - 'web/**'
       - '.github/workflows/deploy-pages.yml'
-  # 关键：update-data 用 GITHUB_TOKEN push 不会触发 push 事件，
-  # 通过 workflow_run 在其完成后自动触发部署
-  workflow_run:
-    workflows: ['🎰 更新双色球数据']
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
 
 # GitHub Pages 需要的权限
@@ -44,6 +38,13 @@ jobs:
 
       - name: ⚙️ 配置 Pages
         uses: actions/configure-pages@v5
+
+      - name: 🏷️ 自动更新时间戳（Cache Buster）
+        run: |
+          # 用 UTC 时间戳替换版本号，每次部署自动刷新浏览器缓存
+          STAMP=$(date -u +'%Y%m%d%H%M')
+          sed -i "s/?v=[0-9]*\"/?v=$STAMP\"/g" web/index.html
+          echo "Cache buster: ?v=$STAMP"
 
       - name: 📦 打包站点 artifact
         uses: actions/upload-pages-artifact@v3

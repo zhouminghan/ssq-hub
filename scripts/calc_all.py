@@ -228,6 +228,20 @@ def calc_stats(draws):
     }
 
 
+def _write_if_changed(path, payload_str):
+    """磁盘内容 byte 级一致则跳过写入"""
+    if os.path.exists(path):
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                if f.read() == payload_str:
+                    return False
+        except Exception:
+            pass
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(payload_str)
+    return True
+
+
 def main():
     draws = load_history()
     if not draws:
@@ -236,18 +250,22 @@ def main():
     print(f'📊 计算统计数据 ({len(draws)} 期)...')
 
     stats = calc_stats(draws)
-    with open(os.path.join(DATA_DIR, 'stats.json'), 'w', encoding='utf-8') as f:
-        json.dump(stats, f, ensure_ascii=False, indent=2)
-    print('✅ stats.json 已更新')
+    stats_payload = json.dumps(stats, ensure_ascii=False, indent=2)
+    if _write_if_changed(os.path.join(DATA_DIR, 'stats.json'), stats_payload):
+        print('✅ stats.json 已更新')
+    else:
+        print('⏭  stats.json 未变化（跳过写入）')
 
     latest = {
         'latest_draw': draws[-1],
         'updated': draws[-1]['date'],
         'total': len(draws),
     }
-    with open(os.path.join(DATA_DIR, 'latest.json'), 'w', encoding='utf-8') as f:
-        json.dump(latest, f, ensure_ascii=False, indent=2)
-    print('✅ latest.json 已更新')
+    latest_payload = json.dumps(latest, ensure_ascii=False, indent=2)
+    if _write_if_changed(os.path.join(DATA_DIR, 'latest.json'), latest_payload):
+        print('✅ latest.json 已更新')
+    else:
+        print('⏭  latest.json 未变化（跳过写入）')
     print(f'🎰 最新一期: {draws[-1]["issue"]} ({draws[-1]["date"]})')
     print(f'   红球: {draws[-1]["red"]}  蓝球: {draws[-1]["blue"]}')
 

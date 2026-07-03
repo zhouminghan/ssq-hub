@@ -26,6 +26,7 @@ let statsCacheTime = 0;
 // 主源是否健康：null=未试过 / true=用主源 / false=已退化到 CDN
 // 只在首次失败时切换；切换后整 session 都用 CDN，避免反复试探
 let primaryHealthy = null;
+let healthTimerId = null;  // 主源健康恢复 timer ID（避免重复 setTimeout）
 
 /**
  * 取一个相对路径（如 'history_index.json' / 'history/2026.json'），
@@ -55,7 +56,9 @@ async function fetchJson(relPath, cacheBuster) {
       }
       primaryHealthy = false;
       // 30 分钟后重置，下次请求时重试主源（防止 CDN 降级后永远不恢复）
-      setTimeout(() => {
+      if (healthTimerId != null) clearTimeout(healthTimerId);
+      healthTimerId = setTimeout(() => {
+        healthTimerId = null;
         primaryHealthy = null;
         console.log('[data-loader] 主源健康状态已重置，下次请求将重试主源');
       }, 30 * 60 * 1000);

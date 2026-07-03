@@ -11,7 +11,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
  * @param {HTMLElement} scrollEl  滚动容器（坐标系基准）
  */
 export function renderOverlay(svg, table, scrollEl) {
-  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  svg.replaceChildren();
 
   if (!table.tBodies[0] || table.tBodies[0].rows.length < 2) return;
 

@@ -92,7 +92,7 @@ export function renderTrend(table, draws, opts = {}) {
       } else {
         redMiss[n]++;
         const m = redMiss[n];
-        const cls = m >= 30 ? 'col-red miss-hot' : m === 0 ? 'col-red' : 'col-red';
+        const cls = m >= 30 ? 'col-red miss-hot' : 'col-red';
         cells.push(
           h('td', { class: cls, dataset: { ball: n, color: 'red' } }, [
             m > 0 ? h('span.miss', null, m) : '',

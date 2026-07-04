@@ -30,24 +30,11 @@ jobs:
       - name: ⚙️ 配置 Pages
         uses: actions/configure-pages@v6
 
-      - name: 📦 合并 CSS + 更新时间戳
+      - name: 🏷️ 自动更新时间戳（Cache Buster）
         run: |
-          cd web/css
-          cat reset.css theme.css layout.css filter-bar.css trend-table.css \
-              trend-overlay.css number-profile.css responsive.css > bundle.css
-          cd ..
-          # 替换 index.html：8 个 CSS → 1 个 bundle
-          python3 -c "
-          import re
-          html = open('index.html').read()
-          html = re.sub(r'<link rel=\"stylesheet\" href=\"\.\/css/(?:reset|theme|layout|filter-bar|trend-table|trend-overlay|number-profile|responsive)\.css[^>]*>\s*', '', html)
-          html = html.replace('</title>', '</title>\n  <link rel=\"stylesheet\" href=\"./css/bundle.css?v=PLACEHOLDER\" />')
-          open('index.html','w').write(html)
-          "
-          # Cache buster
           STAMP=$(date -u +'%Y%m%d%H%M')
-          sed -i "s/?v=PLACEHOLDER/?v=$STAMP/g; s/?v=[0-9]*\"/?v=$STAMP\"/g" web/index.html
-          echo "✅ bundle.css + cache buster: ?v=$STAMP"
+          sed -i "s/?v=[0-9]*\"/?v=$STAMP\"/g" web/index.html
+          echo "Cache buster: ?v=$STAMP"
 
       - name: 📦 打包站点 artifact
         uses: actions/upload-pages-artifact@v5

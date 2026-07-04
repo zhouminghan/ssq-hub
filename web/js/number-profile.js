@@ -135,7 +135,7 @@ function renderBody(color, num, stats) {
   // ── 2) 频次对比卡：全局 / 近 100 / 近 50（横向 bar） ──
   // 用各档"实际/期望"对比，避免误读为"该买/不该买"
   const card1 = h('section.np-card', null, [
-    h('h3.np-card-title', null, '出现频次'),
+    h('h2.np-card-title', null, '出现频次'),
     h('div.np-card-sub', null,
       `理论期望：每 ${ballMax} 期约出现 ${color === 'red' ? '6' : '1'} 次`),
     barRow('全部', info.freq_global, expectFreq, `${totalDraws} 期`),
@@ -146,7 +146,7 @@ function renderBody(color, num, stats) {
 
   // ── 3) 遗漏详情 ──
   const card2 = h('section.np-card', null, [
-    h('h3.np-card-title', null, '遗漏分析'),
+    h('h2.np-card-title', null, '遗漏分析'),
     h('div.np-kv', null, [
       h('span.np-k', null, '当前遗漏'),
       h('span.np-v', null, `${info.current_miss} 期`),
@@ -166,7 +166,7 @@ function renderBody(color, num, stats) {
   // ── 4) 最近 5 次出现 ──
   const recent = info.recent_5_issues || [];
   const card3 = h('section.np-card', null, [
-    h('h3.np-card-title', null, '最近 5 次出现'),
+    h('h2.np-card-title', null, '最近 5 次出现'),
   ]);
   if (recent.length === 0) {
     card3.appendChild(h('div.np-card-sub', null, '暂无记录'));

@@ -1,5 +1,9 @@
 /* ── 设计 tokens ── */
 :root {
+  /* 字体 */
+  --font: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
   /* 颜色 */
   --bg: #f5f6fa;
   --bg-card: #ffffff;
@@ -8,10 +12,21 @@
   --border-strong: #d0d4d9;
 
   --text: #1d2129;
-  --text-1: #1d2129;   /* 别名，trend-table 形态列引用 */
   --text-2: #4e5969;
   --text-3: #86909c;
   --text-4: #c9cdd4;
+
+  /* 间距 */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* 过渡 */
+  --transition-fast: 0.15s ease;
+  --transition: 0.2s ease;
+  --transition-slow: 0.3s ease;
 
   --red: #e34d59;
   --red-deep: #c62a36;
@@ -62,7 +77,6 @@
   --border-strong: #444455;
 
   --text: #e8e8e8;
-  --text-1: #e8e8e8;   /* 别名，trend-table 形态列引用 */
   --text-2: #b0b0b0;
   --text-3: #808080;
   --text-4: #505050;

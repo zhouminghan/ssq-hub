@@ -11,6 +11,7 @@ import { showProfile } from './number-profile.js';
  */
 export function renderTrend(table, draws, opts = {}) {
   clear(table);
+  table.setAttribute('aria-label', '双色球走势数据');
 
   if (!draws || draws.length === 0) {
     const tbody = h('tbody', null, [
@@ -29,24 +30,24 @@ export function renderTrend(table, draws, opts = {}) {
 
   const redHeads = [];
   for (let n = 1; n <= 33; n++) {
-    redHeads.push(h('th.zone-red', null, pad2(n)));
+    redHeads.push(h('th.zone-red', { scope: 'col' }, pad2(n)));
   }
   const blueHeads = [];
   for (let n = 1; n <= 16; n++) {
-    blueHeads.push(h('th.zone-blue', null, pad2(n)));
+    blueHeads.push(h('th.zone-blue', { scope: 'col' }, pad2(n)));
   }
   const tr = h('tr', null, [
-    h('th.col-issue', null, '期号'),
+    h('th.col-issue', { scope: 'col' }, '期号'),
     ...redHeads,
     ...blueHeads,
-    h('th.zone-aux', null, '和值'),
-    h('th.zone-aux', null, '跨度'),
-    h('th.zone-aux', null, '大小形态'),
-    h('th.zone-aux', null, '大小比'),
-    h('th.zone-aux', null, '奇偶形态'),
-    h('th.zone-aux', null, '奇偶比'),
-    h('th.zone-aux', null, '质合形态'),
-    h('th.zone-aux', null, '质合比'),
+    h('th.zone-aux', { scope: 'col' }, '和值'),
+    h('th.zone-aux', { scope: 'col' }, '跨度'),
+    h('th.zone-aux', { scope: 'col' }, '大小形态'),
+    h('th.zone-aux', { scope: 'col' }, '大小比'),
+    h('th.zone-aux', { scope: 'col' }, '奇偶形态'),
+    h('th.zone-aux', { scope: 'col' }, '奇偶比'),
+    h('th.zone-aux', { scope: 'col' }, '质合形态'),
+    h('th.zone-aux', { scope: 'col' }, '质合比'),
   ]);
 
   thead.appendChild(tr);

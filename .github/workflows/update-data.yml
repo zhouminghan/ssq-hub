@@ -27,9 +27,11 @@ name: 🎰 更新双色球数据
           - incremental    # 增量（仅当有新数据时才重算）
           - full           # 强制重算（即使无新数据也重算 stats/latest）
 
-# 授权：需要 write 权限才能 commit/push 数据文件回仓库
+# 授权：contents（commit/push）+ actions（触发 deploy-pages.yml）
+# GITHUB_TOKEN push 不会自动触发其他 workflow，需用 gh workflow run 显式调度
 permissions:
   contents: write
+  actions: write
 
 # 防并发：同一时间只跑一个 update（重试 cron 互相不会撞车）
 concurrency:
@@ -144,6 +146,7 @@ jobs:
             TS=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M 北京时间')
             git commit -m "chore(data): 自动更新 @ $TS [${{ steps.mode.outputs.mode }}] | ${CHANGES}"
             git push
-            echo "✅ 数据已更新并推送"
+            echo "✅ 数据已推送，触发部署"
+            gh workflow run deploy-pages.yml --ref main
           fi
 

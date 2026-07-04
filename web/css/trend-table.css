@@ -170,7 +170,7 @@
 .trend-table td.col-aux.col-shape {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   letter-spacing: -0.5px;
-  color: var(--text-1);
+  color: var(--text);
   font-weight: 600;
 }
 

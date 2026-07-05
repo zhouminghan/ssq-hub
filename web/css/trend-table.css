@@ -151,7 +151,6 @@
 }
 
 .trend-table td.miss-hot .miss { color: #f7b731; font-weight: 700; }
-.trend-table td.miss-cold .miss { color: var(--blue); font-weight: 600; }
 
 /* 辅助列：和值/跨度/大小形态/大小比/奇偶形态/奇偶比/质合形态/质合比 */
 .trend-table td.col-aux {

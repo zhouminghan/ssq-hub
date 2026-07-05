@@ -112,15 +112,6 @@ export function structure(red) {
   };
 }
 
-/** 防抖 */
-export function debounce(fn, wait = 100) {
-  let t;
-  return function (...args) {
-    clearTimeout(t);
-    t = setTimeout(() => fn.apply(this, args), wait);
-  };
-}
-
 /** rAF 节流 */
 export function rafThrottle(fn) {
   let scheduled = false;

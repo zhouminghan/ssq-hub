@@ -13,7 +13,7 @@ import json
 import os
 import sys
 import glob
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
 WEB_DIR = os.path.join(BASE_DIR, 'web')
@@ -160,7 +160,7 @@ def verify_stats_latest(idx):
         if updated_str:
             try:
                 updated_dt = datetime.strptime(updated_str, '%Y-%m-%d')
-                age_days = (datetime.now() - updated_dt).days
+                age_days = (datetime.now(tz=timezone.utc) - updated_dt).days
                 if age_days > 30:
                     check(False,
                           f'stats.json 已 {age_days} 天未更新（updated={updated_str}），'
@@ -220,13 +220,12 @@ def verify_readme(idx):
 
     # README 期数校验：README 使用 shields.io 动态 badge 显示期数，
     # 无法通过固定正则精确匹配。改为校验 README 文件存在且不小于最低字节数。
-    readme_path = os.path.join(BASE_DIR, 'README.md')
-    if not os.path.exists(readme_path):
+    if not os.path.exists(README_PATH):
         print('  ⚠️ README.md 不存在')
-    elif os.path.getsize(readme_path) < 500:
+    elif os.path.getsize(README_PATH) < 500:
         print('  ⚠️ README.md 内容过短，可能损坏')
     else:
-        print(f'  ✅ README.md 存在 ({os.path.getsize(readme_path)} bytes)')
+        print(f'  ✅ README.md 存在 ({os.path.getsize(README_PATH)} bytes)')
     print(f'  ✅ README.md 期数一致性检查完成')
 
 

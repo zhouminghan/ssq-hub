@@ -22,20 +22,23 @@ def load_history():
     """从按年文件合并加载全部历史数据"""
     all_draws = []
     for fpath in sorted(glob.glob(os.path.join(HISTORY_DIR, '*.json'))):
-        with open(fpath, 'r', encoding='utf-8') as f:
-            all_draws.extend(json.load(f))
+        try:
+            with open(fpath, 'r', encoding='utf-8') as f:
+                all_draws.extend(json.load(f))
+        except (json.JSONDecodeError, Exception) as e:
+            print(f'  ⚠️ 跳过损坏文件: {os.path.basename(fpath)} ({e})')
     return all_draws
 
 
 def calc_stats(draws):
     total = len(draws)
 
-    red_freq = Counter()
-    blue_freq = Counter()
+    red_freq_global = Counter()
+    blue_freq_global = Counter()
     for d in draws:
         for r in d['red']:
-            red_freq[r] += 1
-        blue_freq[d['blue']] += 1
+            red_freq_global[r] += 1
+        blue_freq_global[d['blue']] += 1
 
     recent_50 = draws[-50:]
     recent_100 = draws[-100:]
@@ -126,7 +129,7 @@ def calc_stats(draws):
     for n in range(1, 34):
         key = str(n).zfill(2)
         red_per_number[key] = {
-            'freq_global': red_freq.get(n, 0),
+            'freq_global': red_freq_global.get(n, 0),
             'freq_50': red_freq_50.get(n, 0),
             'freq_100': red_freq_100.get(n, 0),
             'current_miss': red_missing[n],
@@ -139,7 +142,7 @@ def calc_stats(draws):
     for n in range(1, 17):
         key = str(n).zfill(2)
         blue_per_number[key] = {
-            'freq_global': blue_freq.get(n, 0),
+            'freq_global': blue_freq_global.get(n, 0),
             'freq_50': blue_freq_50.get(n, 0),
             'freq_100': blue_freq_100.get(n, 0),
             'current_miss': blue_missing[n],
@@ -209,9 +212,9 @@ def calc_stats(draws):
         'updated': draws[-1]['date'],
         'latest_issue': draws[-1]['issue'],
         'total': total,
-        'red_freq_global': fmt(red_freq),
+        'red_freq_global': fmt(red_freq_global),
         'red_freq_50': fmt(red_freq_50),
-        'blue_freq_global': fmt(blue_freq),
+        'blue_freq_global': fmt(blue_freq_global),
         'blue_freq_50': fmt(blue_freq_50),
         'red_missing': fmt(red_missing),
         'blue_missing': fmt(blue_missing),

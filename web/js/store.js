@@ -15,11 +15,13 @@ export const store = {
     const changed = [];
     for (const k in obj) {
       if (state[k] !== obj[k]) {
+        const prev = state[k];
         state[k] = obj[k];
         changed.push(k);
+        // 异步通知（保留 prev 语义，与 set() 一致）
+        subs.forEach(fn => fn(k, obj[k], prev));
       }
     }
-    changed.forEach(k => subs.forEach(fn => fn(k, state[k], obj[k])));
   },
   subscribe(fn) {
     subs.add(fn);

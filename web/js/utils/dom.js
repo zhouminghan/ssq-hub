@@ -1,6 +1,5 @@
 // ── DOM 工具 ──
 export const qs = (sel, root = document) => root.querySelector(sel);
-export const qsa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 /**
  * 极简 hyperscript：h('div.cls#id', {attr}, [children])
@@ -65,8 +64,3 @@ function appendChildren(el, c) {
 }
 
 export function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
-
-export function on(el, event, handler, opts) {
-  el.addEventListener(event, handler, opts);
-  return () => el.removeEventListener(event, handler, opts);
-}

@@ -11,27 +11,22 @@ body {
   overflow: hidden;
 }
 
+/* ── 顶部栏 ── */
 .app-header {
-  height: var(--header-h);
+  height: 48px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0 16px;
   background: var(--bg-card);
-  border-bottom: 2px solid var(--border);
+  border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 30;
 }
 
-/* 左侧区：品牌 + 期数信息紧邻 */
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  flex-shrink: 0;
-  min-width: 0;
+.header-spacer {
+  flex: 1;
 }
 
 /* 品牌区 */
@@ -64,6 +59,7 @@ body {
   border-left: 1px solid var(--border);
   font-size: 11px;
   color: var(--text-3);
+  flex-shrink: 0;
 }
 
 .header-meta strong {
@@ -73,69 +69,99 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ── 三态主题分段控制器 ── */
-.theme-segment {
-  display: flex;
-  background: #f0f0f0;
-  border-radius: 8px;
-  padding: 2px;
-  gap: 2px;
+/* ── 主题下拉 ── */
+.theme-dropdown {
+  position: relative;
   flex-shrink: 0;
 }
 
-.theme-segment button {
-  display: flex;
+.theme-trigger {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 28px;
-  border: none;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: transparent;
+  font-size: 12px;
+  color: var(--text-2);
   cursor: pointer;
-  color: var(--text-3);
-  transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
-  padding: 0;
+  transition: transform 100ms ease, background 150ms ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-
-.theme-segment button:hover {
-  opacity: 0.7;
+.theme-trigger:hover {
+  border-color: var(--blue);
 }
-
-.theme-segment button:focus-visible {
-  outline: 2px solid var(--blue, #3794ff);
+.theme-trigger:active {
+  transform: scale(0.96);
+}
+.theme-trigger:focus-visible {
+  outline: 2px solid var(--blue);
   outline-offset: 1px;
 }
-
-/* 激活态 */
-.theme-segment button[aria-checked="true"] {
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-  color: inherit;
+.theme-trigger .chevron {
+  transition: transform 150ms ease;
+}
+.theme-dropdown.open .theme-trigger .chevron {
+  transform: rotate(180deg);
 }
 
-/* 未激活态 */
-.theme-segment button[aria-checked="false"] {
-  opacity: 0.4;
+/* 下拉菜单 */
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 136px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+  z-index: 100;
+}
+.theme-menu[hidden] {
+  display: none;
 }
 
-/* 各图标激活色 */
-.theme-segment button[data-theme="light"][aria-checked="true"] { color: #f59e0b; }
-.theme-segment button[data-theme="dark"][aria-checked="true"] { color: #a0c4ff; }
-.theme-segment button[data-theme="auto"][aria-checked="true"] { color: var(--text-2); }
-
-/* 暗色模式覆盖 */
-:root[data-theme="dark"] .theme-segment {
-  background: #333;
+.theme-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  text-align: left;
+  transition: background 150ms ease;
+}
+.theme-item svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+.theme-item:hover {
+  background: var(--bg-soft);
+}
+.theme-item.active {
+  background: var(--blue-soft);
+  color: var(--blue-deep);
+  font-weight: 600;
 }
 
-:root[data-theme="dark"] .theme-segment button[aria-checked="true"] {
-  background: #444;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-
-:root[data-theme="dark"] .theme-segment button[aria-checked="false"] {
-  opacity: 0.35;
+/* ═══ reduced-motion ═══ */
+@media (prefers-reduced-motion: reduce) {
+  .theme-trigger,
+  .theme-trigger .chevron {
+    transition: none !important;
+  }
+  .theme-trigger:active {
+    transform: none;
+  }
 }
 
 .trend-wrap {
@@ -145,6 +171,9 @@ body {
   border-bottom: 1px solid var(--border);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;  /* 拉开 filter-bar 距离，让 sticky thead 完整可见 */
 }
 
 .trend-loading {
@@ -192,9 +221,8 @@ body {
 }
 
 .trend-scroll {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   overflow: auto;
   scroll-behavior: smooth;
   /* ── 移动端横滑修复 ──

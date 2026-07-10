@@ -15,7 +15,6 @@ name: 🎰 更新双色球数据
     - cron: '0 14 * * 0,2,4'
     # 每月 1 日凌晨 2:00 北京时间 = 18:00 UTC（前一天），强制重算
     - cron: '0 18 1 * *'
-  # 允许手动在 GitHub 网页上点按钮触发
   workflow_dispatch:
     inputs:
       mode:
@@ -24,16 +23,13 @@ name: 🎰 更新双色球数据
         default: 'incremental'
         type: choice
         options:
-          - incremental    # 增量（仅当有新数据时才重算）
-          - full           # 强制重算（即使无新数据也重算 stats/latest）
+          - incremental
+          - full
 
-# 授权：contents（commit/push）+ actions（触发 deploy-pages.yml）
-# GITHUB_TOKEN push 不会自动触发其他 workflow，需用 gh workflow run 显式调度
+# 仅需 contents:write（commit / push 数据文件）
 permissions:
   contents: write
-  actions: write
 
-# 防并发：同一时间只跑一个 update（重试 cron 互相不会撞车）
 concurrency:
   group: update-data
   cancel-in-progress: false
@@ -44,14 +40,12 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      # 1. 拉代码
       - name: 📥 拉取代码
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2. 装 Python
       - name: 🐍 配置 Python 环境
         uses: actions/setup-python@v6
         with:
@@ -59,13 +53,11 @@ jobs:
           cache: 'pip'
           cache-dependency-path: requirements.txt
 
-      # 3. 装依赖
       - name: 📦 安装依赖
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. 判断运行模式
       - name: 🧭 判定运行模式
         id: mode
         run: |
@@ -77,10 +69,7 @@ jobs:
             echo "mode=incremental" >> $GITHUB_OUTPUT
           fi
 
-      # 5. 幂等检查：incremental 模式下，若 latest.json 的 date 已经是今天（北京时间），
-      #    说明本期已抓取过，后续重试无需再跑——节省资源、避免噪音 commit
-      #    full 模式 / 手动触发的 incremental 不跳过（用户的明确意图优先）
-      - name: ⏭️  检查是否已抓取本期
+      - name: ⏭️ 检查是否已抓取本期
         id: check
         run: |
           TODAY=$(TZ='Asia/Shanghai' date '+%Y-%m-%d')
@@ -109,45 +98,33 @@ jobs:
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
 
-      # 6. 抓取最新开奖数据（多源容错；fetch_latest.py 内部已按顺序尝试 3 个数据源）
+      # 抓取层的多源 fallback 由 fetch_latest.py 内部负责。
+      # workflow 只做顺序调度：fetch → calc → verify → commit。
       - name: 🌐 抓取最新开奖数据
-        id: fetch
         if: steps.check.outputs.skip != 'true'
-        continue-on-error: true
-        run: |
-          python scripts/fetch_latest.py
-          echo "fetch_ok=true" >> $GITHUB_OUTPUT
+        run: python scripts/fetch_latest.py
 
-      # 7. 重算统计：增量模式仅在抓取成功时跑；full 模式无条件跑
       - name: 📊 重算统计数据
-        if: steps.check.outputs.skip != 'true' && (steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full')
+        if: steps.check.outputs.skip != 'true'
         run: python scripts/calc_all.py
 
-      # 8. 数据自检（不阻塞 commit，但要在日志里能看到结果）
+      # verify_data 是发布前硬门槛：失败即 job 失败，不 commit、不 deploy。
       - name: 🔍 数据自检
-        if: steps.check.outputs.skip != 'true' && (steps.fetch.outputs.fetch_ok == 'true' || steps.mode.outputs.mode == 'full')
+        if: steps.check.outputs.skip != 'true'
         run: python scripts/verify_data.py
-        continue-on-error: true
 
-      # 9. 如果 web/data/ 有变化，commit 回主分支
-      #     重试 cron 的好处：本次抓到了新期 → 触发 commit；没抓到 → 静默跳过
       - name: 💾 提交数据变更
         if: steps.check.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          # 仅提交 web/data/：README 不再随数据变动（期数依赖 dynamic badge）
           git add web/data/
           if git diff --cached --quiet; then
-            echo "⚠️  数据无变化，跳过 commit"
+            echo "⚠️ 数据无变化，跳过 commit"
           else
             CHANGES=$(git diff --cached --stat | tail -1)
             TS=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M 北京时间')
             git commit -m "chore(data): 自动更新 @ $TS [${{ steps.mode.outputs.mode }}] | ${CHANGES}"
             git push
-            echo "✅ 数据已推送，触发部署"
-            gh workflow run deploy-pages.yml --ref main
+            echo "✅ 数据已推送；Pages 将由 deploy-pages.yml 通过 workflow_run 处理"
           fi
-

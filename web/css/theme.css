@@ -1,20 +1,20 @@
-/* ── 设计 tokens ── */
+/* ── 设计 tokens — Data-Dense Dashboard（蓝+琥珀） ── */
 :root {
   /* 字体 */
   --font: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* 颜色 */
-  --bg: #f5f6fa;
-  --bg-card: #ffffff;
-  --bg-soft: #fafbfc;
-  --border: #e6e8eb;
-  --border-strong: #d0d4d9;
+  --bg: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-soft: #F1F5F9;
+  --border: #DBEAFE;
+  --border-strong: #BFDBFE;
 
-  --text: #1d2129;
-  --text-2: #4e5969;
-  --text-3: #86909c;
-  --text-4: #c9cdd4;
+  --text: #1E3A8A;
+  --text-2: #475569;
+  --text-3: #94A3B8;
+  --text-4: #CBD5E1;
 
   /* 间距 */
   --space-xs: 4px;
@@ -28,35 +28,35 @@
   --transition: 0.2s ease;
   --transition-slow: 0.3s ease;
 
-  --red: #e34d59;
-  --red-deep: #c62a36;
-  --red-soft: #fde8ea;
-  --red-line: rgba(227, 77, 89, 0.55);
+  --red: #E34D59;          /* 柔和红（浅色模式用） */
+  --red-deep: #C62A36;
+  --red-soft: #FEF2F2;
+  --red-line: rgba(227, 77, 89, 0.50);
+  --red-hl: #FF7B81;        /* 红球高光起点（柔和过渡） */
 
-  --blue: #4a90e2;
-  --blue-deep: #2c6cb0;
-  --blue-soft: #e6f0fa;
-  --blue-line: rgba(74, 144, 226, 0.55);
+  --blue: #4A90E2;         /* 柔和蓝（浅色模式用） */
+  --blue-deep: #2C6CB0;
+  --blue-soft: #EFF6FF;
+  --blue-line: rgba(74, 144, 226, 0.50);
+  --blue-hl: #7FB1EC;       /* 蓝球高光起点（柔和过渡） */
 
-  --gold: #f7b731;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --gold: #D97706;
+  --shadow-sm: 0 1px 2px rgba(30, 64, 175, 0.06);
+  --shadow: 0 2px 8px rgba(30, 64, 175, 0.08);
+  --shadow-lg: 0 8px 24px rgba(30, 64, 175, 0.12);
 
-  /* 新增语义变量（暗色模式需要独立映射） */
-  --bg-warm: #fffaf5;           /* 暖色背景：hover/dock/合计栏等 */
-  --bg-aux: #f6f4ed;            /* 辅助列背景 */
-  --text-aux: #8a6d1c;          /* 辅助列文字（金棕色） */
-  --red-hl: #ff7b81;            /* 红球高光渐变起点 */
-  --blue-hl: #7fb1ec;           /* 蓝球高光渐变起点 */
-  --issue-head-bg: #f8f9fb;     /* sticky 表头背景（必须不透明） */
-  --issue-body-bg: #ffffff;     /* sticky 表体背景（必须不透明） */
-  --line-soft: #f0f1f3;         /* 柔和网格线 */
-  --bg-draft: rgba(255, 246, 237, 0.6);  /* 草稿条条纹背景 */
-  --mask-bg: rgba(0, 0, 0, 0.45);        /* 弹窗遮罩 */
+  /* 语义变量 */
+  --bg-warm: #FFFBEB;
+  --bg-aux: #FEFCE8;
+  --text-aux: #92400E;
+  --issue-head-bg: #F1F5F9;
+  --issue-body-bg: #FFFFFF;
+  --line-soft: #E2E8F0;
+  --bg-draft: rgba(254, 243, 199, 0.50);
+  --mask-bg: rgba(0, 0, 0, 0.40);
 
   /* 尺寸 */
-  --header-h: 48px;
+  --header-h: 48px;     /* app-header 精确高度 */
   --filter-h: 56px;
   --footer-h: 36px;
 
@@ -68,45 +68,45 @@
   --radius-lg: 12px;
 }
 
-/* ── 暗色模式 ── */
+/* ── 暗色模式（slate 中性色系，与 glass header 协调） ── */
 :root[data-theme="dark"] {
-  --bg: #121212;
-  --bg-card: #1e1e1e;
-  --bg-soft: #2a2a2a;
-  --border: #333340;
-  --border-strong: #444455;
+  --bg: #0F172A;           /* slate-900 主背景 */
+  --bg-card: #1E293B;      /* slate-800 卡片 */
+  --bg-soft: #1E293B;
+  --border: #334155;       /* slate-700 */
+  --border-strong: #475569;/* slate-600 */
 
-  --text: #e8e8e8;
-  --text-2: #b0b0b0;
-  --text-3: #808080;
-  --text-4: #505050;
+  --text: #F1F5F9;         /* slate-100 */
+  --text-2: #CBD5E1;       /* slate-300 */
+  --text-3: #94A3B8;       /* slate-400 */
+  --text-4: #475569;       /* slate-600 */
 
-  --red: #ff6b6b;
-  --red-deep: #e34d59;
-  --red-soft: rgba(227, 77, 89, 0.15);
-  --red-line: rgba(255, 107, 107, 0.45);
+  --red: #F87171;
+  --red-deep: #EF4444;
+  --red-soft: rgba(248, 113, 113, 0.15);
+  --red-line: rgba(248, 113, 113, 0.45);
 
-  --blue: #5ba0e8;
-  --blue-deep: #4a8cd4;
-  --blue-soft: rgba(74, 144, 226, 0.15);
-  --blue-line: rgba(91, 160, 232, 0.45);
+  --blue: #60A5FA;
+  --blue-deep: #3B82F6;
+  --blue-soft: rgba(96, 165, 250, 0.15);
+  --blue-line: rgba(96, 165, 250, 0.45);
 
-  --gold: #ffc44d;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --gold: #FBBF24;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55);
 
-  --bg-warm: #2a2528;
-  --bg-aux: #252520;
-  --text-aux: #d4b44a;
-  --red-hl: #ff8a8f;
-  --blue-hl: #8fc0f0;
-  --issue-head-bg: #1c1c1e;
-  --issue-body-bg: #1e1e1e;
-  --line-soft: #2e2e2e;
-  --bg-draft: rgba(60, 50, 45, 0.6);
-  --mask-bg: rgba(0, 0, 0, 0.65);
+  --bg-warm: #2A2520;      /* 暖色背景（hover/dock/合计栏）保留暖意 */
+  --bg-aux: #1E1B18;       /* 辅助列背景 */
+  --text-aux: #FCD34D;
+  --red-hl: #FCA5A5;
+  --blue-hl: #93C5FD;
+  --issue-head-bg: #1E293B;
+  --issue-body-bg: #1E293B;
+  --line-soft: #334155;
+  --bg-draft: rgba(40, 30, 25, 0.50);
+  --mask-bg: rgba(0, 0, 0, 0.60);
 }
 
-/* 错误文本（替代内联 style="color:#e34d59"） */
+/* 错误文本（替代内联 style） */
 .error-text { color: var(--red); }

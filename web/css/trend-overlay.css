@@ -1,3 +1,10 @@
+/* ── Wrapper：让 SVG 随 table 一起滚动，而非冻结 ── */
+.trend-canvas {
+  position: relative;
+  display: inline-block;
+  min-width: 100%;
+}
+
 /* ── SVG 蓝球中奖号码顺序连线（仿支付宝） ── */
 .trend-overlay {
   position: absolute;

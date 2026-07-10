@@ -23,9 +23,9 @@ let latestCacheTime = 0;
 let statsCache = null;
 let statsCacheTime = 0;
 
-// 主源是否健康：null=未试过 / true=用主源 / false=已退化到 CDN
-// 只在首次失败时切换；切换后整 session 都用 CDN，避免反复试探
-let primaryHealthy = null;
+// 主源健康度：UNKNOWN=待探测 / OK=健康 / DEGRADED=已切CDN
+const PRIMARY = Object.freeze({ UNKNOWN: 0, OK: 1, DEGRADED: 2 });
+let primaryHealthy = PRIMARY.UNKNOWN;
 let healthTimerId = null;  // 主源健康恢复 timer ID（避免重复 setTimeout）
 
 /**
@@ -33,43 +33,53 @@ let healthTimerId = null;  // 主源健康恢复 timer ID（避免重复 setTime
  * 自动选用主源或 CDN 拼成完整 URL
  */
 function resolveUrl(relPath) {
-  const base = primaryHealthy === false ? CDN_BASE : DATA_BASE;
+  const base = primaryHealthy === PRIMARY.DEGRADED ? CDN_BASE : DATA_BASE;
   return `${base}/${relPath}`;
 }
 
 async function fetchJson(relPath, cacheBuster) {
   // 主源：相对路径 fetch（cache: 'no-cache' 避免部署后 24h 浏览器命中旧版）
-  if (primaryHealthy !== false) {
+  if (primaryHealthy !== PRIMARY.DEGRADED) {
     try {
       const url = cacheBuster ? `${DATA_BASE}/${relPath}?v=${cacheBuster}` : `${DATA_BASE}/${relPath}`;
       const res = await fetch(url, { cache: 'no-cache' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      primaryHealthy = true;
+      primaryHealthy = PRIMARY.OK;
       return await res.json();
     } catch (err) {
       // 仅在第一次失败时打印，避免后续 N 次 fetch 都刷一遍 console
-      if (primaryHealthy !== false) {
+      if (primaryHealthy !== PRIMARY.DEGRADED) {
         console.warn(
           `[data-loader] 主源 ${DATA_BASE}/${relPath} 失败（${err.message}），`
           + `本 session 后续请求改走 CDN：${CDN_BASE}`,
         );
       }
-      primaryHealthy = false;
+      primaryHealthy = PRIMARY.DEGRADED;
       // 30 分钟后重置，下次请求时重试主源（防止 CDN 降级后永远不恢复）
       if (healthTimerId != null) clearTimeout(healthTimerId);
       healthTimerId = setTimeout(() => {
         healthTimerId = null;
-        primaryHealthy = null;
+        primaryHealthy = PRIMARY.UNKNOWN;
         console.log('[data-loader] 主源健康状态已重置，下次请求将重试主源');
       }, 30 * 60 * 1000);
     }
   }
 
   // CDN 兜底（jsDelivr 自带 CDN，无需 cache-buster；Pages 部署后最多 12h 同步延迟可接受）
+  // 添加 8s 超时，防止 CDN 不可达时无限等待
   const cdnUrl = `${CDN_BASE}/${relPath}`;
-  const res = await fetch(cdnUrl);
-  if (!res.ok) throw new Error(`fetch ${cdnUrl} failed: ${res.status}`);
-  return res.json();
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(cdnUrl, { signal: ctrl.signal });
+    if (!res.ok) throw new Error(`fetch ${cdnUrl} failed: ${res.status}`);
+    const data = await res.json();
+    return data;
+  } catch (cdnErr) {
+    throw new Error(`CDN 兜底也失败: ${cdnErr.message}`);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 /** 加载 history_index.json（5 分钟 TTL） */
@@ -96,11 +106,6 @@ export async function loadYear(year, cacheBuster) {
   const draws = await fetchJson(`history/${y}.json`, cacheBuster);
   yearCache.set(y, { data: draws, time: now });
   return draws;
-}
-
-/** 清空年份缓存（供刷新按钮调用） */
-export function clearYearCache() {
-  yearCache.clear();
 }
 
 /** 加载 latest.json（5 分钟 TTL） */
@@ -164,13 +169,4 @@ export async function loadIssues(issues) {
     .sort((a, b) => a.issue.localeCompare(b.issue));
 }
 
-/** 加载某年（以及所有可用期号）— 用于同期对比的"期号自动补全提示" */
-export async function listAllIssues() {
-  const idx = await loadIndex();
-  const all = [];
-  for (const y of idx.years.map((y) => y.year)) {
-    const draws = await loadYear(y);
-    for (const d of draws) all.push(d.issue);
-  }
-  return all;
-}
+

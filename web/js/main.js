@@ -7,6 +7,7 @@ import { renderTrend } from './trend-table.js';
 import { bindOverlay } from './trend-overlay.js';
 import { mountNumberProfile } from './number-profile.js';
 import { nextIssue, nextDrawDate } from './utils/format.js';
+import { initTheme } from './theme.js';
 
 const $meta = qs('#meta-info');
 const $loading = qs('#trend-loading');
@@ -17,78 +18,12 @@ const $filterBar = qs('#filter-bar');
 
 let disposeOverlay = null;
 
-/* ── 三态主题切换：auto / light / dark ── */
-
-/** 获取用户存储的主题偏好（'light'|'dark'|null=auto），返回有效主题名 */
-function getStoredMode() {
-  const t = localStorage.getItem('theme');
-  return (t === 'light' || t === 'dark') ? t : null; // null = 跟随系统
-}
-
-/** 根据 storage 状态返回实际应渲染的主题（light|dark）*/
-function getEffectiveTheme() {
-  const mode = getStoredMode();
-  if (mode) return mode;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  syncThemeSegmentUI(theme, getStoredMode());
-}
-
-function initThemeToggle() {
-  const segment = qs('#theme-segment');
-  if (!segment) return;
-
-  // 初始化 UI
-  const theme = getEffectiveTheme();
-  applyTheme(theme);
-
-  // 点击循环：auto(null) → light → dark → auto(null)
-  segment.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-theme]');
-    if (!btn) return;
-    const chosen = btn.dataset.theme; // 'auto' | 'light' | 'dark'
-
-    if (chosen === 'auto') {
-      localStorage.removeItem('theme'); // null = auto
-    } else {
-      localStorage.setItem('theme', chosen);
-    }
-    applyTheme(getEffectiveTheme());
-  });
-
-  // 系统主题变化时自动跟随（仅 auto 模式）
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('theme')) {
-      applyTheme(e.matches ? 'dark' : 'light');
-    }
-  });
-}
-
-/** 同步三态分段控制器 UI */
-function syncThemeSegmentUI(theme, mode) {
-  const segment = qs('#theme-segment');
-  if (!segment) return;
-
-  const buttons = segment.querySelectorAll('button[data-theme]');
-  buttons.forEach(btn => {
-    const bt = btn.dataset.theme;
-    const checked =
-      (bt === 'auto' && mode === null) ||
-      (bt === 'light' && mode === 'light') ||
-      (bt === 'dark' && mode === 'dark');
-    btn.setAttribute('aria-checked', String(checked));
-  });
-}
-
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
 
 async function init(retryCount = 0) {
-  // 尽早初始化主题切换（在数据加载前完成 UI 状态）
-  initThemeToggle();
+  // 尽早初始化主题（在数据加载前完成 UI 状态）
+  initTheme();
 
   try {
     // 1. 加载基础信息
@@ -126,7 +61,8 @@ async function init(retryCount = 0) {
       <span class="error-text">⚠️ 加载失败：${err.message}</span>
       <button id="retry-btn" class="btn-retry">重试</button>
     `;
-    qs('#retry-btn').addEventListener('click', () => location.reload());
+    const btn = qs('#retry-btn');
+    if (btn) btn.addEventListener('click', () => location.reload());
   }
 }
 

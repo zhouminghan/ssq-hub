@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28">
+  <defs>
+    <linearGradient id="r" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#DC2626"/>
+    </linearGradient>
+    <linearGradient id="b" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <!-- 红球（左下，带微光） -->
+  <circle cx="9.5" cy="18" r="7" fill="url(#r)" opacity="0.92"/>
+  <ellipse cx="7.5" cy="15.5" rx="2.5" ry="2" fill="white" opacity="0.25"/>
+  <!-- 蓝球（右上，带微光） -->
+  <circle cx="18.5" cy="10" r="7" fill="url(#b)" opacity="0.92"/>
+  <ellipse cx="16.5" cy="7.5" rx="2.5" ry="2" fill="white" opacity="0.25"/>
+</svg>

@@ -9,8 +9,8 @@
   - 写入前 byte 级比对：内容未变化的年份文件跳过写入（节省 IO + mtime 真实反映变更）
 
 支持多数据源自动切换:
-  1. 福彩官方 API (cwl.gov.cn) — 国内 IP 首选；GitHub Actions 海外段会 403
-  2. 500 彩票网 (datachart.500.com) — 海外可用，HTML 表格解析，无需 key
+  1. 500 彩票网 (datachart.500.com) — 海外可用，HTML 表格解析，无需 key，GitHub Actions 首选
+  2. 福彩官方 API (cwl.gov.cn) — 国内 IP 可用；GitHub Actions 海外段会 403（作为降级备用）
   3. 备用 API (idcd.com) — 第三方 JSON，曾返回空
 """
 
@@ -23,9 +23,7 @@ import time
 import requests
 from collections import defaultdict
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'web', 'data')
-HISTORY_DIR = os.path.join(DATA_DIR, 'history')
-INDEX_FILE = os.path.join(DATA_DIR, 'history_index.json')
+from _paths import DATA_DIR, HISTORY_DIR, INDEX_FILE
 
 COMMON_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -199,12 +197,12 @@ def fetch_from_500():
 def fetch_latest_draws():
     """依次尝试多个数据源，返回获取到的开奖数据
 
-    优先级: 福彩官方 → 500 彩票网 → idcd.com
-    （与 CLAUDE.md 文档保持一致；GitHub Actions 海外环境访问 cwl 会 403，自动 fallback 到 500）
+    优先级: 500 彩票网 → 福彩官方 → idcd.com
+    （GitHub Actions 海外环境 500 可达性最好，优先使用；本地开发福彩仍可用）
     """
     sources = [
-        ('福彩官方', fetch_from_cwl),
         ('500 彩票网', fetch_from_500),
+        ('福彩官方', fetch_from_cwl),
         ('idcd.com', fetch_from_idcd),
     ]
     for name, fetcher in sources:

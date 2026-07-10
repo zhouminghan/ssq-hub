@@ -159,7 +159,7 @@ def verify_stats_latest(idx):
         updated_str = stats.get('updated', '')
         if updated_str:
             try:
-                updated_dt = datetime.strptime(updated_str, '%Y-%m-%d')
+                updated_dt = datetime.strptime(updated_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
                 age_days = (datetime.now(tz=timezone.utc) - updated_dt).days
                 if age_days > 30:
                     check(False,

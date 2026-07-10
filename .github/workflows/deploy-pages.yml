@@ -4,8 +4,16 @@ on:
   push:
     branches: [main, master]
     paths:
-      - 'web/**'
+      - 'web/index.html'
+      - 'web/js/**'
+      - 'web/css/**'
+      - 'web/robots.txt'
+      - 'web/sitemap.xml'
+      - 'web/.nojekyll'
       - '.github/workflows/deploy-pages.yml'
+  workflow_run:
+    workflows: ['🎰 更新双色球数据']
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -14,33 +22,78 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: false
 
 jobs:
   deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+
     steps:
       - name: 📥 拉取代码
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref_name }}
+
+      - name: 🧭 判定本次是否需要部署
+        id: gate
+        run: |
+          NEED_DEPLOY=true
+          REASON=direct_trigger
+
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_SHA="${{ github.event.workflow_run.head_sha }}"
+            CURR_SHA=$(git rev-parse HEAD)
+            CURR_AUTHOR=$(git log -1 --pretty=%an)
+            CURR_MSG=$(git log -1 --pretty=%s)
+
+            echo "workflow_run head_sha: $RUN_SHA"
+            echo "current ref sha:      $CURR_SHA"
+            echo "current author:       $CURR_AUTHOR"
+            echo "current subject:      $CURR_MSG"
+
+            if [ "$CURR_SHA" = "$RUN_SHA" ]; then
+              NEED_DEPLOY=false
+              REASON=no_new_commit
+            elif [ "$CURR_AUTHOR" = "github-actions[bot]" ] && printf '%s' "$CURR_MSG" | grep -q '^chore(data): 自动更新 @'; then
+              NEED_DEPLOY=true
+              REASON=data_commit
+            else
+              NEED_DEPLOY=false
+              REASON=non_data_commit
+            fi
+          fi
+
+          echo "need_deploy=$NEED_DEPLOY" >> $GITHUB_OUTPUT
+          echo "reason=$REASON" >> $GITHUB_OUTPUT
+
+          if [ "$NEED_DEPLOY" = "true" ]; then
+            echo "✅ 继续部署 ($REASON)"
+          else
+            echo "⏭️ 跳过部署 ($REASON)"
+          fi
 
       - name: ⚙️ 配置 Pages
+        if: steps.gate.outputs.need_deploy == 'true'
         uses: actions/configure-pages@v6
 
       - name: 🏷️ 自动更新时间戳（Cache Buster）
+        if: steps.gate.outputs.need_deploy == 'true'
         run: |
           STAMP=$(date -u +'%Y%m%d%H%M')
           sed -i "s/?v=[0-9]*\"/?v=$STAMP\"/g" web/index.html
           echo "Cache buster: ?v=$STAMP"
 
       - name: 📦 打包站点 artifact
+        if: steps.gate.outputs.need_deploy == 'true'
         uses: actions/upload-pages-artifact@v5
         with:
           path: './web'
 
       - name: 🚀 发布到 GitHub Pages
+        if: steps.gate.outputs.need_deploy == 'true'
         id: deployment
         uses: actions/deploy-pages@v5

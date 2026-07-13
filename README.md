@@ -52,7 +52,8 @@ ssq-hub/
 ├── scripts/                 # Python 数据脚本
 │   ├── _paths.py             # 共用路径常量
 │   ├── _utils.py             # 共用工具（write_if_changed）
-│   ├── fetch_latest.py      # 多源抓取（500彩票 / 福彩 / idcd）
+│   ├── schema.py             # 共享数据模型（validate_draw / make_draw）
+│   ├── fetch_latest.py      # 多源抓取（500彩票 / 福彩 / idcd）+ 内置重试
 │   ├── calc_all.py          # 全量重算 stats / latest
 │   └── verify_data.py       # 数据自检
 ├── docs/                    # 概率统计 / 历史事件

@@ -15,6 +15,8 @@ import sys
 import glob
 from datetime import datetime, timezone, timedelta
 
+from schema import validate_draw
+
 BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
 WEB_DIR = os.path.join(BASE_DIR, 'web')
 DATA_DIR = os.path.join(WEB_DIR, 'data')
@@ -54,7 +56,6 @@ def verify_index():
     check(isinstance(idx.get('years', []), list), 'years 应为数组')
     check(idx.get('total', 0) > 0, f'total={idx.get("total")} 不合理，应大于 0')
 
-    # 年份之和应等于 total
     year_sum = sum(y.get('count', 0) for y in idx.get('years', []))
     check(year_sum == idx.get('total', 0),
           f'各年份 count 之和 ({year_sum}) != total ({idx.get("total")})')
@@ -82,32 +83,16 @@ def verify_history_files(idx):
         total_draws += len(draws)
 
         for d in draws:
-            # 格式校验
-            has_fields = all(k in d for k in ('issue', 'date', 'red', 'blue'))
-            if not has_fields:
+            if not validate_draw(d):
                 bad_records += 1
                 continue
 
-            # 红球: 6个，范围1-33
-            if not (isinstance(d['red'], list) and len(d['red']) == 6):
-                bad_records += 1
-                continue
-            if not all(1 <= r <= 33 for r in d['red']):
-                bad_records += 1
-                continue
-
-            # 蓝球: 1个，范围1-16
-            if not (isinstance(d['blue'], int) and 1 <= d['blue'] <= 16):
-                bad_records += 1
-                continue
-
-            # 期号唯一性
             if d['issue'] in all_issues:
                 check(False, f'发现重复期号: {d["issue"]}', is_warning=True)
             all_issues.add(d['issue'])
 
     check(bad_records == 0,
-          f'有 {bad_records} 条记录格式异常（红球非6个/范围越界/蓝球越界）',
+          f'有 {bad_records} 条记录格式异常',
           is_warning=(bad_records < 5))
 
     if idx:
@@ -119,13 +104,12 @@ def verify_history_files(idx):
 
 
 def verify_stats_latest(idx):
-    """校验 stats.json 和 latest.json（适配走势图精简版字段）"""
+    """校验 stats.json 和 latest.json"""
     print('\n🔍 [3/5] 校验 stats.json 和 latest.json ...')
 
     stats_path = os.path.join(DATA_DIR, 'stats.json')
     latest_path = os.path.join(DATA_DIR, 'latest.json')
 
-    # stats.json：精简版只需要 total / latest_issue / 频次 / 遗漏
     if check(os.path.exists(stats_path), 'stats.json 不存在'):
         with open(stats_path, 'r', encoding='utf-8') as f:
             stats = json.load(f)
@@ -136,14 +120,12 @@ def verify_stats_latest(idx):
         check('blue_freq_global' in stats, 'stats.json 缺少 blue_freq_global 字段')
         check('red_missing' in stats, 'stats.json 缺少 red_missing 字段')
         check('blue_missing' in stats, 'stats.json 缺少 blue_missing 字段')
-        # 扩展字段（每号画像 + 模式分布），用于号码画像抽屉
         check('red_per_number' in stats, 'stats.json 缺少 red_per_number 字段')
         check('blue_per_number' in stats, 'stats.json 缺少 blue_per_number 字段')
         rpn = stats.get('red_per_number', {})
         bpn = stats.get('blue_per_number', {})
         check(len(rpn) == 33, f'red_per_number 应有 33 项，当前 {len(rpn)}')
         check(len(bpn) == 16, f'blue_per_number 应有 16 项，当前 {len(bpn)}')
-        # 抽样一项校验子字段完整性
         if rpn:
             sample = next(iter(rpn.values()))
             for f in ('freq_global', 'freq_50', 'freq_100', 'current_miss',
@@ -154,8 +136,6 @@ def verify_stats_latest(idx):
             check(stats.get('total') == idx['total'],
                   f'stats.total ({stats.get("total")}) != index.total ({idx["total"]})')
 
-        # 新鲜度：updated 字段距今 ≤ 7 天 → 正常；> 7 天 → 警告；> 30 天 → 错误
-        # 防止线上 GitHub Actions 抓数链路坏掉、stats 数月不更新而无人察觉
         updated_str = stats.get('updated', '')
         if updated_str:
             try:
@@ -179,20 +159,16 @@ def verify_stats_latest(idx):
 
         print(f'  ✅ stats.json: total={stats.get("total")}, latest={stats.get("latest_issue")}')
 
-    # latest.json：精简版仅有 latest_draw + updated + total
     if check(os.path.exists(latest_path), 'latest.json 不存在'):
         with open(latest_path, 'r', encoding='utf-8') as f:
             latest = json.load(f)
 
         if check('latest_draw' in latest, 'latest.json 缺少 latest_draw'):
             ld = latest['latest_draw']
-            check('issue' in ld and 'date' in ld and 'red' in ld and 'blue' in ld,
-                  'latest_draw 字段不完整（issue/date/red/blue）')
-            if isinstance(ld.get('red'), list):
-                check(len(ld['red']) == 6 and all(1 <= r <= 33 for r in ld['red']),
-                      'latest_draw.red 不是 6 个合法红球')
-            check(isinstance(ld.get('blue'), int) and 1 <= ld['blue'] <= 16,
-                  'latest_draw.blue 越界')
+            if not validate_draw(ld):
+                check(False, 'latest_draw 格式不合法')
+            else:
+                check(True, 'latest_draw 格式校验通过')
 
         if idx:
             check(latest.get('total') == idx['total'],
@@ -210,16 +186,11 @@ def verify_readme(idx):
         check(False, 'README.md 不存在')
         return
 
-    with open(README_PATH, 'r', encoding='utf-8') as f:
-        content = f.read()
-
     total = idx['total'] if idx else None
     if not total:
         print('  ⏭️  无法获取 total，跳过 README 校验')
         return
 
-    # README 期数校验：README 使用 shields.io 动态 badge 显示期数，
-    # 无法通过固定正则精确匹配。改为校验 README 文件存在且不小于最低字节数。
     if not os.path.exists(README_PATH):
         print('  ⚠️ README.md 不存在')
     elif os.path.getsize(README_PATH) < 500:
@@ -230,15 +201,33 @@ def verify_readme(idx):
 
 
 def verify_file_structure():
-    """校验项目必要文件是否齐全（动态扫描，避免硬编码遗漏）"""
+    """校验项目必要文件是否齐全"""
     print('\n🔍 [5/5] 校验项目文件结构 ...')
 
-    # 1. 关键文件（必须存在，硬编码防止误删核心文件）
     critical_files = [
         'web/index.html',
         'web/.nojekyll',
+        # 前端 JS（核心渲染链路）
+        'web/js/main.js',
         'web/js/store.js',
         'web/js/data-loader.js',
+        'web/js/filter-bar.js',
+        'web/js/trend-table.js',
+        'web/js/trend-overlay.js',
+        'web/js/number-profile.js',
+        'web/js/theme.js',
+        'web/js/utils/dom.js',
+        'web/js/utils/format.js',
+        # 前端 CSS
+        'web/css/reset.css',
+        'web/css/theme.css',
+        'web/css/layout.css',
+        'web/css/filter-bar.css',
+        'web/css/trend-table.css',
+        'web/css/trend-overlay.css',
+        'web/css/number-profile.css',
+        'web/css/responsive.css',
+        # 数据文件
         'web/data/history_index.json',
         'web/data/stats.json',
         'web/data/latest.json',
@@ -247,11 +236,9 @@ def verify_file_structure():
     if missing_critical:
         check(False, f'缺少关键文件: {", ".join(missing_critical)}')
 
-    # 2. 历史数据文件（按年存储，至少 1 个）
     history_files = glob.glob(os.path.join(HISTORY_DIR, '*.json'))
     check(len(history_files) >= 1, '缺少 history/*.json 数据文件')
 
-    # 统计（仅展示）
     js_files = glob.glob(os.path.join(WEB_DIR, 'js/**/*.js'), recursive=True)
     css_files = glob.glob(os.path.join(WEB_DIR, 'css/*.css'))
     py_files = glob.glob(os.path.join(BASE_DIR, 'scripts/*.py'))
@@ -270,7 +257,6 @@ def main():
     verify_readme(idx)
     verify_file_structure()
 
-    # 汇总
     print('\n' + '=' * 50)
     if errors:
         print(f'💥 自检失败: {len(errors)} 个错误, {len(warnings)} 个警告')

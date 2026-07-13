@@ -41,13 +41,14 @@ cd web && python3 -m http.server 5173  # 本地预览
 ## Implicit knowledge
 
 - `calc_all.py` 每次**全量重算**（刻意不做增量），~36ms
-- `_write_if_changed()` 不变式：读旧 → 字符串比较 → 不等才写。破坏会让 mtime 失真
+- `write_if_changed()` 不变式：读旧 → 字符串比较 → 不等才写。破坏会让 mtime 失真。支持 str/dict/list 三种 content 类型，位于 `scripts/_utils.py`
+- `schema.py` 是 Draw 记录的单一真相源：`validate_draw()` + `make_draw()` + 字段常量。`fetch_latest.py` / `calc_all.py` / `verify_data.py` 都通过它消费和校验数据
 - 近N期默认 **50**，主题默认 **auto**。改一处须同步所有 fallback 路径（grep `loadRecent` 和 `aria-checked`）
 - 主题逻辑：独立在 `web/js/theme.js`（SVG 图标 + 下拉交互），`main.js` 导入 `initTheme()`
 
 ### CI / 发布约束
 
-- `fetch_latest.py` **已经负责**多源 fallback；不要再把逐源重试 / 轮询状态机搬进 workflow
+- `fetch_latest.py` **已经负责**多源 fallback + 内置 45min 重试；不要再把逐源重试 / 轮询状态机搬进 workflow YAML
 - `update-data.yml` 必须保持轻量顺序：`check → fetch → calc → verify → commit`
 - `verify_data.py` 是发布前**硬门槛**：失败就让 job fail，不允许 `continue-on-error`
 - `deploy-pages.yml` 与数据更新链路解耦，靠 `workflow_run(update-data)` 串联
@@ -60,7 +61,7 @@ cd web && python3 -m http.server 5173  # 本地预览
 | 改动点 | 必须同步的位置 |
 |---|---|
 | 走势表增删列 | `trend-table.js` 空 colspan(58) / `responsive.css` / `index.html` |
-| `stats.json` 结构变动 | `calc_all.py::calc_stats` 输出 / `verify_data.py::verify_stats_latest` 校验 / 前端消费方 |
-| `web/js/` 或 `web/css/` 文件增删 | `verify_data.py::critical_files` 清单（路径加 `web/` 前缀） |
+| `stats.json` 结构变动 | `calc_all.py::calc_stats` 输出 / `verify_data.py::verify_stats_latest` 校验 / `schema.py` 工厂函数 / 前端消费方 |
+| `web/js/` 或 `web/css/` 文件增删 | `verify_data.py::critical_files` 清单（路径加 `web/` 前缀，含 `utils/` 子目录） |
 
 ---

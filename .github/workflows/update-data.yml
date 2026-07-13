@@ -1,18 +1,18 @@
 name: 🎰 更新双色球数据
 
 # 触发：
-#   · 开奖日（周二/四/日）21:15 + 22:00 北京时间（首抓 + 一次兜底重试）
+#   · 开奖日（周二/四/日）21:15 北京时间（单次抓取，fetch_latest.py 内置 45min 重试）
 #   · 每月 1 日 02:00 北京时间（强制重算 stats）
 #   · 手动触发
 #
 # 双色球开奖时间：周二/四/日 21:15 北京时间，数据源 21:30~22:00 同步完成。
 # 幂等：抓取前先检查 data/latest.json，date == 今日（北京时间）则整流程跳过。
+# 内建重试：fetch_latest.py 在 main() 中内置一轮 45 分钟间隔的重试，
+# 避免 workflow 层双 cron 导致 deploy-pages 双重触发。
 "on":
   schedule:
-    # 开奖日 21:15 北京时间 = 13:15 UTC（首抓，开奖后立即运行）
+    # 开奖日 21:15 北京时间 = 13:15 UTC
     - cron: '15 13 * * 0,2,4'
-    # 开奖日 22:00 北京时间 = 14:00 UTC（兜底重试，仅在 21:15 没抓到时实际执行）
-    - cron: '0 14 * * 0,2,4'
     # 每月 1 日凌晨 2:00 北京时间 = 18:00 UTC（前一天），强制重算
     - cron: '0 18 1 * *'
   workflow_dispatch:
@@ -37,7 +37,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
 
     steps:
       - name: 📥 拉取代码

@@ -40,10 +40,8 @@ async function init(retryCount = 0) {
     mountNumberProfile();
 
     // 3. 订阅 filter 变化 → 重新加载并渲染
-    store.subscribe(async (key) => {
-      if (key === 'filter') {
-        await renderByFilter();
-      }
+    store.subscribe('filter', async () => {
+      await renderByFilter();
     });
 
     // 初次渲染

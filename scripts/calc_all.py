@@ -3,8 +3,8 @@
 基于按年存储的历史数据重新计算 stats.json + latest.json
 
 精简版（走势图应用）：
-- stats.json: 红蓝球频次、遗漏值、近 50 期结构特征
-- latest.json: 最新一期开奖信息（不再生成推荐选号，由前端模拟选号取代）
+- stats.json: 红蓝球频次、遗漏值、每号画像、模式分布
+- latest.json: 最新一期开奖信息
 
 读取: data/history/*.json
 """
@@ -14,8 +14,9 @@ import os
 import glob
 from collections import Counter
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'web', 'data')
-HISTORY_DIR = os.path.join(DATA_DIR, 'history')
+from _paths import DATA_DIR, HISTORY_DIR, STATS_FILE, LATEST_FILE
+from _utils import write_if_changed
+from schema import validate_draw
 
 
 def load_history():
@@ -79,8 +80,8 @@ def calc_stats(draws):
     # 一次正向遍历，O(N)；同时累计每号最长遗漏与最近出现期号队列
     red_max_miss = {n: 0 for n in range(1, 34)}
     red_max_miss_issue = {n: '' for n in range(1, 34)}
-    red_streak = {n: 0 for n in range(1, 34)}     # 当前距上次出现的期数
-    red_recent5 = {n: [] for n in range(1, 34)}   # 倒序最近 5 次
+    red_streak = {n: 0 for n in range(1, 34)}
+    red_recent5 = {n: [] for n in range(1, 34)}
 
     blue_max_miss = {n: 0 for n in range(1, 17)}
     blue_max_miss_issue = {n: '' for n in range(1, 17)}
@@ -91,7 +92,6 @@ def calc_stats(draws):
         red_set = set(d['red'])
         for n in range(1, 34):
             if n in red_set:
-                # 这期出现：上一段未出长度 = 当前 streak（不含本期）
                 if red_streak[n] > red_max_miss[n]:
                     red_max_miss[n] = red_streak[n]
                     red_max_miss_issue[n] = d['issue']
@@ -119,7 +119,7 @@ def calc_stats(draws):
     for n in range(1, 34):
         if red_streak[n] > red_max_miss[n]:
             red_max_miss[n] = red_streak[n]
-            red_max_miss_issue[n] = ''  # 仍在持续中
+            red_max_miss_issue[n] = ''
     for n in range(1, 17):
         if blue_streak[n] > blue_max_miss[n]:
             blue_max_miss[n] = blue_streak[n]
@@ -135,7 +135,7 @@ def calc_stats(draws):
             'current_miss': red_missing[n],
             'max_miss': red_max_miss[n],
             'max_miss_issue': red_max_miss_issue[n],
-            'recent_5_issues': list(reversed(red_recent5[n])),  # 最近的在前
+            'recent_5_issues': list(reversed(red_recent5[n])),
         }
 
     blue_per_number = {}
@@ -151,22 +151,17 @@ def calc_stats(draws):
             'recent_5_issues': list(reversed(blue_recent5[n])),
         }
 
-    # ── 连号 / 同尾 / AC 值（最近 100 期，作为模式分布参考）──
-    # 连号：6 红中存在相邻数对；同尾：6 红中存在尾数相同对
-    # AC 值：6 红两两差值的去重集合大小 - 5（双色球公认指标，常落 5-10）
+    # ── 连号 / 同尾 / AC 值（最近 100 期）──
     consec_count = 0
     same_tail_count = 0
     ac_dist = Counter()
     for d in recent_100:
         rs = sorted(d['red'])
-        # 连号
         if any(rs[i + 1] - rs[i] == 1 for i in range(5)):
             consec_count += 1
-        # 同尾（个位数相同）
         tails = [r % 10 for r in rs]
         if len(set(tails)) < len(tails):
             same_tail_count += 1
-        # AC 值
         diffs = set()
         for i in range(6):
             for j in range(i + 1, 6):
@@ -231,46 +226,34 @@ def calc_stats(draws):
     }
 
 
-def _write_if_changed(path, payload_str):
-    """磁盘内容 byte 级一致则跳过写入"""
-    if os.path.exists(path):
-        try:
-            with open(path, 'r', encoding='utf-8') as f:
-                if f.read() == payload_str:
-                    return False
-        except Exception:
-            pass
-    with open(path, 'w', encoding='utf-8') as f:
-        f.write(payload_str)
-    return True
-
-
 def main():
     draws = load_history()
-    if not draws:
-        print('⚠️ 无历史数据，跳过')
+    # 过滤掉不合法记录
+    valid_draws = [d for d in draws if validate_draw(d)]
+    if len(valid_draws) != len(draws):
+        print(f'⚠️ 过滤 {len(draws) - len(valid_draws)} 条不合法记录')
+    if not valid_draws:
+        print('⚠️ 无有效历史数据，跳过')
         return
-    print(f'📊 计算统计数据 ({len(draws)} 期)...')
+    print(f'📊 计算统计数据 ({len(valid_draws)} 期)...')
 
-    stats = calc_stats(draws)
-    stats_payload = json.dumps(stats, ensure_ascii=False, indent=2)
-    if _write_if_changed(os.path.join(DATA_DIR, 'stats.json'), stats_payload):
+    stats = calc_stats(valid_draws)
+    if write_if_changed(STATS_FILE, stats):
         print('✅ stats.json 已更新')
     else:
         print('⏭  stats.json 未变化（跳过写入）')
 
     latest = {
-        'latest_draw': draws[-1],
-        'updated': draws[-1]['date'],
-        'total': len(draws),
+        'latest_draw': valid_draws[-1],
+        'updated': valid_draws[-1]['date'],
+        'total': len(valid_draws),
     }
-    latest_payload = json.dumps(latest, ensure_ascii=False, indent=2)
-    if _write_if_changed(os.path.join(DATA_DIR, 'latest.json'), latest_payload):
+    if write_if_changed(LATEST_FILE, latest):
         print('✅ latest.json 已更新')
     else:
         print('⏭  latest.json 未变化（跳过写入）')
-    print(f'🎰 最新一期: {draws[-1]["issue"]} ({draws[-1]["date"]})')
-    print(f'   红球: {draws[-1]["red"]}  蓝球: {draws[-1]["blue"]}')
+    print(f'🎰 最新一期: {valid_draws[-1]["issue"]} ({valid_draws[-1]["date"]})')
+    print(f'   红球: {valid_draws[-1]["red"]}  蓝球: {valid_draws[-1]["blue"]}')
 
 
 if __name__ == '__main__':

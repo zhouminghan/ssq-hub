@@ -1,19 +1,19 @@
 {
-  "updated": "2026-09-03",
-  "latest_issue": "2026102",
-  "total": 3499,
+  "updated": "2026-09-06",
+  "latest_issue": "2026103",
+  "total": 3500,
   "red_freq_global": {
     "01": 677,
     "02": 659,
     "03": 642,
-    "04": 624,
+    "04": 625,
     "05": 627,
     "06": 668,
     "07": 655,
     "08": 652,
     "09": 650,
     "10": 648,
-    "11": 609,
+    "11": 610,
     "12": 623,
     "13": 637,
     "14": 688,
@@ -22,52 +22,52 @@
     "17": 669,
     "18": 666,
     "19": 640,
-    "20": 651,
+    "20": 652,
     "21": 592,
     "22": 678,
     "23": 600,
     "24": 612,
     "25": 624,
     "26": 676,
-    "27": 649,
-    "28": 581,
+    "27": 650,
+    "28": 582,
     "29": 594,
-    "30": 635,
+    "30": 636,
     "31": 600,
     "32": 659,
     "33": 578
   },
   "red_freq_50": {
-    "01": 11,
-    "02": 7,
-    "03": 7,
-    "04": 13,
+    "01": 10,
+    "02": 6,
+    "03": 6,
+    "04": 14,
     "05": 12,
     "06": 9,
     "07": 9,
-    "08": 11,
+    "08": 10,
     "09": 7,
     "10": 9,
-    "11": 7,
+    "11": 8,
     "12": 7,
-    "13": 8,
-    "14": 12,
+    "13": 7,
+    "14": 11,
     "15": 8,
     "16": 13,
     "17": 5,
     "18": 10,
     "19": 6,
-    "20": 4,
+    "20": 5,
     "21": 9,
     "22": 9,
     "23": 7,
     "24": 16,
     "25": 13,
     "26": 6,
-    "27": 8,
-    "28": 10,
+    "27": 9,
+    "28": 11,
     "29": 10,
-    "30": 12,
+    "30": 13,
     "31": 7,
     "32": 8,
     "33": 10
@@ -87,12 +87,12 @@
     "12": 225,
     "13": 204,
     "14": 216,
-    "15": 236,
+    "15": 237,
     "16": 237
   },
   "blue_freq_50": {
     "01": 5,
-    "02": 6,
+    "02": 5,
     "03": 3,
     "04": 7,
     "05": 6,
@@ -103,68 +103,68 @@
     "11": 3,
     "12": 2,
     "13": 2,
-    "15": 3,
+    "15": 4,
     "16": 2
   },
   "red_missing": {
-    "01": 3,
-    "02": 11,
-    "03": 0,
+    "01": 4,
+    "02": 12,
+    "03": 1,
     "04": 0,
-    "05": 1,
-    "06": 1,
-    "07": 14,
-    "08": 1,
-    "09": 1,
-    "10": 0,
-    "11": 10,
-    "12": 3,
-    "13": 0,
-    "14": 3,
-    "15": 8,
-    "16": 0,
-    "17": 8,
-    "18": 3,
-    "19": 22,
-    "20": 9,
-    "21": 7,
-    "22": 2,
-    "23": 12,
-    "24": 1,
-    "25": 0,
-    "26": 4,
-    "27": 12,
-    "28": 17,
-    "29": 5,
-    "30": 3,
-    "31": 2,
-    "32": 16,
-    "33": 7
+    "05": 2,
+    "06": 2,
+    "07": 15,
+    "08": 2,
+    "09": 2,
+    "10": 1,
+    "11": 0,
+    "12": 4,
+    "13": 1,
+    "14": 4,
+    "15": 9,
+    "16": 1,
+    "17": 9,
+    "18": 4,
+    "19": 23,
+    "20": 0,
+    "21": 8,
+    "22": 3,
+    "23": 13,
+    "24": 2,
+    "25": 1,
+    "26": 5,
+    "27": 0,
+    "28": 0,
+    "29": 6,
+    "30": 0,
+    "31": 3,
+    "32": 17,
+    "33": 8
   },
   "blue_missing": {
-    "01": 8,
-    "02": 3,
-    "03": 12,
-    "04": 2,
-    "05": 11,
-    "06": 24,
-    "07": 4,
-    "08": 29,
-    "09": 0,
-    "10": 51,
-    "11": 10,
-    "12": 1,
-    "13": 35,
-    "14": 78,
-    "15": 17,
-    "16": 7
+    "01": 9,
+    "02": 4,
+    "03": 13,
+    "04": 3,
+    "05": 12,
+    "06": 25,
+    "07": 5,
+    "08": 30,
+    "09": 1,
+    "10": 52,
+    "11": 11,
+    "12": 2,
+    "13": 36,
+    "14": 79,
+    "15": 0,
+    "16": 8
   },
   "red_per_number": {
     "01": {
       "freq_global": 677,
-      "freq_50": 11,
+      "freq_50": 10,
       "freq_100": 20,
-      "current_miss": 3,
+      "current_miss": 4,
       "max_miss": 26,
       "max_miss_issue": "2006053",
       "recent_5_issues": [
@@ -177,9 +177,9 @@
     },
     "02": {
       "freq_global": 659,
-      "freq_50": 7,
+      "freq_50": 6,
       "freq_100": 20,
-      "current_miss": 11,
+      "current_miss": 12,
       "max_miss": 26,
       "max_miss_issue": "2013068",
       "recent_5_issues": [
@@ -192,9 +192,9 @@
     },
     "03": {
       "freq_global": 642,
-      "freq_50": 7,
+      "freq_50": 6,
       "freq_100": 22,
-      "current_miss": 0,
+      "current_miss": 1,
       "max_miss": 32,
       "max_miss_issue": "2013111",
       "recent_5_issues": [
@@ -206,25 +206,25 @@
       ]
     },
     "04": {
-      "freq_global": 624,
-      "freq_50": 13,
-      "freq_100": 20,
+      "freq_global": 625,
+      "freq_50": 14,
+      "freq_100": 21,
       "current_miss": 0,
       "max_miss": 47,
       "max_miss_issue": "2023130",
       "recent_5_issues": [
+        "2026103",
         "2026102",
         "2026100",
         "2026096",
-        "2026095",
-        "2026090"
+        "2026095"
       ]
     },
     "05": {
       "freq_global": 627,
       "freq_50": 12,
-      "freq_100": 16,
-      "current_miss": 1,
+      "freq_100": 15,
+      "current_miss": 2,
       "max_miss": 43,
       "max_miss_issue": "2026061",
       "recent_5_issues": [
@@ -238,8 +238,8 @@
     "06": {
       "freq_global": 668,
       "freq_50": 9,
-      "freq_100": 20,
-      "current_miss": 1,
+      "freq_100": 19,
+      "current_miss": 2,
       "max_miss": 28,
       "max_miss_issue": "2008142",
       "recent_5_issues": [
@@ -254,7 +254,7 @@
       "freq_global": 655,
       "freq_50": 9,
       "freq_100": 17,
-      "current_miss": 14,
+      "current_miss": 15,
       "max_miss": 24,
       "max_miss_issue": "2020011",
       "recent_5_issues": [
@@ -267,9 +267,9 @@
     },
     "08": {
       "freq_global": 652,
-      "freq_50": 11,
+      "freq_50": 10,
       "freq_100": 16,
-      "current_miss": 1,
+      "current_miss": 2,
       "max_miss": 34,
       "max_miss_issue": "2006065",
       "recent_5_issues": [
@@ -283,8 +283,8 @@
     "09": {
       "freq_global": 650,
       "freq_50": 7,
-      "freq_100": 21,
-      "current_miss": 1,
+      "freq_100": 20,
+      "current_miss": 2,
       "max_miss": 28,
       "max_miss_issue": "2006077",
       "recent_5_issues": [
@@ -299,7 +299,7 @@
       "freq_global": 648,
       "freq_50": 9,
       "freq_100": 18,
-      "current_miss": 0,
+      "current_miss": 1,
       "max_miss": 40,
       "max_miss_issue": "2013122",
       "recent_5_issues": [
@@ -311,25 +311,25 @@
       ]
     },
     "11": {
-      "freq_global": 609,
-      "freq_50": 7,
-      "freq_100": 13,
-      "current_miss": 10,
+      "freq_global": 610,
+      "freq_50": 8,
+      "freq_100": 14,
+      "current_miss": 0,
       "max_miss": 30,
       "max_miss_issue": "2012035",
       "recent_5_issues": [
+        "2026103",
         "2026092",
         "2026088",
         "2026080",
-        "2026079",
-        "2026078"
+        "2026079"
       ]
     },
     "12": {
       "freq_global": 623,
       "freq_50": 7,
       "freq_100": 12,
-      "current_miss": 3,
+      "current_miss": 4,
       "max_miss": 30,
       "max_miss_issue": "2017145",
       "recent_5_issues": [
@@ -342,9 +342,9 @@
     },
     "13": {
       "freq_global": 637,
-      "freq_50": 8,
+      "freq_50": 7,
       "freq_100": 21,
-      "current_miss": 0,
+      "current_miss": 1,
       "max_miss": 28,
       "max_miss_issue": "2005054",
       "recent_5_issues": [
@@ -357,9 +357,9 @@
     },
     "14": {
       "freq_global": 688,
-      "freq_50": 12,
+      "freq_50": 11,
       "freq_100": 19,
-      "current_miss": 3,
+      "current_miss": 4,
       "max_miss": 33,
       "max_miss_issue": "2012140",
       "recent_5_issues": [
@@ -374,7 +374,7 @@
       "freq_global": 614,
       "freq_50": 8,
       "freq_100": 17,
-      "current_miss": 8,
+      "current_miss": 9,
       "max_miss": 32,
       "max_miss_issue": "2010060",
       "recent_5_issues": [
@@ -389,7 +389,7 @@
       "freq_global": 617,
       "freq_50": 13,
       "freq_100": 21,
-      "current_miss": 0,
+      "current_miss": 1,
       "max_miss": 34,
       "max_miss_issue": "2016054",
       "recent_5_issues": [
@@ -404,7 +404,7 @@
       "freq_global": 669,
       "freq_50": 5,
       "freq_100": 13,
-      "current_miss": 8,
+      "current_miss": 9,
       "max_miss": 29,
       "max_miss_issue": "2017107",
       "recent_5_issues": [
@@ -419,7 +419,7 @@
       "freq_global": 666,
       "freq_50": 10,
       "freq_100": 21,
-      "current_miss": 3,
+      "current_miss": 4,
       "max_miss": 33,
       "max_miss_issue": "2019145",
       "recent_5_issues": [
@@ -434,7 +434,7 @@
       "freq_global": 640,
       "freq_50": 6,
       "freq_100": 14,
-      "current_miss": 22,
+      "current_miss": 23,
       "max_miss": 27,
       "max_miss_issue": "2013126",
       "recent_5_issues": [
@@ -446,25 +446,25 @@
       ]
     },
     "20": {
-      "freq_global": 651,
-      "freq_50": 4,
-      "freq_100": 10,
-      "current_miss": 9,
+      "freq_global": 652,
+      "freq_50": 5,
+      "freq_100": 11,
+      "current_miss": 0,
       "max_miss": 42,
       "max_miss_issue": "2010042",
       "recent_5_issues": [
+        "2026103",
         "2026093",
         "2026091",
         "2026076",
-        "2026054",
-        "2026049"
+        "2026054"
       ]
     },
     "21": {
       "freq_global": 592,
       "freq_50": 9,
-      "freq_100": 15,
-      "current_miss": 7,
+      "freq_100": 14,
+      "current_miss": 8,
       "max_miss": 33,
       "max_miss_issue": "2009116",
       "recent_5_issues": [
@@ -479,7 +479,7 @@
       "freq_global": 678,
       "freq_50": 9,
       "freq_100": 23,
-      "current_miss": 2,
+      "current_miss": 3,
       "max_miss": 42,
       "max_miss_issue": "2003074",
       "recent_5_issues": [
@@ -494,7 +494,7 @@
       "freq_global": 600,
       "freq_50": 7,
       "freq_100": 17,
-      "current_miss": 12,
+      "current_miss": 13,
       "max_miss": 30,
       "max_miss_issue": "2022137",
       "recent_5_issues": [
@@ -509,7 +509,7 @@
       "freq_global": 612,
       "freq_50": 16,
       "freq_100": 28,
-      "current_miss": 1,
+      "current_miss": 2,
       "max_miss": 25,
       "max_miss_issue": "2003036",
       "recent_5_issues": [
@@ -524,7 +524,7 @@
       "freq_global": 624,
       "freq_50": 13,
       "freq_100": 25,
-      "current_miss": 0,
+      "current_miss": 1,
       "max_miss": 40,
       "max_miss_issue": "2006037",
       "recent_5_issues": [
@@ -539,7 +539,7 @@
       "freq_global": 676,
       "freq_50": 6,
       "freq_100": 11,
-      "current_miss": 4,
+      "current_miss": 5,
       "max_miss": 34,
       "max_miss_issue": "2025087",
       "recent_5_issues": [
@@ -551,40 +551,40 @@
       ]
     },
     "27": {
-      "freq_global": 649,
-      "freq_50": 8,
-      "freq_100": 17,
-      "current_miss": 12,
+      "freq_global": 650,
+      "freq_50": 9,
+      "freq_100": 18,
+      "current_miss": 0,
       "max_miss": 26,
       "max_miss_issue": "2011099",
       "recent_5_issues": [
+        "2026103",
         "2026090",
         "2026089",
         "2026081",
-        "2026080",
-        "2026078"
+        "2026080"
       ]
     },
     "28": {
-      "freq_global": 581,
-      "freq_50": 10,
+      "freq_global": 582,
+      "freq_50": 11,
       "freq_100": 19,
-      "current_miss": 17,
+      "current_miss": 0,
       "max_miss": 34,
       "max_miss_issue": "2020101",
       "recent_5_issues": [
+        "2026103",
         "2026085",
         "2026083",
         "2026082",
-        "2026078",
-        "2026074"
+        "2026078"
       ]
     },
     "29": {
       "freq_global": 594,
       "freq_50": 10,
       "freq_100": 18,
-      "current_miss": 5,
+      "current_miss": 6,
       "max_miss": 42,
       "max_miss_issue": "2024018",
       "recent_5_issues": [
@@ -596,25 +596,25 @@
       ]
     },
     "30": {
-      "freq_global": 635,
-      "freq_50": 12,
+      "freq_global": 636,
+      "freq_50": 13,
       "freq_100": 26,
-      "current_miss": 3,
+      "current_miss": 0,
       "max_miss": 32,
       "max_miss_issue": "2015014",
       "recent_5_issues": [
+        "2026103",
         "2026099",
         "2026097",
         "2026092",
-        "2026086",
-        "2026075"
+        "2026086"
       ]
     },
     "31": {
       "freq_global": 600,
       "freq_50": 7,
       "freq_100": 17,
-      "current_miss": 2,
+      "current_miss": 3,
       "max_miss": 31,
       "max_miss_issue": "2006004",
       "recent_5_issues": [
@@ -629,7 +629,7 @@
       "freq_global": 659,
       "freq_50": 8,
       "freq_100": 15,
-      "current_miss": 16,
+      "current_miss": 17,
       "max_miss": 29,
       "max_miss_issue": "2022132",
       "recent_5_issues": [
@@ -644,7 +644,7 @@
       "freq_global": 578,
       "freq_50": 10,
       "freq_100": 18,
-      "current_miss": 7,
+      "current_miss": 8,
       "max_miss": 36,
       "max_miss_issue": "2016088",
       "recent_5_issues": [
@@ -661,7 +661,7 @@
       "freq_global": 239,
       "freq_50": 5,
       "freq_100": 11,
-      "current_miss": 8,
+      "current_miss": 9,
       "max_miss": 86,
       "max_miss_issue": "2024068",
       "recent_5_issues": [
@@ -674,9 +674,9 @@
     },
     "02": {
       "freq_global": 209,
-      "freq_50": 6,
+      "freq_50": 5,
       "freq_100": 10,
-      "current_miss": 3,
+      "current_miss": 4,
       "max_miss": 112,
       "max_miss_issue": "2024031",
       "recent_5_issues": [
@@ -691,7 +691,7 @@
       "freq_global": 217,
       "freq_50": 3,
       "freq_100": 5,
-      "current_miss": 12,
+      "current_miss": 13,
       "max_miss": 86,
       "max_miss_issue": "2022142",
       "recent_5_issues": [
@@ -706,7 +706,7 @@
       "freq_global": 216,
       "freq_50": 7,
       "freq_100": 12,
-      "current_miss": 2,
+      "current_miss": 3,
       "max_miss": 112,
       "max_miss_issue": "2011003",
       "recent_5_issues": [
@@ -721,7 +721,7 @@
       "freq_global": 217,
       "freq_50": 6,
       "freq_100": 9,
-      "current_miss": 11,
+      "current_miss": 12,
       "max_miss": 104,
       "max_miss_issue": "2004016",
       "recent_5_issues": [
@@ -736,7 +736,7 @@
       "freq_global": 218,
       "freq_50": 1,
       "freq_100": 3,
-      "current_miss": 24,
+      "current_miss": 25,
       "max_miss": 90,
       "max_miss_issue": "2024011",
       "recent_5_issues": [
@@ -751,7 +751,7 @@
       "freq_global": 219,
       "freq_50": 4,
       "freq_100": 7,
-      "current_miss": 4,
+      "current_miss": 5,
       "max_miss": 90,
       "max_miss_issue": "2011120",
       "recent_5_issues": [
@@ -766,7 +766,7 @@
       "freq_global": 203,
       "freq_50": 3,
       "freq_100": 6,
-      "current_miss": 29,
+      "current_miss": 30,
       "max_miss": 94,
       "max_miss_issue": "2016060",
       "recent_5_issues": [
@@ -781,7 +781,7 @@
       "freq_global": 215,
       "freq_50": 3,
       "freq_100": 3,
-      "current_miss": 0,
+      "current_miss": 1,
       "max_miss": 94,
       "max_miss_issue": "2005034",
       "recent_5_issues": [
@@ -796,7 +796,7 @@
       "freq_global": 204,
       "freq_50": 0,
       "freq_100": 7,
-      "current_miss": 51,
+      "current_miss": 52,
       "max_miss": 60,
       "max_miss_issue": "2004120",
       "recent_5_issues": [
@@ -811,7 +811,7 @@
       "freq_global": 224,
       "freq_50": 3,
       "freq_100": 5,
-      "current_miss": 10,
+      "current_miss": 11,
       "max_miss": 107,
       "max_miss_issue": "2022054",
       "recent_5_issues": [
@@ -826,7 +826,7 @@
       "freq_global": 225,
       "freq_50": 2,
       "freq_100": 5,
-      "current_miss": 1,
+      "current_miss": 2,
       "max_miss": 92,
       "max_miss_issue": "2022040",
       "recent_5_issues": [
@@ -841,7 +841,7 @@
       "freq_global": 204,
       "freq_50": 2,
       "freq_100": 5,
-      "current_miss": 35,
+      "current_miss": 36,
       "max_miss": 84,
       "max_miss_issue": "2010153",
       "recent_5_issues": [
@@ -856,7 +856,7 @@
       "freq_global": 216,
       "freq_50": 0,
       "freq_100": 1,
-      "current_miss": 78,
+      "current_miss": 79,
       "max_miss": 94,
       "max_miss_issue": "2022004",
       "recent_5_issues": [
@@ -868,25 +868,25 @@
       ]
     },
     "15": {
-      "freq_global": 236,
-      "freq_50": 3,
-      "freq_100": 6,
-      "current_miss": 17,
+      "freq_global": 237,
+      "freq_50": 4,
+      "freq_100": 7,
+      "current_miss": 0,
       "max_miss": 83,
       "max_miss_issue": "2006111",
       "recent_5_issues": [
+        "2026103",
         "2026085",
         "2026064",
         "2026059",
-        "2026045",
-        "2026028"
+        "2026045"
       ]
     },
     "16": {
       "freq_global": 237,
       "freq_50": 2,
-      "freq_100": 5,
-      "current_miss": 7,
+      "freq_100": 4,
+      "current_miss": 8,
       "max_miss": 68,
       "max_miss_issue": "2008153",
       "recent_5_issues": [
@@ -905,26 +905,26 @@
   },
   "same_tail": {
     "window": 100,
-    "with_same_tail_count": 80,
-    "ratio": 0.8
+    "with_same_tail_count": 81,
+    "ratio": 0.81
   },
   "ac_distribution": {
     "4": 3,
     "5": 9,
     "6": 18,
     "7": 15,
-    "8": 31,
+    "8": 32,
     "9": 13,
-    "10": 11
+    "10": 10
   },
   "structure_recent_50": {
-    "zone1": 102,
-    "zone2": 91,
-    "zone3": 107,
-    "odd": 144,
-    "even": 156,
-    "small": 150,
-    "big": 150,
+    "zone1": 100,
+    "zone2": 90,
+    "zone3": 110,
+    "odd": 143,
+    "even": 157,
+    "small": 146,
+    "big": 154,
     "total_balls": 300
   }
 }

@@ -269,20 +269,20 @@
 
 以下内容不会进入 Git，当前可以保留在本地以加快开发，也可以在需要释放空间时清理：
 
-| 目录 | 说明 | 建议 |
-|---|---|---|
-| `.codebuddy/` | AI 工具生成的架构执行计划 | 忽略；可在确认后删除 |
-| `.pytest_cache/` | pytest 缓存 | 忽略；可随时删除 |
-| `.ruff_cache/` | Ruff 缓存 | 忽略；可随时删除 |
-| `.venv/` | Python 虚拟环境 | 忽略；删除后需重新安装 |
-| `node_modules/` | 根项目 Node 依赖 | 忽略；删除后运行 `npm ci` |
-| `playwright-report/` | Playwright HTML 报告 | 忽略；可随时删除 |
-| `test-results/` | Playwright 失败和运行证据 | 忽略；可随时删除 |
-| `pocs/vue-table/dist/` | Vue POC 构建产物 | 忽略；可随时删除 |
-| `pocs/vue-table/node_modules/` | Vue POC 依赖 | 忽略；删除后可释放较多空间 |
-| `pocs/vue-table/public/data/` | 从 `web/data/` 复制的 POC 数据 | 忽略；可随时删除 |
-| `scripts/__pycache__/` | Python 字节码缓存 | 忽略；可随时删除 |
-| `tests/python/__pycache__/` | Python 测试字节码缓存 | 忽略；可随时删除 |
+| 目录 | 体积 | 文件数 | 说明 | 建议 |
+|---|---:|---:|---|---|
+| `.codebuddy/` | 4 KB | 1 | AI 工具生成的架构执行计划 | 忽略；可在确认后删除 |
+| `.pytest_cache/` | 20 KB | 4 | pytest 缓存 | 忽略；可随时删除 |
+| `.ruff_cache/` | 16 KB | 4 | Ruff 缓存 | 忽略；可随时删除 |
+| `.venv/` | 50 MB | 1,916 | Python 虚拟环境 | 忽略；删除后需重新安装 |
+| `node_modules/` | 73 MB | 2,677 | 根项目 Node 依赖 | 忽略；删除后运行 `npm ci` |
+| `playwright-report/` | 512 KB | 1 | Playwright HTML 报告 | 忽略；可随时删除 |
+| `test-results/` | 4 KB | 1 | Playwright 失败和运行证据 | 忽略；可随时删除 |
+| `pocs/vue-table/dist/` | 808 KB | 33 | Vue POC 构建产物 | 忽略；可随时删除 |
+| `pocs/vue-table/node_modules/` | 36 MB | 714 | Vue POC 依赖 | 忽略；删除后可释放较多空间 |
+| `pocs/vue-table/public/data/` | 732 KB | 30 | 从 `web/data/` 复制的 POC 数据 | 忽略；可随时删除 |
+| `scripts/__pycache__/` | 96 KB | 8 | Python 字节码缓存 | 忽略；可随时删除 |
+| `tests/python/__pycache__/` | 104 KB | 8 | Python 测试字节码缓存 | 忽略；可随时删除 |
 
 ## 十五、待用户确认的清理项
 
@@ -295,10 +295,19 @@
 
 当前建议：
 
-- 推荐先执行第 4 项，释放本地空间，同时保留架构选型证据。
+- 推荐先执行第 4 项，预计释放约 38 MB，同时保留架构选型证据。
 - 第 1 项应在确认不再需要 Vue POC 后执行，并同步更新 `TECHNICAL_DECISIONS.md` 和任务证据。
 - 第 2 项价值较低，但体积很小，可以继续保留。
 - 第 3 项中的 `.venv/` 和根 `node_modules/` 删除后需要重新安装，不建议在本轮直接执行。
+
+清理级别估价：
+
+| 级别 | 操作 | 预计释放 | 是否可立即恢复 |
+|---|---|---:|---|
+| `A` 安全清理 | 删除缓存、报告和 POC 生成物，保留 `.venv/`、根 `node_modules/`、10 个 POC 源文件 | 约 38 MB | 可以，POC 生成物可重新构建 |
+| `A+` 深度清理 | 在 A 的基础上删除 `.venv/` 和根 `node_modules/` | 约 161 MB | 需要重新安装依赖 |
+| `B` 激进精简 | 在 A 的基础上删除整个 `pocs/vue-table/` 和 mdxcn 模板 | 约 38 MB 本地空间，并减少 10 个已跟踪文件 | Git 历史仍可恢复，但需同步改文档 |
+| `C` 暂不清理 | 保留所有本地依赖、缓存和 POC | 0 B | 无需处理 |
 
 ## 十六、本次忽略规则调整
 

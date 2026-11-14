@@ -30,6 +30,7 @@ test('desktop visual baselines', async ({ page }, testInfo) => {
   test.skip(Boolean(process.env.CI), 'Baselines are generated on macOS Chrome');
   test.skip(process.platform !== 'darwin', 'Baselines are generated on macOS Chrome');
   test.skip(testInfo.project.name !== 'desktop');
+  await page.clock.setFixedTime(new Date('2026-11-14T10:00:00+08:00'));
   await page.goto('/');
   await expect(page.locator('#trend-table tbody tr')).toHaveCount(50);
   await page.waitForTimeout(300);
@@ -45,6 +46,7 @@ test('mobile and insights visual baselines', async ({ page }, testInfo) => {
   test.skip(Boolean(process.env.CI), 'Baselines are generated on macOS Chrome');
   test.skip(process.platform !== 'darwin', 'Baselines are generated on macOS Chrome');
   test.skip(testInfo.project.name !== 'mobile');
+  await page.clock.setFixedTime(new Date('2026-11-14T10:00:00+08:00'));
   await page.goto('/');
   await expect(page.locator('#trend-table tbody tr')).toHaveCount(50);
   await page.waitForTimeout(300);

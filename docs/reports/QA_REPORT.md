@@ -6,7 +6,8 @@
 |---|---|
 | Final run time | 2026-11-14 20:14-20:17 CST |
 | Branch | `codex/product-rebuild` |
-| HEAD | `8594a6b807de8f5e5860353929dde92be0c46d6c` |
+| Baseline | `8594a6b807de8f5e5860353929dde92be0c46d6c` |
+| Delivery commit | `1abfd5d` (reviewed pre-commit tree; final tests ran on identical files) |
 | Node / npm | v22.23.4 / 10.9.9 |
 | Python | 3.12.15 (`.venv`) |
 | Ruff | 0.17.5 |

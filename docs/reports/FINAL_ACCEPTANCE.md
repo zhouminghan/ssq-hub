@@ -6,6 +6,8 @@ Branch: `codex/product-rebuild`
 
 Baseline: `8594a6b807de8f5e5860353929dde92be0c46d6c`
 
+Local delivery commit: `1abfd5d`
+
 ## 1. Reconstruction Summary
 
 SSQ Hub was rebuilt locally as a production-oriented static data product while

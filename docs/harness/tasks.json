@@ -194,7 +194,7 @@
       "acceptance_criteria": ["all gates pass or are explicitly BLOCKED with evidence"],
       "status": "COMPLETED",
       "retry_count": 0,
-      "execution_evidence": ["docs/reports/FINAL_ACCEPTANCE.md", "local branch codex/product-rebuild"],
+      "execution_evidence": ["docs/reports/FINAL_ACCEPTANCE.md", "local commit 1abfd5d", "local branch codex/product-rebuild"],
       "test_evidence": ["cross-referenced final QA, review, performance, and onboarding evidence"],
       "review_result": "Local delivery accepted"
     },

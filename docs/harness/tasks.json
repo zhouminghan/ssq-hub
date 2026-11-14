@@ -1,7 +1,7 @@
 {
   "run_id": "ssq-hub-2026-11-14-product-rebuild",
   "baseline_commit": "8594a6b807de8f5e5860353929dde92be0c46d6c",
-  "updated_at": "2026-11-15T02:24:45+08:00",
+  "updated_at": "2026-11-15T02:50:00+08:00",
   "tasks": [
     {
       "task_id": "P0-BASELINE",
@@ -194,7 +194,7 @@
       "acceptance_criteria": ["all gates pass or are explicitly BLOCKED with evidence"],
       "status": "COMPLETED",
       "retry_count": 0,
-      "execution_evidence": ["docs/reports/FINAL_ACCEPTANCE.md", "local commits through f7f1b2b", "local branch codex/product-rebuild"],
+      "execution_evidence": ["docs/reports/FINAL_ACCEPTANCE.md", "local commits through ca5a586", "local branch codex/product-rebuild"],
       "test_evidence": ["cross-referenced final QA, review, performance, and onboarding evidence"],
       "review_result": "Local delivery accepted"
     },

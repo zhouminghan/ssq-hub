@@ -1,211 +1,507 @@
-/* ── 整体三栏布局：header / filter / trend / footer ── */
-/* 注：iOS Safari 的 100vh 会包含动态地址栏高度，导致页面比可视区高出一截，
- * 进而出现"底部被遮挡 / 触摸区错位 / 横滑无响应"等怪象。
- * 这里改用 100% 配合 html/body { height: 100% }（reset.css 已设），
- * 让 body 严格等于浏览器实际可视高度。 */
 body {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
   height: 100%;
+  min-height: 100%;
   overflow: hidden;
+  background: var(--bg);
 }
 
-/* ── 顶部栏 ── */
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 16px;
+  z-index: 9999;
+  padding: 8px 14px;
+  color: #fff;
+  background: var(--primary);
+  border-radius: 0 0 var(--radius) var(--radius);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
 .app-header {
-  height: 48px;
+  position: relative;
+  z-index: 40;
+  height: var(--header-h);
+  flex: 0 0 var(--header-h);
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  gap: 24px;
+  padding: 0 20px;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  position: sticky;
-  top: 0;
-  z-index: 30;
 }
 
-.header-spacer {
-  flex: 1;
-}
-
-/* 品牌区 */
 .header-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
+  gap: 10px;
+  min-width: 174px;
+  border-radius: var(--radius-sm);
 }
 
-.logo-icon {
-  color: var(--red);
-  flex-shrink: 0;
+.brand-mark {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
 }
 
-.header-brand h1 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  letter-spacing: 0.5px;
+.brand-mark span {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.brand-mark span:first-child {
+  left: 0;
+  bottom: 0;
+  background: var(--red);
+}
+
+.brand-mark span:last-child {
+  top: 0;
+  right: 0;
+  background: var(--blue);
+}
+
+.brand-copy {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   white-space: nowrap;
 }
 
-/* 信息区：竖线分隔 */
-.header-meta {
+.brand-copy h1 {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 760;
+  letter-spacing: 0.01em;
+}
+
+.brand-copy small {
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.app-nav {
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  gap: 2px;
+}
+
+.app-nav-item {
+  position: relative;
+  height: 34px;
+  padding: 0 13px;
+  color: var(--text-3);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.app-nav-item:hover {
+  color: var(--text);
+  background: var(--bg-soft);
+}
+
+.app-nav-item.active {
+  color: var(--text);
+  background: var(--bg-soft);
+}
+
+.app-nav-item.active::after {
+  content: "";
+  position: absolute;
+  right: 13px;
+  bottom: -13px;
+  left: 13px;
+  height: 2px;
+  background: var(--red);
+  border-radius: 2px 2px 0 0;
+}
+
+.header-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding-left: 12px;
-  border-left: 1px solid var(--border);
-  font-size: 11px;
-  color: var(--text-3);
-  flex-shrink: 0;
+  gap: 8px;
+  margin-left: auto;
 }
 
-.header-meta strong {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--red);
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── 主题下拉 ── */
-.theme-dropdown {
-  position: relative;
-  flex-shrink: 0;
-}
-
+.github-link,
 .theme-trigger {
+  height: 32px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  background: var(--bg-soft);
+  gap: 7px;
+  padding: 0 10px;
+  color: var(--text-2);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 12px;
-  color: var(--text-2);
-  cursor: pointer;
-  transition: transform 100ms ease, background 150ms ease;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  font-weight: 550;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    color var(--transition-fast);
 }
+
+.github-link:hover,
 .theme-trigger:hover {
-  border-color: var(--blue);
-}
-.theme-trigger:active {
-  transform: scale(0.96);
-}
-.theme-trigger:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 1px;
-}
-.theme-trigger .chevron {
-  transition: transform 150ms ease;
-}
-.theme-dropdown.open .theme-trigger .chevron {
-  transform: rotate(180deg);
+  color: var(--text);
+  background: var(--bg-soft);
+  border-color: var(--border-strong);
 }
 
-/* 下拉菜单 */
-.theme-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  min-width: 136px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: var(--shadow-lg);
-  padding: 4px;
-  z-index: 100;
-}
-.theme-menu[hidden] {
-  display: none;
+.github-link svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
 }
 
-.theme-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 10px;
-  background: transparent;
-  border: none;
-  border-radius: 5px;
-  font-size: 12px;
-  color: var(--text-2);
-  cursor: pointer;
-  text-align: left;
-  transition: background 150ms ease;
+.theme-dropdown {
+  position: relative;
 }
-.theme-item svg {
-  flex-shrink: 0;
+
+.theme-trigger svg {
   width: 14px;
   height: 14px;
 }
-.theme-item:hover {
+
+.theme-trigger .chevron {
+  width: 12px;
+  height: 12px;
+  color: var(--text-3);
+  transition: transform var(--transition-fast);
+}
+
+.theme-dropdown.open .chevron {
+  transform: rotate(180deg);
+}
+
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  width: 142px;
+  padding: 5px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.theme-item {
+  width: 100%;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 9px;
+  color: var(--text-2);
+  border-radius: 5px;
+  font-size: 12px;
+  text-align: left;
+}
+
+.theme-item:hover,
+.theme-item.active {
+  color: var(--text);
   background: var(--bg-soft);
 }
-.theme-item.active {
-  background: var(--blue-soft);
-  color: var(--blue-deep);
-  font-weight: 600;
+
+.theme-check {
+  color: var(--red);
+  opacity: 0;
 }
 
-/* ═══ reduced-motion ═══ */
-@media (prefers-reduced-motion: reduce) {
-  .theme-trigger,
-  .theme-trigger .chevron {
-    transition: none !important;
-  }
-  .theme-trigger:active {
-    transform: none;
-  }
+.theme-item.active .theme-check {
+  opacity: 1;
 }
 
-.trend-wrap {
-  flex: 1 1 0;
-  min-height: 280px;
-  background: var(--bg-card);
+.overview {
+  flex: 0 0 var(--overview-h);
+  min-height: var(--overview-h);
+  display: flex;
+  align-items: stretch;
+  padding: 0 20px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--red-soft) 38%, var(--bg-card)), var(--bg-card) 38%);
   border-bottom: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
+}
+
+.overview-draw {
   display: flex;
   flex-direction: column;
-  margin-top: 8px;  /* 拉开 filter-bar 距离，让 sticky thead 完整可见 */
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding-right: 28px;
+}
+
+.overview-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.overview-heading strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.overview-scale {
+  display: none;
+}
+
+.draw-balls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+}
+
+.draw-ball {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: #fff;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-theme="dark"] .draw-ball,
+:root[data-theme="dark"] .trend-table .ball,
+:root[data-theme="dark"] .frequency-ball,
+:root[data-theme="dark"] .np-bigball {
+  color: #0f141c;
+}
+
+.draw-ball.red {
+  background: var(--red);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.24);
+}
+
+.draw-ball.blue {
+  background: var(--blue);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.24);
+}
+
+.draw-ball-separator {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: var(--border-strong);
+}
+
+.overview-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(112px, 1fr));
+  align-items: center;
+  margin-left: auto;
+  border-left: 1px solid var(--border);
+}
+
+.overview-metric {
+  min-width: 120px;
+  padding: 0 24px;
+  border-right: 1px solid var(--border);
+}
+
+.overview-metric:last-child {
+  border-right: 0;
+}
+
+.overview-metric span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text-3);
+  font-size: 10px;
+}
+
+.overview-metric strong {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.data-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  display: inline-block;
+  margin-right: 6px;
+  background: var(--text-4);
+  border-radius: 50%;
+  vertical-align: 1px;
+}
+
+.data-status.is-fresh::before {
+  background: var(--success);
+}
+
+.data-status.is-warning::before {
+  background: var(--warning);
+}
+
+.data-status.is-stale::before {
+  background: var(--danger);
+}
+
+.main-region {
+  min-height: 0;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.trend-view,
+.insights-view {
+  min-height: 0;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-heading {
+  flex: 0 0 auto;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 20px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.section-heading h2 {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.section-heading p {
+  margin-top: 2px;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.section-note {
+  padding: 3px 9px;
+  color: var(--text-3);
+  background: var(--bg-soft);
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.trend-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-3);
+  font-size: 10px;
+}
+
+.trend-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-4);
+}
+
+.legend-dot.red {
+  background: var(--red);
+}
+
+.legend-dot.blue {
+  background: var(--blue);
+}
+
+.legend-dot.recent {
+  border: 2px solid var(--gold);
+}
+
+.trend-panel {
+  position: relative;
+  min-height: 0;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
 }
 
 .trend-loading {
-  height: 240px;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 9px;
   color: var(--text-3);
+  font-size: 12px;
 }
 
-/* ── Skip Link（键盘跳过导航）── */
-.skip-link {
-  position: absolute;
-  top: -100%;
-  left: 16px;
-  z-index: 9999;
-  padding: 8px 16px;
-  background: var(--red);
-  color: #fff;
-  font-weight: 600;
-  font-size: 13px;
-  border-radius: 0 0 var(--radius) var(--radius);
-  text-decoration: none;
+.trend-scroll {
+  min-height: 0;
+  flex: 1 1 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: var(--scrollbar) transparent;
+  scrollbar-width: thin;
 }
-.skip-link:focus {
-  top: 0;
+
+.trend-scroll::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+.trend-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.trend-scroll::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border: 3px solid var(--bg-card);
+  border-radius: 999px;
+}
+
+.trend-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
 }
 
 .spinner {
   width: 16px;
   height: 16px;
+  flex: 0 0 auto;
   border: 2px solid var(--border);
   border-top-color: var(--red);
   border-radius: 50%;
@@ -216,70 +512,48 @@ body {
   to { transform: rotate(360deg); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .spinner { animation: none; }
-}
-
-.trend-scroll {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: auto;
-  scroll-behavior: smooth;
-  /* ── 移动端横滑修复 ──
-   * 1) -webkit-overflow-scrolling: touch  → iOS 启用 momentum scroll，
-   *    否则在 body{overflow:hidden} 的祖先链下，横向手势会被外层吞掉。
-   * 2) touch-action: pan-x pan-y          → 显式告知浏览器：本容器同时
-   *    接管横/纵向手势，避免与全局 viewport 的默认手势竞争（特别是
-   *    viewport meta 里 user-scalable=no 时，iOS 会更激进地接管手势）。
-   * 3) overscroll-behavior: contain       → 阻止滚到边界后把手势往上
-   *    冒泡给祖先（body/window），导致表内滚动被打断。 */
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y;
-  overscroll-behavior: contain;
-}
-
 .app-footer {
   height: var(--footer-h);
+  flex: 0 0 var(--footer-h);
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   padding: 0 16px;
-  font-size: 12px;
   color: var(--text-3);
   background: var(--bg-card);
   border-top: 1px solid var(--border);
+  font-size: 10px;
 }
 
-.footer-content {
-  text-align: center;
+.footer-sep {
+  color: var(--text-4);
 }
 
 .app-footer a {
   color: var(--text-2);
   text-decoration: underline;
-  text-decoration-color: var(--text-4);
-  transition: color 0.2s;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 2px;
 }
 
 .app-footer a:hover {
-  color: var(--red);
+  color: var(--primary);
 }
 
-/* 重试按钮 */
 .btn-retry {
-  margin-left: 12px;
-  padding: 4px 12px;
-  cursor: pointer;
-  color: var(--red);
-  font-weight: 600;
-  border: 1px solid var(--red);
-  border-radius: var(--radius-sm);
-  background: transparent;
+  height: 30px;
+  padding: 0 13px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 650;
 }
-.btn-retry:focus-visible {
-  outline: 2px solid var(--red);
-  outline-offset: 1px;
-}
-.btn-retry:hover {
-  background: var(--red-soft);
+
+.noscript {
+  padding: 40px;
+  color: var(--text-2);
+  text-align: center;
 }

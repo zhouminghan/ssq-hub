@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zhouminghan.github.io/ssq-hub/schemas/corrections.schema.json",
+  "title": "Historical correction ledger",
+  "type": "object",
+  "required": ["schema_version", "corrections"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "corrections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["issue", "old", "new", "source", "verified_at", "reason"],
+        "properties": {
+          "issue": { "type": "string", "pattern": "^[0-9]{7}$" },
+          "old": { "type": "object" },
+          "new": { "type": "object" },
+          "source": { "type": "string", "minLength": 1 },
+          "verified_at": { "type": "string", "format": "date-time" },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

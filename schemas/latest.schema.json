@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zhouminghan.github.io/ssq-hub/schemas/latest.schema.json",
+  "title": "Latest draw payload",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "pipeline_version",
+    "generated_at",
+    "source",
+    "latest_draw",
+    "latest_issue",
+    "latest_date",
+    "total"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "pipeline_version": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "minLength": 1 },
+    "latest_draw": { "$ref": "draw.schema.json" },
+    "latest_issue": { "type": "string", "pattern": "^[0-9]{7}$" },
+    "latest_date": { "type": "string", "format": "date" },
+    "updated": { "type": "string", "format": "date" },
+    "total": { "type": "integer", "minimum": 1 }
+  }
+}

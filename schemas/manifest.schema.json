@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zhouminghan.github.io/ssq-hub/schemas/manifest.schema.json",
+  "title": "Data manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "pipeline_version",
+    "generated_at",
+    "source",
+    "total",
+    "range",
+    "latest_issue",
+    "latest_date",
+    "records_sha256",
+    "years"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "pipeline_version": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "source": { "type": "string" },
+    "total": { "type": "integer", "minimum": 1 },
+    "range": {
+      "type": "array",
+      "prefixItems": [{ "type": "string", "format": "date" }, { "type": "string", "format": "date" }],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "latest_issue": { "type": "string", "pattern": "^[0-9]{7}$" },
+    "latest_date": { "type": "string", "format": "date" },
+    "records_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "years": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["year", "count", "range", "first_issue", "last_issue", "records_sha256"],
+        "properties": {
+          "year": { "type": "string", "pattern": "^[0-9]{4}$" },
+          "count": { "type": "integer", "minimum": 1 },
+          "range": {
+            "type": "array",
+            "prefixItems": [{ "type": "string", "format": "date" }, { "type": "string", "format": "date" }],
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "first_issue": { "type": "string", "pattern": "^[0-9]{7}$" },
+          "last_issue": { "type": "string", "pattern": "^[0-9]{7}$" },
+          "records_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    }
+  }
+}

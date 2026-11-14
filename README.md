@@ -1,109 +1,256 @@
-# <img src="./web/assets/img/logo.svg" width="28" height="28" alt="" style="vertical-align: -5px;"> ssq-hub · 双色球走势图
+# SSQ Hub
 
-🌐 **在线访问**：[https://zhouminghan.github.io/ssq-hub/](https://zhouminghan.github.io/ssq-hub/)
-🛠 **GitHub 仓库**：[github.com/zhouminghan/ssq-hub](https://github.com/zhouminghan/ssq-hub)
+A modern, static Double Color Ball historical data analysis and visualization
+platform. SSQ Hub combines an automated Python data pipeline with a responsive
+58-column trend view, per-number profiles, recent-frequency statistics, and
+light/dark themes.
 
-[![Update](https://github.com/zhouminghan/ssq-hub/actions/workflows/update-data.yml/badge.svg)](https://github.com/zhouminghan/ssq-hub/actions/workflows/update-data.yml)
-[![Data](https://img.shields.io/badge/dynamic/json?label=%E6%95%B0%E6%8D%AE%E9%87%8F&query=%24.total&url=https%3A%2F%2Fzhouminghan.github.io%2Fssq-hub%2Fdata%2Flatest.json&suffix=%E6%9C%9F&color=red)](https://zhouminghan.github.io/ssq-hub/data/latest.json)
-[![Latest](https://img.shields.io/badge/dynamic/json?label=%E6%9C%80%E6%96%B0%E6%9C%9F&query=%24.latest_draw.issue&url=https%3A%2F%2Fzhouminghan.github.io%2Fssq-hub%2Fdata%2Flatest.json&color=orange)](https://zhouminghan.github.io/ssq-hub/data/latest.json)
-[![License](https://img.shields.io/badge/License-MIT-orange)](#-license)
+[![CI](https://github.com/zhouminghan/ssq-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/zhouminghan/ssq-hub/actions/workflows/ci.yml)
+[![Data update](https://github.com/zhouminghan/ssq-hub/actions/workflows/update-data.yml/badge.svg)](https://github.com/zhouminghan/ssq-hub/actions/workflows/update-data.yml)
+[![Latest data](https://img.shields.io/badge/dynamic/json?label=latest&query=%24.latest_draw.issue&url=https%3A%2F%2Fzhouminghan.github.io%2Fssq-hub%2Fdata%2Flatest.json&color=red)](https://zhouminghan.github.io/ssq-hub/data/latest.json)
 
-> 纯前端双色球走势图，零成本 GitHub Pages 部署，开奖数据自动入库。
+## Live Demo
 
----
+Production URL: <https://zhouminghan.github.io/ssq-hub/>
 
-## 🏗️ 整体架构
+The application is deployed from the `web/` directory on GitHub Pages. This
+reconstruction branch has been validated locally; live deployment verification
+requires an authorized push and a successful Pages workflow run.
+
+## Screenshots
+
+![Desktop trend view in light mode](docs/screenshots/desktop-light.png)
+
+![Desktop trend view in dark mode](docs/screenshots/desktop-dark.png)
+
+<p>
+  <img src="docs/screenshots/mobile-light.png" width="390" alt="Mobile trend view in light mode">
+  <img src="docs/screenshots/insights-mobile-dark.png" width="390" alt="Mobile insights view in dark mode">
+</p>
+
+## Features
+
+- Full draw history from 2003 through the latest validated issue.
+- 58-column trend matrix: issue, 33 red balls, 16 blue balls, and 8 structure
+  metrics.
+- Red/blue omission values, blue-ball SVG path, recent-five highlight, and
+  latest-draw positioning.
+- Recent N, year, cross-year comparison, custom N, and reset filters.
+- Per-number drawer with global/50/100 frequency, current and maximum omission,
+  and the latest five appearances.
+- Insights view for zone, odd/even, small/big, AC, consecutive, same-tail, and
+  recent high-frequency distributions.
+- Auto/light/dark themes applied before first paint and persisted locally.
+- Responsive desktop, tablet, and mobile layouts with internal table scrolling,
+  frozen issue column, and sticky header.
+- Same-origin JSON loading, jsDelivr fallback, timestamped browser cache, and a
+  visible offline-cache state.
+
+## Tech Stack
+
+- Runtime: semantic HTML, native ES modules, native DOM/SVG, CSS custom
+  properties.
+- Data: Python 3.11+, `requests`, JSON Schema 2020-12.
+- Quality: TypeScript `checkJs`, ESLint, Node test runner, unittest/pytest,
+  Ajv, Playwright, Axe.
+- Delivery: GitHub Actions and GitHub Pages.
+
+There is no application server, database, or runtime framework. See
+[Technical Decisions](docs/architecture/TECHNICAL_DECISIONS.md) for the measured
+architecture decision.
+
+## Architecture
 
 ```mermaid
-graph LR
-    A["📡 公开数据源<br/>500彩票网 · 福彩官方 · idcd.com"]
-    B["🐍 Python 脚本<br/>fetch_latest → calc_all → verify_data"]
-    C["📁 静态数据<br/>web/data/<br/>history/ · stats · latest · index"]
-    D["🌐 前端<br/>Vanilla JS · 模块化 CSS<br/>首屏 0 外部请求"]
-
-    A -->|抓取| B
-    B -->|生成| C
-    C -->|读取| D
+flowchart LR
+    A[500.com + official API] --> B[Fetch and cross-check]
+    B --> C[Schema and semantic validation]
+    C --> D[Protected annual JSON]
+    D --> E[Deterministic statistics]
+    E --> F[Manifest and quality gate]
+    F --> G[GitHub data commit]
+    F --> H[Static web app]
+    G --> I[GitHub Pages]
+    H --> I
 ```
 
----
+Detailed design:
 
-## ✨ 核心功能
+- [System overview](docs/architecture/SYSTEM_OVERVIEW.md)
+- [System architecture](docs/architecture/SYSTEM_ARCHITECTURE.md)
+- [Data flow](docs/architecture/DATA_FLOW.md)
+- [Frontend architecture](docs/architecture/FRONTEND_ARCHITECTURE.md)
+- [Data pipeline](docs/architecture/DATA_PIPELINE.md)
+- [CI/CD](docs/architecture/CI_CD.md)
 
-- **走势表**：红球 33 + 蓝球 16 矩阵，遗漏值标注，蓝球 SVG 连号轨迹；右 8 列辅助数据（和值/跨度/大小/奇偶/质合）
-- **号码画像**：点击任意号码 → 抽屉滑出，频次/当前遗漏/最长遗漏/最近 5 次出现
-- **三模式筛选**：近 N 期 / 指定年份 / 同期对比（跨年同号对比）
-- **自动更新**：开奖日 Actions 轻量流水线 `fetch → calc → verify → commit`，校验通过后由独立 Pages workflow 发布
-- **主题切换**：auto/light/dark 三态下拉，系统偏好跟随
-- **纯原生**：零框架、零构建、零依赖，前端静态资源直推即可发布
+## Project Structure
 
----
-
-## 📂 项目结构
-
-```
+```text
 ssq-hub/
-├── web/                     # 前端静态资源
-│   ├── index.html
-│   ├── assets/img/          # 静态图标
-│   ├── css/                 # 模块化样式（8 文件）
-│   ├── js/                  # ES Modules（10 文件 + utils/）
-│   └── data/                # 静态 JSON（按年存储 + stats + latest + index）
-├── scripts/                 # Python 数据脚本
-│   ├── _paths.py             # 共用路径常量
-│   ├── _utils.py             # 共用工具（write_if_changed）
-│   ├── schema.py             # 共享数据模型（validate_draw / make_draw）
-│   ├── fetch_latest.py      # 多源抓取（500彩票 / 福彩 / idcd）+ 内置重试
-│   ├── calc_all.py          # 全量重算 stats / latest
-│   └── verify_data.py       # 数据自检
-├── docs/                    # 概率统计 / 历史事件
-└── .github/workflows/       # 定时抓取 + Pages 部署
+├── .github/workflows/       CI, protected data updates, Pages deployment
+├── docs/
+│   ├── architecture/        system and contract documentation
+│   ├── development/         onboarding and maintenance guides
+│   ├── harness/             recoverable task state
+│   ├── reports/             baseline, audit, and acceptance evidence
+│   └── screenshots/         real product captures
+├── schemas/                 JSON Schema 2020-12 contracts
+├── scripts/                 ingestion, statistics, manifest, verification
+├── tests/
+│   ├── e2e/                 Playwright desktop/mobile product tests
+│   ├── python/              schema, stats, history, fetch tests
+│   ├── schema/              Ajv data validation
+│   └── unit/                browser-module unit tests
+└── web/
+    ├── assets/              favicon and product images
+    ├── css/                 theme tokens and component styles
+    ├── data/                annual history and generated JSON
+    └── js/                  ES module application
 ```
 
----
-
-## 🚀 部署
-
-**GitHub Pages**，部署链路保持解耦：
-
-- `update-data.yml`：定时/手动抓取 → 重算 → 自检 → 提交 `web/data/`
-- `deploy-pages.yml`：
-  - 监听 `update-data.yml` 成功完成后自动部署
-  - 监听前端静态资源直推（`web/index.html`、`web/js/**`、`web/css/**` 等）
-  - **不监听** `web/data/**`，避免数据更新时重复部署
-
-### 本地预览
+## Quick Start
 
 ```bash
-cd web && python3 -m http.server 5173
+git clone https://github.com/zhouminghan/ssq-hub.git
+cd ssq-hub
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.lock
+npm install
+npm run dev
 ```
 
----
+Open <http://127.0.0.1:5173>.
 
-## 🧪 数据维护
+## Development
+
+Read [AGENTS.md](AGENTS.md) and
+[Getting Started](docs/development/GETTING_STARTED.md). Main commands:
 
 ```bash
-pip install -r requirements.txt    # requests（JSON API + HTML 解析）
-
-python3 scripts/fetch_latest.py    # 抓取最新开奖
-python3 scripts/calc_all.py        # 重算 stats / latest
-python3 scripts/verify_data.py     # 数据自检
+npm run typecheck
+npm run lint
+npm run test:unit
+npm run test:python
+npm run test:schema
+npm run dev
 ```
 
-数据源（多源 fallback）：[500 彩票网](https://datachart.500.com/ssq/)（GitHub Actions 首选） → [福彩官方](https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/) → [idcd.com](https://www.idcd.com/)。
+## Data Pipeline
 
----
+```bash
+.venv/bin/python scripts/fetch_latest.py
+.venv/bin/python scripts/calc_all.py
+.venv/bin/python scripts/verify_data.py
+```
 
-## ⚠️ 免责声明
+Normal updates are append-only. The fetcher cross-checks available sources and
+rejects a write when an existing issue conflicts. Authorized corrections use:
 
-- 本项目仅用于前端数据可视化与编程学习
-- 历史数据**不预测未来**；"高分推荐 / 玄学选号"为娱乐
-- 理性购彩，未成年人请勿参与
+```bash
+.venv/bin/python scripts/fetch_latest.py \
+  --allow-corrections \
+  --reason "verified official correction"
+.venv/bin/python scripts/update_baseline.py
+```
 
-延伸阅读：[双色球概率统计](./docs/双色球概率统计.md) · [双色球真相](./docs/双色球真相.md)
+Review `web/data/corrections.json` before refreshing the baseline.
 
----
+## Data Sources
 
-## 📜 License
+- [500.com history table](https://datachart.500.com/ssq/)
+- [China Welfare Lottery](https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/)
+
+Both sources were reachable during the latest audit and matched the latest 30
+records. `idcd.com` was removed because it returned 404 HTML.
+
+## Data Quality
+
+- Strict draw semantics and JSON Schema.
+- Unique, ordered issue records with no unexpected yearly gaps.
+- Per-record SHA-256 fingerprints in `history_baseline.json`.
+- Generated manifest with yearly and full-history hashes.
+- Full deterministic stats recomputation and cross-file consistency checks.
+- Atomic data-file writes and no-op write suppression.
+
+Run:
+
+```bash
+.venv/bin/python scripts/verify_data.py
+npm run test:schema
+```
+
+## Testing
+
+```bash
+npm run check
+.venv/bin/python scripts/verify_data.py
+npm run test:schema
+npx playwright test
+npm run test:visual
+npm run test:cross-browser
+```
+
+Playwright covers startup, data display, all filters, 58 columns, frozen/sticky
+layout, number profiles, themes, GitHub entry, 1440/1280/768/390/375 layout,
+network failure, cache fallback, and Axe accessibility checks.
+Visual baselines run on macOS Chrome. Cross-browser smoke targets Firefox and
+WebKit when those Playwright browsers are available.
+
+See [Testing Guide](docs/development/TESTING_GUIDE.md).
+
+## Build
+
+There is no production bundling step. The deployable artifact is `web/`.
+
+## Deployment
+
+Pages deployment is handled by
+[deploy-pages.yml](.github/workflows/deploy-pages.yml). Data and frontend
+workflows are separated, and deployment is gated by actual commit differences
+plus a data verification step.
+
+See [Deployment Guide](docs/development/DEPLOYMENT_GUIDE.md).
+
+## GitHub Actions
+
+| Workflow | Purpose |
+|---|---|
+| `ci.yml` | lint, typecheck, tests, schema, E2E, dependency audit |
+| `update-data.yml` | scheduled/manual protected append and verified commit |
+| `data-repair.yml` | explicit reviewed historical correction path |
+| `deploy-pages.yml` | verified Pages artifact deployment |
+
+## Theme Support
+
+Auto follows `prefers-color-scheme`. Light and dark are explicit persistent
+choices. Both themes use shared design tokens and are browser-tested for
+contrast and component consistency.
+
+## Browser Support
+
+Chrome desktop/mobile is covered by the main suite. WebKit mobile passed the
+cross-browser smoke locally. Firefox is configured locally and in CI, but the
+local managed runtime could not create a browser profile directory. Edge shares
+the Chromium engine but was not separately executed. The table depends on native
+ES modules, CSS sticky positioning, `ResizeObserver`, and modern CSS custom
+properties.
+
+## Contributing
+
+See [CONTRIBUTING.md](docs/development/CONTRIBUTING.md). UI changes require
+desktop/mobile screenshots; data changes require Python and schema tests.
+
+## Known Limits
+
+- The first deployment of this reconstruction requires authorized push.
+- Remote GitHub Actions and Pages verification is not available before push.
+- Rendering all 3,527 rows creates about 448,000 DOM nodes and takes roughly two
+  seconds locally. The default 50-row view remains fast; virtualization is not
+  currently justified by the default workflow.
+- The next draw date is an estimate based on the normal Tue/Thu/Sun schedule and
+  does not encode every holiday suspension.
+- Historical frequency is descriptive and does not predict future outcomes.
+
+## License
 
 MIT

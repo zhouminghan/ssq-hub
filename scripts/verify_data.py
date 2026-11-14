@@ -1,279 +1,334 @@
 #!/usr/bin/env python3
-"""
-数据完整性自检脚本（由 GitHub Actions 调用，也可本地运行）
-校验项:
-  1. history_index.json 完整性
-  2. 各年份 JSON 文件格式与一致性
-  3. stats.json 与 latest.json 一致性
-  4. README.md 期数一致性
-  5. 数据记录格式校验（红球/蓝球范围）
-"""
+"""Strict data quality gate for local development and GitHub Actions."""
 
+from __future__ import annotations
+
+import glob
 import json
 import os
-import sys
-import glob
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime
 
-from schema import validate_draw
+from _paths import (
+    CORRECTIONS_FILE,
+    HISTORY_BASELINE_FILE,
+    HISTORY_DIR,
+    INDEX_FILE,
+    LATEST_FILE,
+    MANIFEST_FILE,
+    SCHEMA_DIR,
+    SOURCE_STATE_FILE,
+    STATS_FILE,
+)
+from calc_all import calc_stats
+from manifest import build_manifest, load_history_strict, verify_history_against_baseline
 
-BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
-WEB_DIR = os.path.join(BASE_DIR, 'web')
-DATA_DIR = os.path.join(WEB_DIR, 'data')
-HISTORY_DIR = os.path.join(DATA_DIR, 'history')
-INDEX_FILE = os.path.join(DATA_DIR, 'history_index.json')
-README_PATH = os.path.join(BASE_DIR, 'README.md')
-
-errors = []
-warnings = []
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WEB_DIR = os.path.join(BASE_DIR, "web")
+errors: list[str] = []
+warnings: list[str] = []
 
 
-def check(condition, msg, is_warning=False):
-    """断言检查，失败时记录而非立即退出"""
-    if not condition:
-        if is_warning:
-            warnings.append(f'⚠️  {msg}')
-            print(f'  ⚠️  {msg}')
-        else:
-            errors.append(f'❌ {msg}')
-            print(f'  ❌ {msg}')
+def load_schema(name: str) -> dict:
+    with open(os.path.join(SCHEMA_DIR, name), encoding="utf-8") as file:
+        return json.load(file)
+
+
+def make_worker(schema_name: str):
+    try:
+        from jsonschema import Draft202012Validator, FormatChecker
+        from referencing import Registry, Resource
+    except ImportError:
+        if not any("jsonschema" in item for item in warnings):
+            warn("jsonschema 未安装；结构校验由 npm run test:schema 执行")
+        return None
+
+    schema = load_schema(schema_name)
+    draw_schema = load_schema("draw.schema.json")
+    resources = [
+        Resource.from_contents(draw_schema),
+        Resource.from_contents(schema),
+    ]
+    registry = Registry().with_resources(
+        (resource.id(), resource) for resource in resources if resource.id()
+    )
+    return Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
+
+
+def validate_shape(instance: object, schema_name: str, label: str) -> None:
+    validator = make_worker(schema_name)
+    if validator is None:
+        if not isinstance(instance, (dict, list)):
+            fail(f"{label} 顶层结构必须是对象或数组")
+        return
+    problems = sorted(validator.iter_errors(instance), key=lambda item: list(item.path))
+    if not problems:
+        print(f"  ✅ {label}: JSON Schema 通过")
+        return
+    for problem in problems[:8]:
+        path = ".".join(str(part) for part in problem.absolute_path) or "$"
+        errors.append(f"{label} schema error at {path}: {problem.message}")
+        print(f"  ❌ {label} {path}: {problem.message}")
+
+
+def fail(message: str) -> None:
+    errors.append(message)
+    print(f"  ❌ {message}")
+
+
+def warn(message: str) -> None:
+    warnings.append(message)
+    print(f"  ⚠️  {message}")
+
+
+def load_json(path: str):
+    with open(path, encoding="utf-8") as file:
+        return json.load(file)
+
+
+def verify_history_files():
+    print("\n[1/8] 历史年表与语义")
+    try:
+        draws = load_history_strict()
+    except Exception as error:
+        fail(f"历史数据加载失败: {error}")
+        return [], {}
+
+    by_year = {}
+    for path in sorted(glob.glob(os.path.join(HISTORY_DIR, "*.json"))):
+        year = os.path.basename(path).removesuffix(".json")
+        payload = load_json(path)
+        validate_shape(payload, "history.schema.json", os.path.basename(path))
+        by_year[year] = payload
+        if payload:
+            first, last = payload[0], payload[-1]
+            if first["issue"][:4] != year or last["issue"][:4] != year:
+                fail(f"{year}.json 包含非本年期号")
+            if number_gap(payload):
+                fail(f"{year}.json 期号不是严格连续")
+
+    print(
+        f"  ✅ 历史数据: {len(draws)} 期, {len(by_year)} 年, "
+        f"{draws[0]['date']} → {draws[-1]['date']}"
+    )
+    baseline_errors = verify_history_against_baseline(draws)
+    if baseline_errors:
+        for message in baseline_errors:
+            fail(message)
+    else:
+        print("  ✅ 历史记录指纹与受保护基线一致")
+
+    validate_shape(load_json(HISTORY_BASELINE_FILE), "history-baseline.schema.json", "history_baseline.json")
+    return draws, by_year
+
+
+def number_gap(records: list[dict]) -> bool:
+    for left, right in zip(records, records[1:], strict=False):
+        if int(right["issue"][4:]) != int(left["issue"][4:]) + 1:
+            return True
+    return False
+
+
+def verify_index(draws: list[dict], by_year: dict[str, list[dict]]) -> None:
+    print("\n[2/8] 历史索引")
+    index = load_json(INDEX_FILE)
+    validate_shape(index, "history-index.schema.json", "history_index.json")
+    if index.get("total") != len(draws):
+        fail(f"index.total={index.get('total')} != history={len(draws)}")
+
+    expected_years = sorted(by_year)
+    actual_years = [item.get("year") for item in index.get("years", [])]
+    if actual_years != expected_years:
+        fail(f"index years mismatch: {actual_years} != {expected_years}")
+
+    for item in index.get("years", []):
+        year = item.get("year")
+        payload = by_year.get(year, [])
+        if item.get("count") != len(payload):
+            fail(f"index {year} count={item.get('count')} != {len(payload)}")
+        if payload and item.get("range") != [payload[0]["date"], payload[-1]["date"]]:
+            fail(f"index {year} date range mismatch")
+    if not errors:
+        print(f"  ✅ Index 与 {len(by_year)} 个年度文件一致")
+
+
+def verify_generated(draws: list[dict]) -> None:
+    print("\n[3/8] latest / stats / manifest 一致性")
+    latest = load_json(LATEST_FILE)
+    stats = load_json(STATS_FILE)
+    manifest = load_json(MANIFEST_FILE)
+    validate_shape(latest, "latest.schema.json", "latest.json")
+    validate_shape(stats, "stats.schema.json", "stats.json")
+    validate_shape(manifest, "manifest.schema.json", "manifest.json")
+
+    last = draws[-1]
+    checks = {
+        "latest.latest_draw": latest.get("latest_draw") == last,
+        "latest.latest_issue": latest.get("latest_issue") == last["issue"],
+        "latest.latest_date": latest.get("latest_date") == last["date"],
+        "latest.total": latest.get("total") == len(draws),
+        "stats.latest_issue": stats.get("latest_issue") == last["issue"],
+        "stats.latest_date": stats.get("latest_date") == last["date"],
+        "stats.total": stats.get("total") == len(draws),
+        "manifest.latest_issue": manifest.get("latest_issue") == last["issue"],
+        "manifest.total": manifest.get("total") == len(draws),
+        "generated_at": latest.get("generated_at") == stats.get("generated_at") == manifest.get("generated_at"),
+    }
+    for label, passed in checks.items():
+        if not passed:
+            fail(f"{label} 不一致")
+
+    expected_manifest = build_manifest(draws)
+    if expected_manifest != manifest:
+        fail("manifest.json 与历史数据重建结果不一致")
+
+    generated = calc_stats(
+        draws,
+        generated_at=stats.get("generated_at"),
+        source=stats.get("source"),
+    )
+    if generated != stats:
+        fail("stats.json 与历史数据全量重算结果不一致")
+
+    red_total = sum(stats["red_freq_global"].values())
+    blue_total = sum(stats["blue_freq_global"].values())
+    red50 = sum(stats["red_freq_50"].values())
+    red100 = sum(stats["red_freq_100"].values())
+    blue50 = sum(stats["blue_freq_50"].values())
+    blue100 = sum(stats["blue_freq_100"].values())
+    invariants = {
+        "red global": red_total == len(draws) * 6,
+        "blue global": blue_total == len(draws),
+        "red 50": red50 == min(len(draws), 50) * 6,
+        "blue 50": blue50 == min(len(draws), 50),
+        "red 100": red100 == min(len(draws), 100) * 6,
+        "blue 100": blue100 == min(len(draws), 100),
+        "AC distribution": sum(stats["ac_distribution"].values()) == min(len(draws), 100),
+        "structure total": stats["structure_recent_50"]["total_balls"] == min(len(draws), 50) * 6,
+    }
+    for label, passed in invariants.items():
+        if not passed:
+            fail(f"统计不变量失败: {label}")
+
+    for bucket in ("red_per_number", "blue_per_number"):
+        for number, info in stats[bucket].items():
+            if info["current_miss"] > info["max_miss"]:
+                fail(f"{bucket}.{number} current_miss > max_miss")
+
+    if not errors:
+        print("  ✅ 最新期、统计、索引和清单完全一致")
+
+
+def verify_corrections() -> None:
+    print("\n[4/8] 历史修正记录")
+    if not os.path.exists(CORRECTIONS_FILE):
+        print("  ✅ 无历史修正记录")
+        return
+    payload = load_json(CORRECTIONS_FILE)
+    validate_shape(payload, "corrections.schema.json", "corrections.json")
+    print(f"  ✅ 已记录 {len(payload.get('corrections', []))} 次历史修正")
+
+
+def verify_source_state() -> None:
+    print("\n[5/8] 数据来源追踪")
+    if not check_source_exists():
+        return
+    payload = load_json(SOURCE_STATE_FILE)
+    validate_shape(payload, "source-state.schema.json", "source_state.json")
+    latest = load_json(LATEST_FILE)
+    if payload.get("latest_issue") != latest.get("latest_issue"):
+        fail("source_state.latest_issue 与 latest.json 不一致")
+    if payload.get("latest_date") != latest.get("latest_date"):
+        fail("source_state.latest_date 与 latest.json 不一致")
+    if " + ".join(payload.get("sources", [])) != latest.get("source"):
+        fail("source_state.sources 未正确传播到 latest.source")
+    if not errors:
+        print(f"  ✅ 来源: {' + '.join(payload.get('sources', []))}")
+
+
+def check_source_exists() -> bool:
+    if not os.path.exists(SOURCE_STATE_FILE):
+        fail("source_state.json 不存在")
         return False
     return True
 
 
-def verify_index():
-    """校验 history_index.json"""
-    print('\n🔍 [1/5] 校验 history_index.json ...')
-    if not check(os.path.exists(INDEX_FILE), 'history_index.json 不存在'):
-        return None
-
-    with open(INDEX_FILE, 'r', encoding='utf-8') as f:
-        idx = json.load(f)
-
-    check('total' in idx, 'history_index.json 缺少 total 字段')
-    check('range' in idx, 'history_index.json 缺少 range 字段')
-    check('years' in idx, 'history_index.json 缺少 years 字段')
-    check(isinstance(idx.get('years', []), list), 'years 应为数组')
-    check(idx.get('total', 0) > 0, f'total={idx.get("total")} 不合理，应大于 0')
-
-    year_sum = sum(y.get('count', 0) for y in idx.get('years', []))
-    check(year_sum == idx.get('total', 0),
-          f'各年份 count 之和 ({year_sum}) != total ({idx.get("total")})')
-
-    print(f'  ✅ history_index.json: {idx["total"]} 期, {len(idx["years"])} 个年份')
-    return idx
-
-
-def verify_history_files(idx):
-    """校验各年份历史文件"""
-    print('\n🔍 [2/5] 校验历史数据文件 ...')
-    year_files = sorted(glob.glob(os.path.join(HISTORY_DIR, '*.json')))
-    check(len(year_files) > 0, '没有找到任何年份数据文件')
-
-    total_draws = 0
-    all_issues = set()
-    bad_records = 0
-
-    for fpath in year_files:
-        fname = os.path.basename(fpath)
-        with open(fpath, 'r', encoding='utf-8') as f:
-            draws = json.load(f)
-
-        check(isinstance(draws, list), f'{fname} 不是数组格式')
-        total_draws += len(draws)
-
-        for d in draws:
-            if not validate_draw(d):
-                bad_records += 1
-                continue
-
-            if d['issue'] in all_issues:
-                check(False, f'发现重复期号: {d["issue"]}', is_warning=True)
-            all_issues.add(d['issue'])
-
-    check(bad_records == 0,
-          f'有 {bad_records} 条记录格式异常',
-          is_warning=(bad_records < 5))
-
-    if idx:
-        check(total_draws == idx['total'],
-              f'历史文件总期数 ({total_draws}) != index.total ({idx["total"]})')
-
-    print(f'  ✅ 历史文件: {len(year_files)} 个, 共 {total_draws} 期, 格式异常 {bad_records} 条')
-    return total_draws
-
-
-def verify_stats_latest(idx):
-    """校验 stats.json 和 latest.json"""
-    print('\n🔍 [3/5] 校验 stats.json 和 latest.json ...')
-
-    stats_path = os.path.join(DATA_DIR, 'stats.json')
-    latest_path = os.path.join(DATA_DIR, 'latest.json')
-
-    if check(os.path.exists(stats_path), 'stats.json 不存在'):
-        with open(stats_path, 'r', encoding='utf-8') as f:
-            stats = json.load(f)
-
-        check('total' in stats, 'stats.json 缺少 total 字段')
-        check('latest_issue' in stats, 'stats.json 缺少 latest_issue 字段')
-        check('red_freq_global' in stats, 'stats.json 缺少 red_freq_global 字段')
-        check('blue_freq_global' in stats, 'stats.json 缺少 blue_freq_global 字段')
-        check('red_missing' in stats, 'stats.json 缺少 red_missing 字段')
-        check('blue_missing' in stats, 'stats.json 缺少 blue_missing 字段')
-        check('red_per_number' in stats, 'stats.json 缺少 red_per_number 字段')
-        check('blue_per_number' in stats, 'stats.json 缺少 blue_per_number 字段')
-        rpn = stats.get('red_per_number', {})
-        bpn = stats.get('blue_per_number', {})
-        check(len(rpn) == 33, f'red_per_number 应有 33 项，当前 {len(rpn)}')
-        check(len(bpn) == 16, f'blue_per_number 应有 16 项，当前 {len(bpn)}')
-        if rpn:
-            sample = next(iter(rpn.values()))
-            for f in ('freq_global', 'freq_50', 'freq_100', 'current_miss',
-                      'max_miss', 'max_miss_issue', 'recent_5_issues'):
-                check(f in sample, f'red_per_number 子项缺少 {f} 字段')
-
-        if idx:
-            check(stats.get('total') == idx['total'],
-                  f'stats.total ({stats.get("total")}) != index.total ({idx["total"]})')
-
-        updated_str = stats.get('updated', '')
-        if updated_str:
-            try:
-                updated_dt = datetime.strptime(updated_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-                age_days = (datetime.now(tz=timezone.utc) - updated_dt).days
-                if age_days > 30:
-                    check(False,
-                          f'stats.json 已 {age_days} 天未更新（updated={updated_str}），'
-                          f'数据链路可能已中断')
-                elif age_days > 7:
-                    check(False,
-                          f'stats.json 距今 {age_days} 天未更新（updated={updated_str}），'
-                          f'若长时间无开奖请关注',
-                          is_warning=True)
-                else:
-                    print(f'  ✅ stats.json 新鲜度: 距今 {age_days} 天')
-            except ValueError:
-                check(False,
-                      f'stats.json updated 字段格式异常: {updated_str!r}',
-                      is_warning=True)
-
-        print(f'  ✅ stats.json: total={stats.get("total")}, latest={stats.get("latest_issue")}')
-
-    if check(os.path.exists(latest_path), 'latest.json 不存在'):
-        with open(latest_path, 'r', encoding='utf-8') as f:
-            latest = json.load(f)
-
-        if check('latest_draw' in latest, 'latest.json 缺少 latest_draw'):
-            ld = latest['latest_draw']
-            if not validate_draw(ld):
-                check(False, 'latest_draw 格式不合法')
-            else:
-                check(True, 'latest_draw 格式校验通过')
-
-        if idx:
-            check(latest.get('total') == idx['total'],
-                  f'latest.total ({latest.get("total")}) != index.total ({idx["total"]})',
-                  is_warning=True)
-
-        print(f'  ✅ latest.json: latest={latest.get("latest_draw", {}).get("issue")}')
-
-
-def verify_readme(idx):
-    """校验 README 中的期数是否与实际一致"""
-    print('\n🔍 [4/5] 校验 README.md 期数一致性 ...')
-
-    if not os.path.exists(README_PATH):
-        check(False, 'README.md 不存在')
-        return
-
-    total = idx['total'] if idx else None
-    if not total:
-        print('  ⏭️  无法获取 total，跳过 README 校验')
-        return
-
-    if not os.path.exists(README_PATH):
-        print('  ⚠️ README.md 不存在')
-    elif os.path.getsize(README_PATH) < 500:
-        print('  ⚠️ README.md 内容过短，可能损坏')
+def verify_freshness() -> None:
+    print("\n[6/8] 数据新鲜度")
+    stats = load_json(STATS_FILE)
+    updated = datetime.fromisoformat(stats["updated"]).replace(tzinfo=UTC)
+    age_days = (datetime.now(tz=UTC) - updated).days
+    if age_days > 30:
+        fail(f"数据已 {age_days} 天未更新")
+    elif age_days > 10:
+        warn(f"数据距今 {age_days} 天，可能是节假日或更新链路异常")
     else:
-        print(f'  ✅ README.md 存在 ({os.path.getsize(README_PATH)} bytes)')
-    print(f'  ✅ README.md 期数一致性检查完成')
+        print(f"  ✅ 数据距今 {age_days} 天")
 
 
-def verify_file_structure():
-    """校验项目必要文件是否齐全"""
-    print('\n🔍 [5/5] 校验项目文件结构 ...')
-
-    critical_files = [
-        'web/index.html',
-        'web/.nojekyll',
-        # 前端 JS（核心渲染链路）
-        'web/js/main.js',
-        'web/js/store.js',
-        'web/js/data-loader.js',
-        'web/js/filter-bar.js',
-        'web/js/trend-table.js',
-        'web/js/trend-overlay.js',
-        'web/js/number-profile.js',
-        'web/js/theme.js',
-        'web/js/utils/dom.js',
-        'web/js/utils/format.js',
-        # 前端 CSS
-        'web/css/reset.css',
-        'web/css/theme.css',
-        'web/css/layout.css',
-        'web/css/filter-bar.css',
-        'web/css/trend-table.css',
-        'web/css/trend-overlay.css',
-        'web/css/number-profile.css',
-        'web/css/responsive.css',
-        # 数据文件
-        'web/data/history_index.json',
-        'web/data/stats.json',
-        'web/data/latest.json',
+def verify_project_files() -> None:
+    print("\n[7/8] 项目结构")
+    critical = [
+        "web/index.html",
+        "web/.nojekyll",
+        "web/js/main.js",
+        "web/js/dashboard.js",
+        "web/js/data-loader.js",
+        "web/js/filter-bar.js",
+        "web/js/insights.js",
+        "web/js/trend-table.js",
+        "web/js/trend-overlay.js",
+        "web/js/number-profile.js",
+        "web/js/theme.js",
+        "web/js/utils/dom.js",
+        "web/js/utils/format.js",
+        "web/css/theme.css",
+        "web/css/layout.css",
+        "web/css/filter-bar.css",
+        "web/css/trend-table.css",
+        "web/css/number-profile.css",
+        "web/css/insights.css",
+        "web/css/responsive.css",
+        "web/data/history_index.json",
+        "web/data/stats.json",
+        "web/data/latest.json",
+        "web/data/manifest.json",
+        "web/data/history_baseline.json",
+        "web/data/source_state.json",
+        "package.json",
+        "package-lock.json",
     ]
-    missing_critical = [f for f in critical_files if not os.path.exists(os.path.join(BASE_DIR, f))]
-    if missing_critical:
-        check(False, f'缺少关键文件: {", ".join(missing_critical)}')
-
-    history_files = glob.glob(os.path.join(HISTORY_DIR, '*.json'))
-    check(len(history_files) >= 1, '缺少 history/*.json 数据文件')
-
-    js_files = glob.glob(os.path.join(WEB_DIR, 'js/**/*.js'), recursive=True)
-    css_files = glob.glob(os.path.join(WEB_DIR, 'css/*.css'))
-    py_files = glob.glob(os.path.join(BASE_DIR, 'scripts/*.py'))
-    yml_files = glob.glob(os.path.join(BASE_DIR, '.github/workflows/*.yml'))
-    print(f'  ✅ 项目结构: JS={len(js_files)}, CSS={len(css_files)}, Data={len(history_files)}, Py={len(py_files)}, CI={len(yml_files)}')
-
-
-def main():
-    print('=' * 50)
-    print('🔬 SSQ-Hub 数据完整性自检')
-    print('=' * 50)
-
-    idx = verify_index()
-    verify_history_files(idx)
-    verify_stats_latest(idx)
-    verify_readme(idx)
-    verify_file_structure()
-
-    print('\n' + '=' * 50)
-    if errors:
-        print(f'💥 自检失败: {len(errors)} 个错误, {len(warnings)} 个警告')
-        for e in errors:
-            print(f'  {e}')
-        for w in warnings:
-            print(f'  {w}')
-        sys.exit(1)
-    elif warnings:
-        print(f'✅ 自检通过（{len(warnings)} 个警告）')
-        for w in warnings:
-            print(f'  {w}')
+    missing = [path for path in critical if not os.path.exists(os.path.join(BASE_DIR, path))]
+    if missing:
+        fail("缺少关键文件: " + ", ".join(missing))
     else:
-        print('🎉 自检全部通过，数据完整无误！')
-
-    sys.exit(0)
+        print(f"  ✅ 关键文件齐全 ({len(critical)})")
 
 
-if __name__ == '__main__':
+def report() -> None:
+    print("\n" + "=" * 58)
+    if errors:
+        print(f"数据质量门禁失败: {len(errors)} 个错误, {len(warnings)} 个警告")
+        for error in errors:
+            print(f"  ❌ {error}")
+        raise SystemExit(1)
+    print(f"数据质量门禁通过: 0 个错误, {len(warnings)} 个警告")
+
+
+def main() -> None:
+    print("=" * 58)
+    print("SSQ Hub 严格数据质量门禁")
+    print("=" * 58)
+    draws, by_year = verify_history_files()
+    verify_index(draws, by_year)
+    if draws:
+        verify_generated(draws)
+    verify_corrections()
+    verify_source_state()
+    verify_freshness()
+    verify_project_files()
+    print("\n[8/8] 汇总")
+    report()
+
+
+if __name__ == "__main__":
     main()

@@ -9,29 +9,27 @@
 读取: data/history/*.json
 """
 
-import json
-import os
-import glob
 from collections import Counter
 
-from _paths import DATA_DIR, HISTORY_DIR, STATS_FILE, LATEST_FILE
+from _paths import LATEST_FILE, MANIFEST_FILE, STATS_FILE
 from _utils import write_if_changed
-from schema import validate_draw
+from manifest import (
+    PIPELINE_VERSION,
+    SCHEMA_VERSION,
+    build_manifest,
+    load_history_strict,
+    resolve_source_label,
+    utc_now,
+    verify_history_against_baseline,
+)
 
 
 def load_history():
     """从按年文件合并加载全部历史数据"""
-    all_draws = []
-    for fpath in sorted(glob.glob(os.path.join(HISTORY_DIR, '*.json'))):
-        try:
-            with open(fpath, 'r', encoding='utf-8') as f:
-                all_draws.extend(json.load(f))
-        except (json.JSONDecodeError, Exception) as e:
-            print(f'  ⚠️ 跳过损坏文件: {os.path.basename(fpath)} ({e})')
-    return all_draws
+    return load_history_strict()
 
 
-def calc_stats(draws):
+def calc_stats(draws, generated_at=None, source='Public lottery issue records'):
     total = len(draws)
 
     red_freq_global = Counter()
@@ -201,16 +199,30 @@ def calc_stats(draws):
             else:
                 big += 1
 
-    fmt = lambda d: {str(k).zfill(2): v for k, v in sorted(d.items())}
+    def fmt(values):
+        return {str(key).zfill(2): value for key, value in sorted(values.items())}
+    red_freq_global_full = {str(n).zfill(2): red_freq_global.get(n, 0) for n in range(1, 34)}
+    blue_freq_global_full = {str(n).zfill(2): blue_freq_global.get(n, 0) for n in range(1, 17)}
+    red_freq_50_full = {str(n).zfill(2): red_freq_50.get(n, 0) for n in range(1, 34)}
+    blue_freq_50_full = {str(n).zfill(2): blue_freq_50.get(n, 0) for n in range(1, 17)}
+    red_freq_100_full = {str(n).zfill(2): red_freq_100.get(n, 0) for n in range(1, 34)}
+    blue_freq_100_full = {str(n).zfill(2): blue_freq_100.get(n, 0) for n in range(1, 17)}
 
     return {
+        'schema_version': SCHEMA_VERSION,
+        'pipeline_version': PIPELINE_VERSION,
+        'generated_at': generated_at or utc_now(),
+        'source': source,
         'updated': draws[-1]['date'],
         'latest_issue': draws[-1]['issue'],
+        'latest_date': draws[-1]['date'],
         'total': total,
-        'red_freq_global': fmt(red_freq_global),
-        'red_freq_50': fmt(red_freq_50),
-        'blue_freq_global': fmt(blue_freq_global),
-        'blue_freq_50': fmt(blue_freq_50),
+        'red_freq_global': red_freq_global_full,
+        'red_freq_50': red_freq_50_full,
+        'red_freq_100': red_freq_100_full,
+        'blue_freq_global': blue_freq_global_full,
+        'blue_freq_50': blue_freq_50_full,
+        'blue_freq_100': blue_freq_100_full,
         'red_missing': fmt(red_missing),
         'blue_missing': fmt(blue_missing),
         'red_per_number': red_per_number,
@@ -228,32 +240,43 @@ def calc_stats(draws):
 
 def main():
     draws = load_history()
-    # 过滤掉不合法记录
-    valid_draws = [d for d in draws if validate_draw(d)]
-    if len(valid_draws) != len(draws):
-        print(f'⚠️ 过滤 {len(draws) - len(valid_draws)} 条不合法记录')
-    if not valid_draws:
-        print('⚠️ 无有效历史数据，跳过')
-        return
-    print(f'📊 计算统计数据 ({len(valid_draws)} 期)...')
+    baseline_errors = verify_history_against_baseline(draws)
+    if baseline_errors:
+        raise SystemExit('❌ 历史数据保护检查失败: ' + '; '.join(baseline_errors))
+    if not draws:
+        raise SystemExit('❌ 无有效历史数据')
+    print(f'📊 计算统计数据 ({len(draws)} 期)...')
 
-    stats = calc_stats(valid_draws)
+    source = resolve_source_label()
+    manifest = build_manifest(draws, source)
+    generated_at = manifest['generated_at']
+    stats = calc_stats(draws, generated_at=generated_at, source=source)
     if write_if_changed(STATS_FILE, stats):
         print('✅ stats.json 已更新')
     else:
         print('⏭  stats.json 未变化（跳过写入）')
 
     latest = {
-        'latest_draw': valid_draws[-1],
-        'updated': valid_draws[-1]['date'],
-        'total': len(valid_draws),
+        'schema_version': SCHEMA_VERSION,
+        'pipeline_version': PIPELINE_VERSION,
+        'generated_at': generated_at,
+        'source': source,
+        'latest_draw': draws[-1],
+        'latest_issue': draws[-1]['issue'],
+        'latest_date': draws[-1]['date'],
+        'updated': draws[-1]['date'],
+        'total': len(draws),
     }
     if write_if_changed(LATEST_FILE, latest):
         print('✅ latest.json 已更新')
     else:
         print('⏭  latest.json 未变化（跳过写入）')
-    print(f'🎰 最新一期: {valid_draws[-1]["issue"]} ({valid_draws[-1]["date"]})')
-    print(f'   红球: {valid_draws[-1]["red"]}  蓝球: {valid_draws[-1]["blue"]}')
+    if write_if_changed(MANIFEST_FILE, manifest):
+        print('✅ manifest.json 已更新')
+    else:
+        print('⏭  manifest.json 未变化（跳过写入）')
+    print(f'🎰 最新一期: {draws[-1]["issue"]} ({draws[-1]["date"]})')
+    print(f'   红球: {draws[-1]["red"]}  蓝球: {draws[-1]["blue"]}')
 
 
 if __name__ == '__main__':

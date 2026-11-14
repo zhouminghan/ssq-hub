@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zhouminghan.github.io/ssq-hub/schemas/stats.schema.json",
+  "title": "Aggregate statistics",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "pipeline_version",
+    "generated_at",
+    "source",
+    "updated",
+    "latest_issue",
+    "latest_date",
+    "total",
+    "red_freq_global",
+    "red_freq_50",
+    "red_freq_100",
+    "blue_freq_global",
+    "blue_freq_50",
+    "blue_freq_100",
+    "red_missing",
+    "blue_missing",
+    "red_per_number",
+    "blue_per_number",
+    "consecutive",
+    "same_tail",
+    "ac_distribution",
+    "structure_recent_50"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "pipeline_version": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "minLength": 1 },
+    "updated": { "type": "string", "format": "date" },
+    "latest_issue": { "type": "string", "pattern": "^[0-9]{7}$" },
+    "latest_date": { "type": "string", "format": "date" },
+    "total": { "type": "integer", "minimum": 1 },
+    "red_freq_global": { "$ref": "#/$defs/redFrequency" },
+    "red_freq_50": { "$ref": "#/$defs/redFrequency" },
+    "red_freq_100": { "$ref": "#/$defs/redFrequency" },
+    "blue_freq_global": { "$ref": "#/$defs/blueFrequency" },
+    "blue_freq_50": { "$ref": "#/$defs/blueFrequency" },
+    "blue_freq_100": { "$ref": "#/$defs/blueFrequency" },
+    "red_missing": { "$ref": "#/$defs/redFrequency" },
+    "blue_missing": { "$ref": "#/$defs/blueFrequency" },
+    "red_per_number": { "type": "object", "minProperties": 33 },
+    "blue_per_number": { "type": "object", "minProperties": 16 },
+    "consecutive": { "$ref": "#/$defs/windowMetric" },
+    "same_tail": { "$ref": "#/$defs/windowMetric" },
+    "ac_distribution": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "structure_recent_50": {
+      "type": "object",
+      "required": ["zone1", "zone2", "zone3", "odd", "even", "small", "big", "total_balls"],
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    }
+  },
+  "$defs": {
+    "redFrequency": {
+      "type": "object",
+      "required": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+        "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+        "31", "32", "33"],
+      "patternProperties": {
+        "^(?:0[1-9]|[12][0-9]|3[0-3])$": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "blueFrequency": {
+      "type": "object",
+      "required": ["01", "02", "03", "04", "05", "06", "07", "08",
+        "09", "10", "11", "12", "13", "14", "15", "16"],
+      "patternProperties": {
+        "^(?:0[1-9]|1[0-6])$": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "windowMetric": {
+      "type": "object",
+      "required": ["window", "ratio"],
+      "properties": {
+        "window": { "type": "integer", "minimum": 1 },
+        "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+        "with_consec_count": { "type": "integer", "minimum": 0 },
+        "with_same_tail_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

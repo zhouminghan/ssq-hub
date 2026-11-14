@@ -16,6 +16,7 @@ let rootEl = null;
 let panelEl = null;
 let bodyEl = null;
 let cachedStats = null;
+let lastTrigger = null;
 
 /**
  * 在 document.body 挂载抽屉容器（仅一次）
@@ -25,7 +26,13 @@ export function mountNumberProfile() {
 
   rootEl = h('div.np-root', { id: 'np-root', hidden: true }, [
     h('div.np-mask', { id: 'np-mask' }),
-    h('aside.np-panel', { id: 'np-panel', role: 'dialog', 'aria-modal': 'true' }, [
+    h('aside.np-panel', {
+      id: 'np-panel',
+      role: 'dialog',
+      tabindex: '-1',
+      'aria-modal': 'true',
+      'aria-labelledby': 'np-title',
+    }, [
       h('header.np-head', null, [
         h('div.np-title', { id: 'np-title' }, '号码画像'),
         h('button.np-close', {
@@ -47,7 +54,23 @@ export function mountNumberProfile() {
   qs('#np-mask', rootEl).addEventListener('click', closeProfile);
   qs('#np-close', rootEl).addEventListener('click', closeProfile);
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !rootEl.hidden) closeProfile();
+    if (!rootEl.hidden && e.key === 'Escape') {
+      e.preventDefault();
+      closeProfile();
+    }
+    if (!rootEl.hidden && e.key === 'Tab') {
+      const focusable = [...panelEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')];
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
   });
 
   mounted = true;
@@ -60,6 +83,7 @@ export function mountNumberProfile() {
  */
 export async function showProfile(color, num) {
   if (!mounted) mountNumberProfile();
+  lastTrigger = document.activeElement;
 
   // 先打开壳，加载中态
   qs('#np-title', rootEl).textContent = `${color === 'red' ? '红球' : '蓝球'} ${pad2(num)}`;
@@ -68,6 +92,7 @@ export async function showProfile(color, num) {
   rootEl.hidden = false;
   // 触发动画：下一帧加 .is-open
   requestAnimationFrame(() => rootEl.classList.add('is-open'));
+  requestAnimationFrame(() => qs('#np-close', rootEl)?.focus());
 
   try {
     if (!cachedStats) cachedStats = await loadStats();
@@ -84,7 +109,10 @@ function closeProfile() {
   if (!rootEl) return;
   rootEl.classList.remove('is-open');
   // 等动画结束再 hidden
-  setTimeout(() => { rootEl.hidden = true; }, 220);
+  setTimeout(() => {
+    rootEl.hidden = true;
+    if (lastTrigger instanceof HTMLElement && lastTrigger.isConnected) lastTrigger.focus();
+  }, 220);
 }
 
 /**

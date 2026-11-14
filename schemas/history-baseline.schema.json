@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zhouminghan.github.io/ssq-hub/schemas/history-baseline.schema.json",
+  "title": "Protected history baseline",
+  "type": "object",
+  "required": ["schema_version", "record_count", "records_sha256", "records"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "record_count": { "type": "integer", "minimum": 1 },
+    "records_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "records": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[0-9]{7}$" },
+      "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{20}$" }
+    }
+  }
+}

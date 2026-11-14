@@ -1,0 +1,280 @@
+{
+  "schema_version": "2.0.0",
+  "pipeline_version": "2.0.0",
+  "generated_at": "2026-11-14T09:43:48Z",
+  "source": "500彩票网 + 福彩官方",
+  "total": 3527,
+  "range": [
+    "2003-02-23",
+    "2026-11-12"
+  ],
+  "latest_issue": "2026130",
+  "latest_date": "2026-11-12",
+  "records_sha256": "4843f2d39caf77e89356809daf6f8d0b1fabfe63b02588d58c1efd7662209868",
+  "years": [
+    {
+      "year": "2003",
+      "count": 89,
+      "range": [
+        "2003-02-23",
+        "2003-12-28"
+      ],
+      "first_issue": "2003001",
+      "last_issue": "2003089",
+      "records_sha256": "6942c0460898d8e530b0b44f7a638b97f0011394621a21cc976c445645905119"
+    },
+    {
+      "year": "2004",
+      "count": 122,
+      "range": [
+        "2004-01-01",
+        "2004-12-30"
+      ],
+      "first_issue": "2004001",
+      "last_issue": "2004122",
+      "records_sha256": "96416f6a531153a611843e3b849805bd0ce742c2eb528c8e494afffb4809fd80"
+    },
+    {
+      "year": "2005",
+      "count": 153,
+      "range": [
+        "2005-01-02",
+        "2005-12-29"
+      ],
+      "first_issue": "2005001",
+      "last_issue": "2005153",
+      "records_sha256": "365d1a70257a89e8ecab671203f60000f6af59985d2f29625a941d2519aefcdd"
+    },
+    {
+      "year": "2006",
+      "count": 154,
+      "range": [
+        "2006-01-01",
+        "2006-12-31"
+      ],
+      "first_issue": "2006001",
+      "last_issue": "2006154",
+      "records_sha256": "548e393d43eec71a8ec725c4c46cb2ec8e6dd94a8435e9159bfcaca54bea7432"
+    },
+    {
+      "year": "2007",
+      "count": 153,
+      "range": [
+        "2007-01-02",
+        "2007-12-30"
+      ],
+      "first_issue": "2007001",
+      "last_issue": "2007153",
+      "records_sha256": "0a613ba25c06d478ee0cc6780b767c8fd72e319c9eff00764a666c44c78b2228"
+    },
+    {
+      "year": "2008",
+      "count": 154,
+      "range": [
+        "2008-01-01",
+        "2008-12-30"
+      ],
+      "first_issue": "2008001",
+      "last_issue": "2008154",
+      "records_sha256": "4131d15c27c7d0a04740524809c21bd26279d8b9a7a2dc0fad69856deddd9ed1"
+    },
+    {
+      "year": "2009",
+      "count": 154,
+      "range": [
+        "2009-01-01",
+        "2009-12-31"
+      ],
+      "first_issue": "2009001",
+      "last_issue": "2009154",
+      "records_sha256": "b0958f0a2340f31c8f8e49b1abbe8ad8cb1aa05a6dbfbebd493f43fe350c2834"
+    },
+    {
+      "year": "2010",
+      "count": 153,
+      "range": [
+        "2010-01-03",
+        "2010-12-30"
+      ],
+      "first_issue": "2010001",
+      "last_issue": "2010153",
+      "records_sha256": "c13cc9063d91414ae45ec7d8b845005b1f98b256afd580d835b0b7eb6a0767a0"
+    },
+    {
+      "year": "2011",
+      "count": 153,
+      "range": [
+        "2011-01-02",
+        "2011-12-29"
+      ],
+      "first_issue": "2011001",
+      "last_issue": "2011153",
+      "records_sha256": "cfa16dd62a0ea3f3527b5c69a7ad1391c03ebecd9db8d0b209efdfeebb1b589f"
+    },
+    {
+      "year": "2012",
+      "count": 154,
+      "range": [
+        "2012-01-01",
+        "2012-12-30"
+      ],
+      "first_issue": "2012001",
+      "last_issue": "2012154",
+      "records_sha256": "5a7193e67ddf355f163a1c6eacdf81f98293691c5e37eb47ff25f4d76ac47c29"
+    },
+    {
+      "year": "2013",
+      "count": 154,
+      "range": [
+        "2013-01-01",
+        "2013-12-31"
+      ],
+      "first_issue": "2013001",
+      "last_issue": "2013154",
+      "records_sha256": "7117bc86b9346d21e8a92323d02e5b951a8d03a7b755122404ed85160be520bc"
+    },
+    {
+      "year": "2014",
+      "count": 152,
+      "range": [
+        "2014-01-02",
+        "2014-12-30"
+      ],
+      "first_issue": "2014001",
+      "last_issue": "2014152",
+      "records_sha256": "f96de1e749cac33d55c9a5daf872a05b42bceb699990bb5e4fcc94083f730c42"
+    },
+    {
+      "year": "2015",
+      "count": 154,
+      "range": [
+        "2015-01-01",
+        "2015-12-31"
+      ],
+      "first_issue": "2015001",
+      "last_issue": "2015154",
+      "records_sha256": "b843fca04679f1e012ca6a680d36695945869cb21883b47fc95aa5952cf2c545"
+    },
+    {
+      "year": "2016",
+      "count": 153,
+      "range": [
+        "2016-01-03",
+        "2016-12-29"
+      ],
+      "first_issue": "2016001",
+      "last_issue": "2016153",
+      "records_sha256": "7671fd03d8883e50ac92ee4f10b2a2801f36fae65e37ea79e6581ada4abe5b9d"
+    },
+    {
+      "year": "2017",
+      "count": 154,
+      "range": [
+        "2017-01-01",
+        "2017-12-31"
+      ],
+      "first_issue": "2017001",
+      "last_issue": "2017154",
+      "records_sha256": "78d924c5085901bd2d7eb6831c712095f52649c42a64e6faad437a630bbeb372"
+    },
+    {
+      "year": "2018",
+      "count": 153,
+      "range": [
+        "2018-01-02",
+        "2018-12-30"
+      ],
+      "first_issue": "2018001",
+      "last_issue": "2018153",
+      "records_sha256": "fdc79c58952249b44fc29f9fbc8be9bb703c2cec721c037d74e81272a794a032"
+    },
+    {
+      "year": "2019",
+      "count": 151,
+      "range": [
+        "2019-01-01",
+        "2019-12-31"
+      ],
+      "first_issue": "2019001",
+      "last_issue": "2019151",
+      "records_sha256": "d5bf99a9fa34c4144419df9e59cad70be97cef4bc0943cd501b86fff28267f49"
+    },
+    {
+      "year": "2020",
+      "count": 134,
+      "range": [
+        "2020-01-02",
+        "2020-12-31"
+      ],
+      "first_issue": "2020001",
+      "last_issue": "2020134",
+      "records_sha256": "abd0f58ff5431631c591d51d66d97865aad2a33a84cd0e4589d03f6c53e46077"
+    },
+    {
+      "year": "2021",
+      "count": 150,
+      "range": [
+        "2021-01-03",
+        "2021-12-30"
+      ],
+      "first_issue": "2021001",
+      "last_issue": "2021150",
+      "records_sha256": "87d2281225b07585226a69cc2da14b6169845e8a92f1e9f9549691e9e4e34a60"
+    },
+    {
+      "year": "2022",
+      "count": 150,
+      "range": [
+        "2022-01-02",
+        "2022-12-29"
+      ],
+      "first_issue": "2022001",
+      "last_issue": "2022150",
+      "records_sha256": "830eac8b3fe9bc471fc202eafa9d1ef61324cc5de63000edb9b9e68fe42f16e5"
+    },
+    {
+      "year": "2023",
+      "count": 151,
+      "range": [
+        "2023-01-01",
+        "2023-12-31"
+      ],
+      "first_issue": "2023001",
+      "last_issue": "2023151",
+      "records_sha256": "3163141fbddacd2a95193b86c6e16e5796dfefbed21dd67e281b39df120d160f"
+    },
+    {
+      "year": "2024",
+      "count": 151,
+      "range": [
+        "2024-01-02",
+        "2024-12-31"
+      ],
+      "first_issue": "2024001",
+      "last_issue": "2024151",
+      "records_sha256": "090a8bc49571b75f39447d5210fc4d07ef5af474858bfba9680f24a08dd1c683"
+    },
+    {
+      "year": "2025",
+      "count": 151,
+      "range": [
+        "2025-01-02",
+        "2025-12-30"
+      ],
+      "first_issue": "2025001",
+      "last_issue": "2025151",
+      "records_sha256": "62525e3a98ba5d15fd704cd9e93315d85dd643cf5bd63e09e2a45fd2dabff73c"
+    },
+    {
+      "year": "2026",
+      "count": 130,
+      "range": [
+        "2026-01-01",
+        "2026-11-12"
+      ],
+      "first_issue": "2026001",
+      "last_issue": "2026130",
+      "records_sha256": "de60dce2910b5eb96222ab781ff169f50b86f85f356cb7206b9519d04adb5661"
+    }
+  ]
+}

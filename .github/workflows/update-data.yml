@@ -1,24 +1,21 @@
 name: 🎰 更新双色球数据
 
-# 触发：
-#   · 开奖日（周二/四/日）21:15 北京时间（单次抓取，fetch_latest.py 内置 45min 重试）
-#   · 每月 1 日 02:00 北京时间（强制重算 stats）
-#   · 手动触发
+# Scheduled draws:
+#   Tue/Thu/Sun 22:10 Asia/Shanghai = 14:10 UTC.
+# Monthly maintenance:
+#   1st day 02:00 Asia/Shanghai = previous day 18:00 UTC.
 #
-# 双色球开奖时间：周二/四/日 21:15 北京时间，数据源 21:30~22:00 同步完成。
-# 幂等：抓取前先检查 data/latest.json，date == 今日（北京时间）则整流程跳过。
-# 内建重试：fetch_latest.py 在 main() 中内置一轮 45 分钟间隔的重试，
-# 避免 workflow 层双 cron 导致 deploy-pages 双重触发。
+# fetch_latest.py owns source fallback and its 45 minute retry. It exits
+# nonzero when no source is usable, so this workflow cannot report a green
+# result after a total source outage.
 "on":
   schedule:
-    # 开奖日 21:15 北京时间 = 13:15 UTC
-    - cron: '15 13 * * 0,2,4'
-    # 每月 1 日凌晨 2:00 北京时间 = 18:00 UTC（前一天），强制重算
+    - cron: '10 14 * * 0,2,4'
     - cron: '0 18 1 * *'
   workflow_dispatch:
     inputs:
       mode:
-        description: '运行模式'
+        description: 'incremental: check before fetch; full: force fetch and rebuild'
         required: true
         default: 'incremental'
         type: choice
@@ -26,12 +23,12 @@ name: 🎰 更新双色球数据
           - incremental
           - full
 
-# 仅需 contents:write（commit / push 数据文件）
 permissions:
   contents: write
 
+# update-data and data-repair both write protected history.
 concurrency:
-  group: update-data
+  group: data-write
   cancel-in-progress: false
 
 jobs:
@@ -51,80 +48,148 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: requirements-runtime.lock
 
       - name: 📦 安装依赖
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-runtime.lock
 
       - name: 🧭 判定运行模式
         id: mode
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          INPUT_MODE: ${{ inputs.mode }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "mode=${{ inputs.mode }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.schedule }}" = "0 18 1 * *" ]; then
-            echo "mode=full" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            MODE="$INPUT_MODE"
+          elif [ "$SCHEDULE" = "0 18 1 * *" ]; then
+            MODE=full
           else
-            echo "mode=incremental" >> $GITHUB_OUTPUT
+            MODE=incremental
           fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "运行模式: $MODE"
 
-      - name: ⏭️ 检查是否已抓取本期
+      - name: 🔍 发布前预检
+        run: |
+          set -euo pipefail
+          mkdir -p ci-logs
+          python scripts/verify_data.py 2>&1 | tee ci-logs/preflight.log
+
+      - name: ⏭️ 判断本轮是否需要抓取
         id: check
+        env:
+          MODE: ${{ steps.mode.outputs.mode }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
+          set -euo pipefail
           TODAY=$(TZ='Asia/Shanghai' date '+%Y-%m-%d')
+          LATEST_DATE=$(python -c "import json; print(json.load(open('web/data/latest.json'))['latest_draw']['date'])")
           echo "今日（北京时间）: $TODAY"
+          echo "latest.json: $LATEST_DATE"
 
-          if [ "${{ steps.mode.outputs.mode }}" = "full" ]; then
-            echo "→ full 模式，不跳过"
-            echo "skip=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "→ 手动触发，不跳过"
-            echo "skip=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          LATEST_DATE=$(python -c "import json; print(json.load(open('web/data/latest.json'))['latest_draw']['date'])" 2>/dev/null || echo "")
-          echo "latest.json 中最新一期: $LATEST_DATE"
-
-          if [ "$LATEST_DATE" = "$TODAY" ]; then
-            echo "✅ 本期数据已存在，跳过本次重试"
-            echo "skip=true" >> $GITHUB_OUTPUT
+          if [ "$MODE" = "full" ] || [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "fetch=true" >> "$GITHUB_OUTPUT"
+          elif [ "$LATEST_DATE" = "$TODAY" ]; then
+            echo "fetch=false" >> "$GITHUB_OUTPUT"
+            echo "本期数据已存在且预检通过，本次无需重复抓取"
           else
-            echo "→ 本期尚未抓取，继续执行"
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "fetch=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # 抓取层的多源 fallback 由 fetch_latest.py 内部负责。
-      # workflow 只做顺序调度：fetch → calc → verify → commit。
       - name: 🌐 抓取最新开奖数据
-        if: steps.check.outputs.skip != 'true'
-        run: python scripts/fetch_latest.py
+        if: steps.check.outputs.fetch == 'true'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          LOTTERY_PAUSE_UNTIL: ${{ vars.LOTTERY_PAUSE_UNTIL }}
+        run: |
+          set -euo pipefail
+          FLAG=""
+          if [ "$EVENT_NAME" = "schedule" ] && [ "$SCHEDULE" = "10 14 * * 0,2,4" ]; then
+            FLAG="--require-new"
+          fi
+          python scripts/fetch_latest.py $FLAG 2>&1 | tee ci-logs/fetch.log
 
       - name: 📊 重算统计数据
-        if: steps.check.outputs.skip != 'true'
-        run: python scripts/calc_all.py
-
-      # verify_data 是发布前硬门槛：失败即 job 失败，不 commit、不 deploy。
-      - name: 🔍 数据自检
-        if: steps.check.outputs.skip != 'true'
-        run: python scripts/verify_data.py
-
-      - name: 💾 提交数据变更
-        if: steps.check.outputs.skip != 'true'
+        if: steps.check.outputs.fetch == 'true'
         run: |
+          set -euo pipefail
+          python scripts/calc_all.py 2>&1 | tee ci-logs/calc.log
+
+      - name: 🔍 数据质量门禁
+        if: steps.check.outputs.fetch == 'true'
+        run: |
+          set -euo pipefail
+          python scripts/verify_data.py 2>&1 | tee ci-logs/verify.log
+
+      - name: 🧾 检查数据变更范围
+        id: changes
+        if: steps.check.outputs.fetch == 'true'
+        run: |
+          set -euo pipefail
+          git add -A -- web/data
+          CHANGED=$(git diff --cached --name-only)
+          if [ -z "$CHANGED" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "数据无变化，不创建提交"
+            exit 0
+          fi
+
+          UNEXPECTED=$(printf '%s\n' "$CHANGED" | grep -Ev \
+            '^web/data/(history/[0-9]{4}\.json|history_index\.json|stats\.json|latest\.json|manifest\.json|history_baseline\.json|corrections\.json|source_state\.json)$' \
+            || true)
+          if [ -n "$UNEXPECTED" ]; then
+            echo "❌ 检测到非预期数据变更:"
+            printf '%s\n' "$UNEXPECTED"
+            exit 1
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          git diff --cached --name-status | tee ci-logs/data-changes.log
+
+      - name: 💾 提交并推送数据
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          MODE: ${{ steps.mode.outputs.mode }}
+        run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add web/data/
-          if git diff --cached --quiet; then
-            echo "⚠️ 数据无变化，跳过 commit"
-          else
-            CHANGES=$(git diff --cached --stat | tail -1)
-            TS=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M 北京时间')
-            git commit -m "chore(data): 自动更新 @ $TS [${{ steps.mode.outputs.mode }}] | ${CHANGES}"
-            git push
-            echo "✅ 数据已推送；Pages 将由 deploy-pages.yml 通过 workflow_run 处理"
+          CHANGES=$(git diff --cached --stat | tail -1)
+          TS=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M 北京时间')
+          git commit -m "chore(data): 自动更新 @ $TS [$MODE] | ${CHANGES}"
+
+          BRANCH="${GITHUB_REF_NAME:-main}"
+          if git push origin "HEAD:${BRANCH}"; then
+            exit 0
           fi
+
+          echo "首次 push 被拒绝，执行一次对账恢复"
+          git fetch origin "$BRANCH"
+          if ! git rebase "origin/$BRANCH"; then
+            git rebase --abort
+            exit 1
+          fi
+          python scripts/verify_data.py
+          git push origin "HEAD:${BRANCH}"
+
+      - name: 🧾 收集失败诊断
+        if: failure()
+        run: |
+          mkdir -p ci-logs
+          git status --short > ci-logs/failure-status.log || true
+          git diff --stat > ci-logs/failure-diff.log || true
+          git diff --cached --stat > ci-logs/failure-staged-diff.log || true
+
+      - name: 📤 上传失败日志
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: update-data-failure-${{ github.run_id }}
+          path: ci-logs/
+          if-no-files-found: warn
+          retention-days: 14

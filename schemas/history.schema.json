@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zhouminghan.github.io/ssq-hub/schemas/history.schema.json",
+  "title": "Annual SSQ history",
+  "type": "array",
+  "minItems": 1,
+  "items": { "$ref": "draw.schema.json" }
+}

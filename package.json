@@ -1,0 +1,40 @@
+{
+  "name": "ssq-hub",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "双色球历史数据分析与可视化平台",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs 5173 web",
+    "check": "npm run typecheck && npm run lint && npm run lint:python && npm run test:unit && npm run test:python",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint 'web/js/**/*.js' 'tests/**/*.js'",
+    "lint:python": ".venv/bin/ruff check scripts tests/python",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:schema": "node tests/schema/validate-data.mjs",
+    "measure:performance": "node scripts/measure-performance.mjs",
+    "test:e2e": "playwright test",
+    "test:cross-browser": "playwright test --config=playwright.cross-browser.config.ts",
+    "test:visual": "playwright test --grep \"visual baseline\"",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "test:data": ".venv/bin/python scripts/verify_data.py",
+    "test:python": "PYTHONPATH=scripts python3 -m unittest discover -s tests/python -v",
+    "test": "npm run check && npm run test:schema && npm run test:e2e"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
+    "@types/pngjs": "^6.0.5",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "eslint": "^10.15.0",
+    "pixelmatch": "^8.0.0",
+    "pngjs": "^7.0.0",
+    "typescript": "^7.0.2"
+  }
+}

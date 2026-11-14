@@ -11,7 +11,7 @@ import { showProfile } from './number-profile.js';
  */
 export function renderTrend(table, draws, opts = {}) {
   clear(table);
-  table.setAttribute('aria-label', '双色球走势数据');
+  table.appendChild(h('caption.sr-only', null, '双色球开奖走势表，包含红球、蓝球遗漏及结构指标'));
 
   if (!draws || draws.length === 0) {
     const tbody = h('tbody', null, [
@@ -30,11 +30,23 @@ export function renderTrend(table, draws, opts = {}) {
 
   const redHeads = [];
   for (let n = 1; n <= 33; n++) {
-    redHeads.push(h('th.zone-red', { scope: 'col' }, pad2(n)));
+    redHeads.push(h('th.zone-red', { scope: 'col' }, [
+      h('button.number-head', {
+        type: 'button',
+        dataset: { ball: n, color: 'red' },
+        'aria-label': `查看红球 ${pad2(n)} 的历史数据`,
+      }, pad2(n)),
+    ]));
   }
   const blueHeads = [];
   for (let n = 1; n <= 16; n++) {
-    blueHeads.push(h('th.zone-blue', { scope: 'col' }, pad2(n)));
+    blueHeads.push(h('th.zone-blue', { scope: 'col' }, [
+      h('button.number-head', {
+        type: 'button',
+        dataset: { ball: n, color: 'blue' },
+        'aria-label': `查看蓝球 ${pad2(n)} 的历史数据`,
+      }, pad2(n)),
+    ]));
   }
   const tr = h('tr', null, [
     h('th.col-issue', { scope: 'col' }, '期号'),
@@ -52,6 +64,11 @@ export function renderTrend(table, draws, opts = {}) {
 
   thead.appendChild(tr);
   table.appendChild(thead);
+  thead.onclick = (event) => {
+    const button = event.target.closest('button[data-ball]');
+    if (!button) return;
+    showProfile(button.dataset.color, Number(button.dataset.ball));
+  };
 
   // ── 表体：从老到新；同号纵向遗漏值递增 ──
   const tbody = h('tbody');
@@ -86,7 +103,10 @@ export function renderTrend(table, draws, opts = {}) {
       if (redSet.has(n)) {
         redMiss[n] = 0;
         cells.push(
-          h('td.col-red.hit', { dataset: { ball: n, color: 'red' } }, [
+          h('td.col-red.hit', {
+            dataset: { ball: n, color: 'red' },
+            title: `红球 ${pad2(n)}，本期命中`,
+          }, [
             h('span.ball.red', null, pad2(n)),
           ]),
         );
@@ -95,7 +115,11 @@ export function renderTrend(table, draws, opts = {}) {
         const m = redMiss[n];
         const cls = m >= 30 ? 'col-red miss-hot' : 'col-red';
         cells.push(
-          h('td', { class: cls, dataset: { ball: n, color: 'red' } }, [
+          h('td', {
+            class: cls,
+            dataset: { ball: n, color: 'red' },
+            title: `红球 ${pad2(n)}，遗漏 ${m} 期`,
+          }, [
             m > 0 ? h('span.miss', null, m) : '',
           ]),
         );
@@ -107,7 +131,10 @@ export function renderTrend(table, draws, opts = {}) {
       if (blue === n) {
         blueMiss[n] = 0;
         cells.push(
-          h('td.col-blue.hit', { dataset: { ball: n, color: 'blue' } }, [
+          h('td.col-blue.hit', {
+            dataset: { ball: n, color: 'blue' },
+            title: `蓝球 ${pad2(n)}，本期命中`,
+          }, [
             h('span.ball.blue', null, pad2(n)),
           ]),
         );
@@ -116,7 +143,11 @@ export function renderTrend(table, draws, opts = {}) {
         const m = blueMiss[n];
         const cls = m >= 16 ? 'col-blue miss-hot' : 'col-blue';
         cells.push(
-          h('td', { class: cls, dataset: { ball: n, color: 'blue' } }, [
+          h('td', {
+            class: cls,
+            dataset: { ball: n, color: 'blue' },
+            title: `蓝球 ${pad2(n)}，遗漏 ${m} 期`,
+          }, [
             m > 0 ? h('span.miss', null, m) : '',
           ]),
         );
@@ -141,6 +172,10 @@ export function renderTrend(table, draws, opts = {}) {
 
     const trAttrs = { dataset: { issue: d.issue } };
     if (i >= recentThreshold) trAttrs.class = 'recent-5';
+    if (i === total - 1) {
+      trAttrs.class = `${trAttrs.class || ''} is-latest`.trim();
+      trAttrs.dataset = { ...trAttrs.dataset, latest: 'true' };
+    }
     const tr = h('tr', trAttrs, cells);
     tbody.appendChild(tr);
   }

@@ -20,8 +20,8 @@ export function renderOverlay(svg, table, scrollEl) {
   const offsetX = tableRect.left - scrollRect.left + scrollEl.scrollLeft;
   const offsetY = tableRect.top - scrollRect.top + scrollEl.scrollTop;
 
-  svg.setAttribute('width', table.scrollWidth);
-  svg.setAttribute('height', table.scrollHeight);
+  svg.setAttribute('width', String(table.scrollWidth));
+  svg.setAttribute('height', String(table.scrollHeight));
   svg.style.left = offsetX + 'px';
   svg.style.top = offsetY + 'px';
 
@@ -70,5 +70,75 @@ export function bindOverlay(svg, table, scrollEl) {
     ro.disconnect();
     scrollEl.removeEventListener('scroll', throttled);
     window.removeEventListener('resize', throttled);
+  };
+}
+
+/**
+ * Render a paint-stable sticky header over the native table header.
+ * The clone is non-interactive; the semantic header underneath owns input.
+ */
+export function bindStickyHeader(shell, track, issueCell, table, scrollEl) {
+  const source = table.tHead?.rows[0];
+  if (!source || source.cells.length === 0) {
+    shell.hidden = true;
+    return () => {};
+  }
+
+  const clone = document.createElement('table');
+  clone.className = 'trend-table trend-header-clone';
+  const thead = table.tHead.cloneNode(true);
+  thead.querySelectorAll('button').forEach((button) => button.setAttribute('tabindex', '-1'));
+  clone.appendChild(thead);
+  track.replaceChildren(clone);
+  shell.hidden = false;
+
+  const sync = () => {
+    const sourceCells = [...source.cells];
+    const cloneCells = [...clone.tHead.rows[0].cells];
+    let totalWidth = 0;
+    sourceCells.forEach((cell, index) => {
+      const width = cell.getBoundingClientRect().width;
+      totalWidth += width;
+      if (cloneCells[index]) cloneCells[index].style.width = `${width}px`;
+    });
+    clone.style.width = `${Math.max(totalWidth, table.scrollWidth)}px`;
+    issueCell.style.width = `${sourceCells[0]?.getBoundingClientRect().width || 78}px`;
+    track.style.transform = `translateX(${-scrollEl.scrollLeft}px)`;
+
+    // Hide the portion of a row crossing the sticky header boundary. Without
+    // this, Chromium paints the row's balls below the native sticky header.
+    const shellTop = shell.getBoundingClientRect().top;
+    const headerBottom = shellTop + source.getBoundingClientRect().height;
+    const crossing = [...(table.tBodies[0]?.rows || [])].find((row) => {
+      const rect = row.getBoundingClientRect();
+      return rect.top < headerBottom && rect.bottom > headerBottom;
+    });
+    const extension = crossing
+      ? Math.max(0, crossing.getBoundingClientRect().bottom - headerBottom)
+      : 0;
+    shell.style.height = `${source.getBoundingClientRect().height + extension}px`;
+  };
+
+  const observer = new ResizeObserver(sync);
+  observer.observe(table);
+  observer.observe(scrollEl);
+  scrollEl.addEventListener('scroll', sync, { passive: true });
+
+  const sourceHead = table.tHead;
+  const mirrorFocus = (event) => {
+    const sourceButton = event.target.closest?.('button[data-ball]');
+    if (!sourceButton) return;
+    const selector = `button[data-ball="${sourceButton.dataset.ball}"][data-color="${sourceButton.dataset.color}"]`;
+    clone.querySelector(selector)?.classList.toggle('clone-focus', event.type === 'focusin');
+  };
+  sourceHead.addEventListener('focusin', mirrorFocus);
+  sourceHead.addEventListener('focusout', mirrorFocus);
+  requestAnimationFrame(sync);
+
+  return () => {
+    observer.disconnect();
+    scrollEl.removeEventListener('scroll', sync);
+    sourceHead.removeEventListener('focusin', mirrorFocus);
+    sourceHead.removeEventListener('focusout', mirrorFocus);
   };
 }

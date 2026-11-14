@@ -1,4 +1,8 @@
 {
+  "schema_version": "2.0.0",
+  "pipeline_version": "2.0.0",
+  "generated_at": "2026-11-14T09:43:48Z",
+  "source": "500彩票网 + 福彩官方",
   "latest_draw": {
     "issue": "2026130",
     "date": "2026-11-12",
@@ -12,6 +16,8 @@
     ],
     "blue": 2
   },
+  "latest_issue": "2026130",
+  "latest_date": "2026-11-12",
   "updated": "2026-11-12",
   "total": 3527
 }

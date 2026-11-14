@@ -8,22 +8,18 @@ const QUICK_RANGES = [30, 50, 100, 150, 300];
 let idxCache = null;
 let latestCache = null;
 
-/**
- * 计算"未开奖的下一期"序号（用于同期对比默认值）
- * @returns {string} 3 位序号，如 "059"
- */
-function nextIssueSeq() {
-  if (!latestCache) return '055';
-  const cur = latestCache.latest_draw.issue;
-  const next = String(Number(cur) + 1).padStart(7, '0');
-  return next.slice(4);
+/** 当前最新实际开奖序号，避免年末生成不存在的下一期。 */
+function currentIssueSeq() {
+  return latestCache ? latestCache.latest_draw.issue.slice(4) : '001';
 }
 
-/** 基于 idx 所有年份 + 给定 seq，生成默认同期对比期号列表 */
+/** 仅生成当年真实存在该序号的期号，统计值必须与加载行数一致。 */
 function defaultCompareIssues(seq) {
   if (!idxCache) return [];
+  const sequence = Number(seq);
   const years = [...idxCache.years]
-    .map((y) => Number(y.year))
+    .filter((item) => Number(item.count) >= sequence)
+    .map((item) => Number(item.year))
     .sort((a, b) => a - b);
   return years.map((y) => `${y}${seq}`);
 }
@@ -32,28 +28,41 @@ export async function mountFilterBar(root) {
   const [idx, latest] = await Promise.all([loadIndex(), loadLatest()]);
   idxCache = idx;
   latestCache = latest;
+  const latestYear = idx.years[idx.years.length - 1].year;
+  const defaultFilter = {
+    mode: 'recent',
+    recent: 50,
+    year: latestYear,
+    compareIssues: defaultCompareIssues(currentIssueSeq()),
+  };
   // 默认状态：同期对比默认填入"未开奖最新一期"对应的所有历史同期
   if (!store.get('filter')) {
-    const defaultIssues = defaultCompareIssues(nextIssueSeq());
-    store.set('filter', {
-      mode: 'recent',
-      recent: 50,
-      year: idx.years[idx.years.length - 1].year,
-      compareIssues: defaultIssues,
-    });
+    store.set('filter', defaultFilter);
   }
 
   // 三个 Tab
-  const tabs = h('div.filter-tabs', null, [
-    h('button.filter-tab', { dataset: { mode: 'recent' } }, '近 N 期'),
-    h('button.filter-tab', { dataset: { mode: 'year' } }, '指定年份'),
-    h('button.filter-tab', { dataset: { mode: 'compare' } }, '同期对比'),
+  const tabs = h('div.filter-tabs', { role: 'tablist', 'aria-label': '筛选方式' }, [
+    h('button.filter-tab', {
+      type: 'button', role: 'tab', 'aria-controls': 'filter-panel', dataset: { mode: 'recent' },
+    }, '近 N 期'),
+    h('button.filter-tab', {
+      type: 'button', role: 'tab', 'aria-controls': 'filter-panel', dataset: { mode: 'year' },
+    }, '指定年份'),
+    h('button.filter-tab', {
+      type: 'button', role: 'tab', 'aria-controls': 'filter-panel', dataset: { mode: 'compare' },
+    }, '同期对比'),
   ]);
 
-  const panel = h('div.filter-panel');
+  const panel = h('div.filter-panel', { id: 'filter-panel', role: 'tabpanel' });
+  const reset = h('button.filter-reset', {
+    type: 'button',
+    'aria-label': '重置筛选条件',
+  }, '重置');
+  reset.addEventListener('click', () => store.set('filter', { ...defaultFilter }));
 
   root.appendChild(tabs);
   root.appendChild(panel);
+  root.appendChild(reset);
 
   // 切换 Tab
   tabs.addEventListener('click', (e) => {
@@ -63,16 +72,32 @@ export async function mountFilterBar(root) {
     const f = { ...store.get('filter'), mode };
     store.set('filter', f);
   });
+  tabs.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    const items = [...tabs.querySelectorAll('.filter-tab')];
+    const current = items.indexOf(document.activeElement);
+    let next = current;
+    if (event.key === 'ArrowLeft') next = (current - 1 + items.length) % items.length;
+    if (event.key === 'ArrowRight') next = (current + 1) % items.length;
+    if (event.key === 'Home') next = 0;
+    if (event.key === 'End') next = items.length - 1;
+    event.preventDefault();
+    items[next].focus();
+    items[next].click();
+  });
 
   // 订阅刷新
   const refresh = () => {
     const f = store.get('filter');
     // 高亮 tab
     tabs.querySelectorAll('.filter-tab').forEach((el) => {
-      el.classList.toggle('active', el.dataset.mode === f.mode);
+      const active = el.dataset.mode === f.mode;
+      el.classList.toggle('active', active);
+      el.setAttribute('aria-selected', String(active));
     });
     // 渲染对应面板
     clear(panel);
+    reset.disabled = f.mode === 'recent' && Number(f.recent) === 50;
     if (f.mode === 'recent') renderRecentPanel(panel, f);
     else if (f.mode === 'year') renderYearPanel(panel, f, idx);
     else if (f.mode === 'compare') renderComparePanel(panel, f);
@@ -90,7 +115,7 @@ function renderRecentPanel(panel, f) {
   const total = idxCache?.total || 3500;
 
   const label = h('span.filter-label', null, '范围：');
-  const select = h('select.filter-select');
+  const select = h('select.filter-select', { 'aria-label': '最近开奖期数范围' });
 
   // 预设档位（与原快捷按钮一致），加 "全部"
   for (const n of QUICK_RANGES) {
@@ -138,6 +163,7 @@ function openCustomPopover(anchor, f, total) {
     max: total,
     value: f.recent,
     placeholder: `1 - ${total}`,
+    'aria-label': '自定义最近期数',
   });
   const apply = h('button.btn-apply', { type: 'button' }, '应用');
   const hint = h('span.filter-hint', null, `共 ${total} 期`);
@@ -184,7 +210,7 @@ function openCustomPopover(anchor, f, total) {
 // ── 指定年份 ──
 function renderYearPanel(panel, f, idx) {
   const label = h('span.filter-label', null, '选择年份：');
-  const select = h('select.filter-select');
+  const select = h('select.filter-select', { 'aria-label': '选择开奖年份' });
   // 从新到旧
   const yearsDesc = [...idx.years].sort((a, b) => Number(b.year) - Number(a.year));
   for (const y of yearsDesc) {
@@ -199,7 +225,30 @@ function renderYearPanel(panel, f, idx) {
   panel.appendChild(select);
 }
 
-// ── 同期对比：默认填入"未开奖最新一期"对应的所有历史同期，无任何二级展示 ──
-function renderComparePanel(_panel, _f) {
-  // 不展示任何筛选项 / 文案 / 提示；compareIssues 在 store 里依然会被 main.js 用于加载数据
+// ── 同期对比：展示当前对齐期号与可匹配年份数 ──
+function renderComparePanel(panel, f) {
+  const issues = f.compareIssues || [];
+  const maxSeq = Math.max(...(idxCache?.years || []).map((item) => Number(item.count)), 1);
+  const seq = issues[0] ? String(issues[0]).slice(4) : '001';
+  const matched = issues.length;
+  const select = h('select.filter-select', { 'aria-label': '选择跨年同期期号' });
+  for (let number = 1; number <= maxSeq; number++) {
+    const value = String(number).padStart(3, '0');
+    const option = h('option', { value }, `同期 ${value}`);
+    if (value === seq) option.selected = true;
+    select.appendChild(option);
+  }
+  select.addEventListener('change', () => {
+    const selected = select.value;
+    store.set('filter', {
+      ...f,
+      mode: 'compare',
+      compareIssues: defaultCompareIssues(selected),
+    });
+  });
+  panel.appendChild(select);
+  panel.appendChild(h('div.compare-summary', null, [
+    h('span.compare-badge', null, `第 ${seq} 期`),
+    h('span', null, `对齐 ${matched} 个历史年份的同期开奖`),
+  ]));
 }

@@ -1,6 +1,7 @@
 """项目共用工具函数"""
 import json
 import os
+import tempfile
 
 
 def write_if_changed(filepath, content, indent=2):
@@ -17,13 +18,27 @@ def write_if_changed(filepath, content, indent=2):
 
     if os.path.exists(filepath):
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding='utf-8') as f:
                 if f.read() == new_payload:
                     return False
         except Exception:
             pass
 
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(new_payload)
+    # Atomic replacement prevents a killed process from truncating a year file.
+    fd, temp_path = tempfile.mkstemp(
+        prefix=f'.{os.path.basename(filepath)}.',
+        suffix='.tmp',
+        dir=os.path.dirname(filepath),
+        text=True,
+    )
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            f.write(new_payload)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp_path, filepath)
+    finally:
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
     return True

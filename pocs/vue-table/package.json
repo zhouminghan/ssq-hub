@@ -1,0 +1,17 @@
+{
+  "name": "ssq-vue-table-poc",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/copy-data.mjs",
+    "dev": "vite --host 127.0.0.1 --port 8780",
+    "prebuild": "node scripts/copy-data.mjs",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  }
+}

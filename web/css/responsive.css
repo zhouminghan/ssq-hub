@@ -1,65 +1,333 @@
-/* ── 响应式 ── */
+@media (max-width: 1100px) {
+  .brand-copy small {
+    display: none;
+  }
 
-/* ── 移动端基础断点 ── */
-@media (max-width: 768px) {
+  .header-brand {
+    min-width: 104px;
+  }
+
+  .overview-metric {
+    min-width: 104px;
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 840px) {
+  .app-header {
+    gap: 12px;
+    padding: 0 14px;
+  }
+
+  .app-nav {
+    gap: 0;
+  }
+
+  .app-nav-item {
+    padding: 0 10px;
+  }
+
+  .overview {
+    padding: 0 14px;
+  }
+
+  .overview-metrics {
+    grid-template-columns: repeat(2, minmax(94px, 1fr));
+  }
+
+  .overview-metric {
+    min-width: 94px;
+    padding: 0 12px;
+  }
+
+  .overview-metric:nth-child(2) {
+    border-right: 0;
+  }
+
+  .overview-metric:nth-child(3) {
+    display: none;
+  }
+
+  .filter-bar,
+  .section-heading {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+}
+
+@media (max-width: 760px) {
   :root {
-    --header-h: 44px; /* 桌面 52 → 44，再省 8px */
-    --filter-h: 40px; /* 桌面 56 → 40，单行紧凑 */
-    --footer-h: 28px; /* 桌面 36 → 28 */
-    --ball: 22px;
+    --header-h: 92px;
+    --overview-h: 66px;
+    --filter-h: 46px;
+    --footer-h: 30px;
+    --ball: 20px;
   }
 
   .app-header {
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 0;
     padding: 0 12px;
   }
-  .header-brand h1 { font-size: 13px; }
-  .header-meta { font-size: 10px; }
-  .header-meta strong { font-size: 12px; }
 
-  /* filter-bar：移动端强制单行，padding 收紧 */
-  .filter-bar {
-    padding: 5px 10px;
-    gap: 6px;
-    flex-wrap: nowrap; /* 不换行：改造后控件少，可以放下 */
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .header-brand {
+    min-width: 0;
+    flex: 1 1 auto;
   }
-  .filter-bar::-webkit-scrollbar { display: none; }
 
-  .filter-tabs { padding: 2px; }
-  .filter-tab { padding: 4px 10px; font-size: 12px; }
-  .filter-panel { gap: 6px; flex-wrap: nowrap; }
-  .filter-select { height: 28px; font-size: 12px; }
-  .btn-ghost, .btn-custom { height: 28px; font-size: 12px; padding: 0 10px; }
-  .filter-label { font-size: 11px; }
+  .brand-mark {
+    width: 25px;
+    height: 25px;
+  }
 
-  /* popover 移动端：贴左不贴边 */
-  .custom-popover { min-width: 180px; }
+  .brand-mark span {
+    width: 16px;
+    height: 16px;
+  }
 
-  .trend-table { font-size: 11px; }
-  .trend-table tbody td { height: 26px; min-width: 22px; }
-  .trend-table .ball { width: 20px; height: 20px; font-size: 11px; }
+  .brand-copy h1 {
+    font-size: 14px;
+  }
 
-  /* 移动端冻结列：宽度收窄 + 加固防穿透
-   * iOS Safari 在快速滚动时 sticky 元素的 paint 可能滞后于普通 cell，
-   * 表现为下层红球"透"出来。下面的 will-change + 不透明背景 + isolation
-   * 是经验证的组合拳。 */
+  .header-actions {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .github-link,
+  .theme-trigger {
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .github-link span,
+  #theme-label,
+  .theme-trigger .chevron {
+    display: none;
+  }
+
+  .app-nav {
+    order: 3;
+    width: 100%;
+    height: 38px;
+    align-self: auto;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .app-nav-item {
+    height: 37px;
+    padding: 0 14px;
+    border-radius: 0;
+    background: transparent;
+    font-size: 12px;
+  }
+
+  .app-nav-item.active {
+    background: transparent;
+  }
+
+  .app-nav-item.active::after {
+    right: 14px;
+    bottom: 0;
+    left: 14px;
+  }
+
+  .theme-menu {
+    top: calc(100% + 8px);
+  }
+
+  .overview {
+    padding: 0 12px;
+  }
+
+  .overview-draw {
+    width: 100%;
+    flex: 1 1 auto;
+    gap: 5px;
+    padding-right: 10px;
+  }
+
+  .overview-heading {
+    font-size: 10px;
+  }
+
+  .overview-heading strong {
+    font-size: 13px;
+  }
+
+  .overview-heading .overview-scale {
+    display: inline;
+    color: var(--text-3);
+  }
+
+  .draw-balls {
+    gap: 4px;
+    min-height: 24px;
+  }
+
+  .draw-ball {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .draw-ball-separator {
+    height: 15px;
+    margin: 0 1px;
+  }
+
+  .overview-metrics {
+    grid-template-columns: 1fr;
+    border-left: 0;
+  }
+
+  .overview-metric {
+    min-width: 78px;
+    padding: 0 0 0 10px;
+    border-right: 0;
+  }
+
+  .overview-metric:first-child,
+  .overview-metric:nth-child(2) {
+    display: none;
+  }
+
+  .overview-metric:nth-child(3) {
+    display: block;
+  }
+
+  .overview-metric span {
+    margin-bottom: 2px;
+    font-size: 9px;
+  }
+
+  .overview-metric strong {
+    font-size: 11px;
+  }
+
+  .filter-bar {
+    padding: 7px 12px;
+  }
+
+  .section-heading {
+    min-height: 46px;
+    padding: 5px 12px;
+  }
+
+  .section-heading h2 {
+    font-size: 13px;
+  }
+
+  .section-heading p {
+    font-size: 10px;
+  }
+
+  .trend-legend span:first-child,
+  .trend-legend span:nth-child(2) {
+    display: none;
+  }
+
+  .trend-legend {
+    gap: 6px;
+  }
+
+  .trend-table thead th {
+    height: 27px;
+    padding: 0 2px;
+    font-size: 9px;
+  }
+
   .trend-table thead th.col-issue,
   .trend-table tbody td.col-issue {
     min-width: 64px;
-    will-change: transform; /* 移动端提前申请 GPU 合成层 */
   }
 
-  .app-footer { font-size: 10px; padding: 0 10px; }
+  .trend-table tbody td {
+    height: 26px;
+    min-width: 22px;
+  }
+
+  .trend-table .ball {
+    width: 19px;
+    height: 19px;
+    font-size: 9px;
+  }
+
+  .trend-table td .miss {
+    font-size: 9px;
+  }
+
+  .app-footer {
+    gap: 5px;
+    padding: 0 10px;
+    font-size: 9px;
+  }
+
+  .app-footer span:nth-child(2) {
+    display: none;
+  }
+
+  .app-footer a {
+    margin-left: auto;
+  }
+
+  .insight-card-head {
+    margin-bottom: 11px;
+  }
+
+  .ac-chart {
+    height: 120px;
+    gap: 5px;
+  }
+
+  .pattern-stat strong {
+    font-size: 21px;
+  }
 }
 
-@media (max-width: 480px) {
-  .filter-bar { font-size: 12px; }
-  .trend-table thead th { font-size: 10px; padding: 4px 2px; }
+@media (max-width: 400px) {
+  .brand-copy {
+    gap: 0;
+  }
 
-  /* 极窄屏 filter：tab 文字再缩一档 */
-  .filter-tab { padding: 3px 8px; font-size: 11px; }
+  .brand-mark {
+    margin-right: 7px;
+  }
 
-  /* 极窄屏 header：隐藏标题文字，只保留 Logo */
-  .header-brand h1 { display: none; }
+  .app-nav-item {
+    padding: 0 12px;
+  }
+
+  .filter-tab {
+    padding: 0 8px;
+    font-size: 10px;
+  }
+
+  .filter-select {
+    min-width: 116px;
+  }
+
+  .section-heading p {
+    display: none;
+  }
+
+  .overview-heading span:first-child {
+    display: none;
+  }
+
+  .draw-ball {
+    width: 23px;
+    height: 23px;
+  }
+
+  .pattern-pairs {
+    gap: 7px;
+  }
+
+  .pattern-stat {
+    padding: 10px;
+  }
 }

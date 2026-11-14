@@ -18,7 +18,7 @@
 .np-mask {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.32);
+  background: var(--mask-bg);
   opacity: 0;
   transition: opacity 0.22s ease;
   pointer-events: none;

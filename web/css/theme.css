@@ -1,112 +1,145 @@
-/* ── 设计 tokens — Data-Dense Dashboard（蓝+琥珀） ── */
 :root {
-  /* 字体 */
-  --font: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  color-scheme: light;
+  --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* 颜色 */
-  --bg: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --bg-soft: #F1F5F9;
-  --border: #DBEAFE;
-  --border-strong: #BFDBFE;
+  --bg: #f5f7fa;
+  --bg-card: #ffffff;
+  --bg-soft: #eef2f7;
+  --bg-elevated: #ffffff;
+  --bg-warm: #f8f4ed;
+  --bg-aux: #faf8f3;
+  --border: #dce2ea;
+  --border-strong: #c7d0dd;
+  --line-soft: #e8edf3;
 
-  --text: #1E3A8A;
-  --text-2: #475569;
-  --text-3: #94A3B8;
-  --text-4: #CBD5E1;
+  --text: #172033;
+  --text-2: #4c5a6e;
+  --text-3: #5b687a;
+  --text-4: #5b687a;
+  --text-aux: #8a5b0b;
 
-  /* 间距 */
+  --primary: #175cd3;
+  --primary-soft: #eaf2ff;
+  --red: #c62b34;
+  --red-deep: #a91f26;
+  --red-soft: #fff0f1;
+  --red-line: rgba(229, 72, 77, 0.46);
+  --red-hl: #ff8b8f;
+  --blue: #1667c5;
+  --blue-deep: #1359a8;
+  --blue-soft: #edf6ff;
+  --blue-line: rgba(46, 144, 250, 0.46);
+  --blue-hl: #74baff;
+  --gold: #b45309;
+  --success: #16803c;
+  --success-soft: #ebf8f0;
+  --warning: #a15c07;
+  --warning-soft: #fff6e6;
+  --danger: #c62b34;
+  --danger-soft: #fff0f1;
+  --focus: #175cd3;
+
+  --issue-head-bg: #eef2f7;
+  --issue-body-bg: #ffffff;
+  --mask-bg: rgba(15, 23, 42, 0.38);
+  --scrollbar: #c4cedb;
+  --scrollbar-hover: #9cabbd;
+
+  --shadow-sm: 0 1px 2px rgba(20, 32, 50, 0.05);
+  --shadow: 0 4px 14px rgba(20, 32, 50, 0.08);
+  --shadow-lg: 0 14px 36px rgba(20, 32, 50, 0.14);
+
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
 
-  /* 过渡 */
-  --transition-fast: 0.15s ease;
-  --transition: 0.2s ease;
-  --transition-slow: 0.3s ease;
-
-  --red: #E34D59;          /* 柔和红（浅色模式用） */
-  --red-deep: #C62A36;
-  --red-soft: #FEF2F2;
-  --red-line: rgba(227, 77, 89, 0.50);
-  --red-hl: #FF7B81;        /* 红球高光起点（柔和过渡） */
-
-  --blue: #4A90E2;         /* 柔和蓝（浅色模式用） */
-  --blue-deep: #2C6CB0;
-  --blue-soft: #EFF6FF;
-  --blue-line: rgba(74, 144, 226, 0.50);
-  --blue-hl: #7FB1EC;       /* 蓝球高光起点（柔和过渡） */
-
-  --gold: #D97706;
-  --shadow-sm: 0 1px 2px rgba(30, 64, 175, 0.06);
-  --shadow: 0 2px 8px rgba(30, 64, 175, 0.08);
-  --shadow-lg: 0 8px 24px rgba(30, 64, 175, 0.12);
-
-  /* 语义变量 */
-  --bg-warm: #FFFBEB;
-  --bg-aux: #FEFCE8;
-  --text-aux: #92400E;
-  --issue-head-bg: #F1F5F9;
-  --issue-body-bg: #FFFFFF;
-  --line-soft: #E2E8F0;
-  --bg-draft: rgba(254, 243, 199, 0.50);
-  --mask-bg: rgba(0, 0, 0, 0.40);
-
-  /* 尺寸 */
-  --header-h: 48px;     /* app-header 精确高度 */
-  --filter-h: 56px;
+  --header-h: 60px;
+  --overview-h: 82px;
+  --filter-h: 54px;
   --footer-h: 36px;
-
   --ball: 28px;
-  --ball-sm: 22px;
-
   --radius-sm: 4px;
   --radius: 8px;
-  --radius-lg: 12px;
+  --radius-lg: 8px;
+  --transition-fast: 120ms ease;
+  --transition: 180ms ease;
 }
 
-/* ── 暗色模式（slate 中性色系，与 glass header 协调） ── */
 :root[data-theme="dark"] {
-  --bg: #0F172A;           /* slate-900 主背景 */
-  --bg-card: #1E293B;      /* slate-800 卡片 */
-  --bg-soft: #1E293B;
-  --border: #334155;       /* slate-700 */
-  --border-strong: #475569;/* slate-600 */
+  color-scheme: dark;
+  --bg: #10141c;
+  --bg-card: #171d28;
+  --bg-soft: #202735;
+  --bg-elevated: #222a38;
+  --bg-warm: #2a251f;
+  --bg-aux: #21201c;
+  --border: #303a4a;
+  --border-strong: #48566b;
+  --line-soft: #293343;
 
-  --text: #F1F5F9;         /* slate-100 */
-  --text-2: #CBD5E1;       /* slate-300 */
-  --text-3: #94A3B8;       /* slate-400 */
-  --text-4: #475569;       /* slate-600 */
+  --text: #f1f4f8;
+  --text-2: #c3cedd;
+  --text-3: #94a3b8;
+  --text-4: #8b9bb0;
+  --text-aux: #f2c66d;
 
-  --red: #F87171;
-  --red-deep: #EF4444;
-  --red-soft: rgba(248, 113, 113, 0.15);
-  --red-line: rgba(248, 113, 113, 0.45);
+  --primary: #75a9ff;
+  --primary-soft: rgba(46, 144, 250, 0.14);
+  --red: #f06469;
+  --red-deep: #ff9296;
+  --red-soft: rgba(240, 100, 105, 0.14);
+  --red-line: rgba(240, 100, 105, 0.5);
+  --red-hl: #ffb0b3;
+  --blue: #58a8ff;
+  --blue-deep: #91c6ff;
+  --blue-soft: rgba(88, 168, 255, 0.14);
+  --blue-line: rgba(88, 168, 255, 0.5);
+  --blue-hl: #a8d5ff;
+  --gold: #f4bf55;
+  --success: #5fd38a;
+  --success-soft: rgba(95, 211, 138, 0.13);
+  --warning: #f4bf55;
+  --warning-soft: rgba(244, 191, 85, 0.13);
+  --danger: #ff8d92;
+  --danger-soft: rgba(255, 141, 146, 0.13);
+  --focus: #75a9ff;
 
-  --blue: #60A5FA;
-  --blue-deep: #3B82F6;
-  --blue-soft: rgba(96, 165, 250, 0.15);
-  --blue-line: rgba(96, 165, 250, 0.45);
+  --issue-head-bg: #202735;
+  --issue-body-bg: #171d28;
+  --mask-bg: rgba(3, 7, 14, 0.66);
+  --scrollbar: #435167;
+  --scrollbar-hover: #63738b;
 
-  --gold: #FBBF24;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.40);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55);
-
-  --bg-warm: #2A2520;      /* 暖色背景（hover/dock/合计栏）保留暖意 */
-  --bg-aux: #1E1B18;       /* 辅助列背景 */
-  --text-aux: #FCD34D;
-  --red-hl: #FCA5A5;
-  --blue-hl: #93C5FD;
-  --issue-head-bg: #1E293B;
-  --issue-body-bg: #1E293B;
-  --line-soft: #334155;
-  --bg-draft: rgba(40, 30, 25, 0.50);
-  --mask-bg: rgba(0, 0, 0, 0.60);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.26);
+  --shadow: 0 5px 18px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.46);
 }
 
-/* 错误文本（替代内联 style） */
-.error-text { color: var(--red); }
+::selection {
+  color: var(--text);
+  background: var(--primary-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.error-text {
+  color: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

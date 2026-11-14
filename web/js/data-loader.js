@@ -7,6 +7,8 @@
 // 仅当主路径 fetch 抛错（网络层失败 / 4xx / 5xx）才切到 CDN，
 // 成功后整页 session 内"主源是否健康"会被记录，避免每次都 retry 主源。
 const DATA_BASE = './data';
+const PRIMARY_TIMEOUT = 5_000;
+const CDN_TIMEOUT = 8_000;
 
 // jsDelivr CDN 镜像（GitHub raw 内容，cache 12h）
 // 触发场景：用户在 GitHub Pages 被墙时，浏览器加载 index.html 用的是
@@ -25,27 +27,59 @@ let statsCacheTime = 0;
 
 // 主源健康度：UNKNOWN=待探测 / OK=健康 / DEGRADED=已切CDN
 const PRIMARY = Object.freeze({ UNKNOWN: 0, OK: 1, DEGRADED: 2 });
+/** @type {number} */
 let primaryHealthy = PRIMARY.UNKNOWN;
 let healthTimerId = null;  // 主源健康恢复 timer ID（避免重复 setTimeout）
 
-/**
- * 取一个相对路径（如 'history_index.json' / 'history/2026.json'），
- * 自动选用主源或 CDN 拼成完整 URL
- */
-function resolveUrl(relPath) {
-  const base = primaryHealthy === PRIMARY.DEGRADED ? CDN_BASE : DATA_BASE;
-  return `${base}/${relPath}`;
+const loadState = {
+  source: 'pending',
+  cached: false,
+  lastLoadedAt: null,
+};
+
+function markLoaded(source, at = new Date().toISOString()) {
+  loadState.source = source;
+  loadState.cached = source === 'browser-cache';
+  loadState.lastLoadedAt = at;
+}
+
+function readBrowserCache(relPath) {
+  try {
+    const raw = localStorage.getItem(`ssq-hub:data:${relPath}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !('data' in parsed)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeBrowserCache(relPath, data) {
+  try {
+    localStorage.setItem(
+      `ssq-hub:data:${relPath}`,
+      JSON.stringify({ savedAt: new Date().toISOString(), data }),
+    );
+  } catch {
+    // Storage quota is best-effort; memory caching still works.
+  }
 }
 
 async function fetchJson(relPath, cacheBuster) {
   // 主源：相对路径 fetch（cache: 'no-cache' 避免部署后 24h 浏览器命中旧版）
   if (primaryHealthy !== PRIMARY.DEGRADED) {
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), PRIMARY_TIMEOUT);
     try {
       const url = cacheBuster ? `${DATA_BASE}/${relPath}?v=${cacheBuster}` : `${DATA_BASE}/${relPath}`;
-      const res = await fetch(url, { cache: 'no-cache' });
+      const res = await fetch(url, { cache: 'no-cache', signal: ctrl.signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       primaryHealthy = PRIMARY.OK;
-      return await res.json();
+      const data = await res.json();
+      writeBrowserCache(relPath, data);
+      markLoaded('primary');
+      return data;
     } catch (err) {
       // 仅在第一次失败时打印，避免后续 N 次 fetch 都刷一遍 console
       if (primaryHealthy !== PRIMARY.DEGRADED) {
@@ -62,6 +96,8 @@ async function fetchJson(relPath, cacheBuster) {
         primaryHealthy = PRIMARY.UNKNOWN;
         console.log('[data-loader] 主源健康状态已重置，下次请求将重试主源');
       }, 30 * 60 * 1000);
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
@@ -69,17 +105,32 @@ async function fetchJson(relPath, cacheBuster) {
   // 添加 8s 超时，防止 CDN 不可达时无限等待
   const cdnUrl = `${CDN_BASE}/${relPath}`;
   const ctrl = new AbortController();
-  const timeout = setTimeout(() => ctrl.abort(), 8000);
+  const timeout = setTimeout(() => ctrl.abort(), CDN_TIMEOUT);
   try {
     const res = await fetch(cdnUrl, { signal: ctrl.signal });
     if (!res.ok) throw new Error(`fetch ${cdnUrl} failed: ${res.status}`);
     const data = await res.json();
+    writeBrowserCache(relPath, data);
+    markLoaded('cdn');
     return data;
   } catch (cdnErr) {
+    const cached = readBrowserCache(relPath);
+    if (cached) {
+      markLoaded('browser-cache', cached.savedAt || new Date().toISOString());
+      console.warn(
+        `[data-loader] 网络源均不可用，使用 ${cached.savedAt || '未知时间'} 的本地缓存：${relPath}`,
+      );
+      return cached.data;
+    }
     throw new Error(`CDN 兜底也失败: ${cdnErr.message}`);
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/** 暴露数据来源状态，用于 UI 明确提示降级或本地缓存。 */
+export function getDataLoadState() {
+  return { ...loadState };
 }
 
 /** 加载 history_index.json（5 分钟 TTL） */

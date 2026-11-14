@@ -1,0 +1,180 @@
+name: 🛠️ 修复双色球历史数据
+
+# Manual-only protected write path. Configure a reviewer on the
+# "data-repair" environment before using this workflow on the real repository.
+"on":
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason recorded in corrections.json'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type REPAIR to authorize a baseline update'
+        required: true
+        default: 'NO'
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-write
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment:
+      name: data-repair
+
+    steps:
+      - name: ✅ 确认修复授权
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          if [ "$CONFIRMATION" != "REPAIR" ]; then
+            echo "❌ 必须输入 REPAIR 才能更新受保护基线"
+            exit 1
+          fi
+
+      - name: 📥 拉取 main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐍 配置 Python 环境
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-runtime.lock
+
+      - name: 📦 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-runtime.lock
+
+      - name: 🔍 修复前预检
+        run: |
+          set -euo pipefail
+          mkdir -p ci-logs
+          python scripts/verify_data.py 2>&1 | tee ci-logs/preflight.log
+
+      - name: 🌐 抓取并暂存历史修正
+        env:
+          REASON: ${{ inputs.reason }}
+        run: |
+          set -euo pipefail
+          python scripts/fetch_latest.py \
+            --allow-corrections \
+            --reason "$REASON" \
+            2>&1 | tee ci-logs/repair-fetch.log
+
+      - name: 🧾 展示修正记录
+        run: |
+          set -euo pipefail
+          if [ ! -f web/data/corrections.json ]; then
+            echo "本次没有历史修正记录"
+            exit 0
+          fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("web/data/corrections.json").read_text(encoding="utf-8"))
+          records = payload.get("corrections", [])
+          print(f"corrections: {len(records)}")
+          for item in records[-20:]:
+              print(
+                  item["issue"],
+                  item["old"],
+                  "->",
+                  item["new"],
+                  "|",
+                  item["source"],
+              )
+          PY
+
+      - name: 🔐 显式刷新受保护基线
+        run: python scripts/update_baseline.py
+
+      - name: 📊 重算统计数据
+        run: |
+          set -euo pipefail
+          python scripts/calc_all.py 2>&1 | tee ci-logs/repair-calc.log
+
+      - name: 🔍 修复后质量门禁
+        run: |
+          set -euo pipefail
+          python scripts/verify_data.py 2>&1 | tee ci-logs/repair-verify.log
+
+      - name: 🧾 检查数据变更范围
+        id: changes
+        run: |
+          set -euo pipefail
+          git add -A -- web/data
+          CHANGED=$(git diff --cached --name-only)
+          if [ -z "$CHANGED" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "数据无变化，不创建提交"
+            exit 0
+          fi
+
+          UNEXPECTED=$(printf '%s\n' "$CHANGED" | grep -Ev \
+            '^web/data/(history/[0-9]{4}\.json|history_index\.json|stats\.json|latest\.json|manifest\.json|history_baseline\.json|corrections\.json|source_state\.json)$' \
+            || true)
+          if [ -n "$UNEXPECTED" ]; then
+            echo "❌ 检测到非预期数据变更:"
+            printf '%s\n' "$UNEXPECTED"
+            exit 1
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          git diff --cached --name-status | tee ci-logs/data-changes.log
+
+      - name: 💾 提交并推送修复
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          REASON: ${{ inputs.reason }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          CHANGES=$(git diff --cached --stat | tail -1)
+          TS=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M 北京时间')
+          git commit -m "chore(data): repair @ $TS | ${REASON} | ${CHANGES}"
+
+          if git push origin HEAD:main; then
+            exit 0
+          fi
+
+          echo "首次 push 被拒绝，执行一次对账恢复"
+          git fetch origin main
+          if ! git rebase origin/main; then
+            git rebase --abort
+            exit 1
+          fi
+          python scripts/verify_data.py
+          git push origin HEAD:main
+
+      - name: 🧾 收集失败诊断
+        if: failure()
+        run: |
+          mkdir -p ci-logs
+          git status --short > ci-logs/failure-status.log || true
+          git diff --stat > ci-logs/failure-diff.log || true
+          git diff --cached --stat > ci-logs/failure-staged-diff.log || true
+
+      - name: 📤 上传失败日志
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-repair-failure-${{ github.run_id }}
+          path: ci-logs/
+          if-no-files-found: warn
+          retention-days: 14

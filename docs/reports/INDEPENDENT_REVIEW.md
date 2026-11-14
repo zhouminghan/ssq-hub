@@ -8,7 +8,7 @@
 | Final re-review | 2026-11-14 20:23 CST |
 | Branch | `codex/product-rebuild` |
 | Online baseline | `origin/main` at `8594a6b807de8f5e5860353929dde92be0c46d6c` |
-| Local delivery commit | `1abfd5d` |
+| Local delivery commits | `1abfd5d..0955091` |
 | Remote reconstruction branch | Not present; `origin` exposes only `main` |
 | Reviewed app | `http://127.0.0.1:8771/` |
 | Product code modified by reviewer | None |

@@ -49,9 +49,26 @@ existing GitHub credential. `gh auth status` now resolves account
 `zhouminghan` from the macOS keyring, and read-only repository access has been
 verified.
 
-Remote settings and branch push remain untouched because no explicit push or
-settings authorization was provided for this recovery turn. About, homepage,
-and topics therefore have not been changed.
+Repository metadata has been updated through the authenticated GitHub CLI.
+
+## Applied Metadata
+
+- Description:
+  `A modern Double Color Ball historical data analysis and visualization platform with automated data pipelines, statistical insights, and responsive charts.`
+- Homepage: <https://zhouminghan.github.io/ssq-hub/>
+- Topics: `lottery`, `ssq`, `data-analysis`, `data-visualization`, `python`,
+  `typescript`, `github-pages`
+
+The About card now links directly to the Pages product through Homepage.
+
+Branch publication and Actions/Pages verification:
+
+- `codex/product-rebuild` exists remotely at `afc77bd`, but the local branch has
+  newer UX/boundary commits and is not pushed.
+- GitHub has no Actions run for this feature branch because the quality workflow
+  targets `main` and pull requests.
+- `origin/main` remains `8594a6b`; the new Pages artifact has not been deployed.
+- Pushing the current branch and opening a PR require explicit authorization.
 
 ## Pages
 

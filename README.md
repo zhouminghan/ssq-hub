@@ -85,6 +85,24 @@ Detailed design:
 - [Data pipeline](docs/architecture/DATA_PIPELINE.md)
 - [CI/CD](docs/architecture/CI_CD.md)
 
+### Delivery status
+
+```text
++------------------ [ DELIVERY ] ------------------+
+|                                                  |
+| [x]  fetch and cross-check sources                |
+| [x]  protect historical fingerprints              |
+| [x]  recompute and verify statistics              |
+| [x]  run browser, accessibility and visual gates  |
+| [ ]  publish remote branch and verify Pages       |
+|                                                  |
++--------------------------------------------------+
+```
+
+The fenced figure follows the MIT-licensed
+[mdxcn](https://mdxcn.dev/docs) README format, so it remains readable on
+GitHub without a docs runtime.
+
 ## Project Structure
 
 ```text

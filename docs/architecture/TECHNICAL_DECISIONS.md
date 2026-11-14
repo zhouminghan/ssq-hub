@@ -4,6 +4,20 @@ Status: accepted for SSQ Hub 2.0
 
 Date: 2026-11-14
 
+```text
++------------------ [ FRONTEND ] ------------------+
+|                                                  |
+| accepted  Nov 14                                 |
+|                                                  |
+| ●  Vanilla ES modules  smallest static runtime   |
+| ×  Vue 3 + Vite        no measured table gain    |
+| ○  Astro               unnecessary island setup  |
+|                                                  |
+| Revisit if full-history scanning becomes primary.|
+|                                                  |
++--------------------------------------------------+
+```
+
 ## Decision
 
 Keep the production application on semantic HTML, native ES modules, native

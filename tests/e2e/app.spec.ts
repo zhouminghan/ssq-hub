@@ -75,6 +75,14 @@ test.describe('SSQ Hub product workflow', () => {
     expect(Math.abs(alignment.issueLeft - alignment.containerLeft)).toBeLessThanOrEqual(2);
     expect(Math.abs(alignment.headingTop - alignment.containerTop)).toBeLessThanOrEqual(2);
 
+    const layerOrder = await page.evaluate(() => ({
+      tableZ: getComputedStyle(document.querySelector('#trend-table')!).zIndex,
+      issueZ: Number(getComputedStyle(document.querySelector('tbody td.col-issue')!).zIndex),
+      overlayZ: Number(getComputedStyle(document.querySelector('#trend-overlay')!).zIndex),
+    }));
+    expect(layerOrder.tableZ).toBe('auto');
+    expect(layerOrder.issueZ).toBeGreaterThan(layerOrder.overlayZ);
+
     const paintMask = await page.evaluate(() => {
       const shell = document.querySelector('#trend-sticky-header')!.getBoundingClientRect();
       const container = document.querySelector('#trend-scroll')!.getBoundingClientRect();
@@ -101,6 +109,8 @@ test.describe('SSQ Hub product workflow', () => {
     await expect(mirroredFocus).toHaveClass(/clone-focus/);
     expect(await mirroredFocus.evaluate((element) => getComputedStyle(element).outlineWidth))
       .toBe('2px');
+
+    await expect(page.locator('#trend-sticky-track thead th').first()).toHaveText('');
   });
 
   test('filters recent N, year, and visible cross-year comparison', async ({ page }) => {
@@ -189,6 +199,65 @@ test.describe('SSQ Hub product workflow', () => {
     await expect(link).toHaveAttribute('href', 'https://github.com/zhouminghan/ssq-hub');
     await expect(link).toHaveAttribute('target', '_blank');
     await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect(link.locator('span')).toHaveCount(0);
+    await expect(page.locator('#theme-label')).toHaveCount(0);
+  });
+
+  test('keeps semantic ball and structure colors in both themes', async ({ page }) => {
+    const colors = await page.evaluate(() => {
+      const red = document.querySelector('#trend-table tbody td.col-red.hit .ball')!;
+      const blue = document.querySelector('#trend-table tbody td.col-blue.hit .ball')!;
+      const small = document.querySelector('#trend-table .col-shape .s-small')!;
+      const big = document.querySelector('#trend-table .col-shape .s-big')!;
+      const odd = document.querySelector('#trend-table .col-shape .s-odd')!;
+      const even = document.querySelector('#trend-table .col-shape .s-even')!;
+      const prime = document.querySelector('#trend-table .col-shape .s-prime')!;
+      const composite = document.querySelector('#trend-table .col-shape .s-composite')!;
+      const root = getComputedStyle(document.documentElement);
+      return {
+        red: getComputedStyle(red).backgroundImage,
+        blue: getComputedStyle(blue).backgroundImage,
+        small: getComputedStyle(small).color,
+        big: getComputedStyle(big).color,
+        odd: getComputedStyle(odd).color,
+        even: getComputedStyle(even).color,
+        prime: getComputedStyle(prime).color,
+        composite: getComputedStyle(composite).color,
+        redDeep: root.getPropertyValue('--red-deep').trim(),
+        blueDeep: root.getPropertyValue('--blue-deep').trim(),
+      };
+    });
+    expect(colors.red).toContain('radial-gradient');
+    expect(colors.blue).toContain('radial-gradient');
+    const toRgb = (hex) => {
+      const value = hex.replace('#', '');
+      return `rgb(${parseInt(value.slice(0, 2), 16)}, ${parseInt(value.slice(2, 4), 16)}, ${parseInt(value.slice(4, 6), 16)})`;
+    };
+    for (const color of [colors.small, colors.even, colors.composite]) {
+      expect(color).toBe(toRgb(colors.blueDeep));
+    }
+    for (const color of [colors.big, colors.odd, colors.prime]) {
+      expect(color).toBe(toRgb(colors.redDeep));
+    }
+
+    await page.getByRole('button', { name: '数据洞察' }).click();
+    await expect(page.locator('.insight-card')).toHaveCount(4);
+    const redFrequency = await page.locator('.frequency-ball.red').first()
+      .evaluate((element) => getComputedStyle(element).backgroundImage);
+    await page.getByRole('tab', { name: '蓝球' }).click();
+    const blueFrequency = await page.locator('.frequency-ball.blue').first()
+      .evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(redFrequency).toContain('radial-gradient');
+    expect(blueFrequency).toContain('radial-gradient');
+
+    await page.locator('#theme-trigger').click();
+    await page.getByRole('option', { name: '深色' }).click();
+    const darkShapeColors = await page.evaluate(() => {
+      const small = document.querySelector('#trend-table .col-shape .s-small')!;
+      const big = document.querySelector('#trend-table .col-shape .s-big')!;
+      return { small: getComputedStyle(small).color, big: getComputedStyle(big).color };
+    });
+    expect(darkShapeColors.small).not.toBe(darkShapeColors.big);
   });
 
   test('switches to insight charts without horizontal page overflow', async ({ page }) => {

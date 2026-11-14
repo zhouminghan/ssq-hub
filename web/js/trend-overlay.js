@@ -88,6 +88,9 @@ export function bindStickyHeader(shell, track, issueCell, table, scrollEl) {
   clone.className = 'trend-table trend-header-clone';
   const thead = table.tHead.cloneNode(true);
   thead.querySelectorAll('button').forEach((button) => button.setAttribute('tabindex', '-1'));
+  // The fixed issue overlay owns this label. Blanking the transformed clone
+  // prevents a second "期号" appearing during horizontal drag.
+  if (thead.rows[0]?.cells[0]) thead.rows[0].cells[0].textContent = '';
   clone.appendChild(thead);
   track.replaceChildren(clone);
   shell.hidden = false;

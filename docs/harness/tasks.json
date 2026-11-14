@@ -1,7 +1,7 @@
 {
   "run_id": "ssq-hub-2026-11-14-product-rebuild",
   "baseline_commit": "8594a6b807de8f5e5860353929dde92be0c46d6c",
-  "updated_at": "2026-11-15T02:00:00+08:00",
+  "updated_at": "2026-11-15T02:24:45+08:00",
   "tasks": [
     {
       "task_id": "P0-BASELINE",
@@ -224,6 +224,31 @@
       "review_result": "PASS: no local P0/P1"
     },
     {
+      "task_id": "P12-COLOR-DOCS",
+      "run_id": "ssq-hub-2026-11-14-product-rebuild",
+      "owner_agent": "product-analyst + frontend-engineer + delivery-lead",
+      "objective": "Restore original data-color semantics, remove duplicate drag labels, polish icon-only header controls, adopt mdxcn-style README figures, and harden AGENTS/FDE execution.",
+      "input": ["live production comparison", "mdxcn.dev/llms.txt", "independent color review"],
+      "expected_output": ["restored aux/ball colors", "single issue header during drag", "icon-only top-right controls", "README figures", "Harness AGENTS"],
+      "dependencies": ["P11-UX-BOUNDARY"],
+      "acceptance_criteria": ["no local P0/P1", "light/dark color semantics and Axe pass", "README links and AGENTS task contract valid"],
+      "status": "COMPLETED",
+      "retry_count": 0,
+      "execution_evidence": [
+        "docs/reports/COLOR_DOC_REVIEW.md",
+        "docs/templates/mdxcn-figures.md",
+        "AGENTS.md",
+        "GitHub About/Homepage/Topics updated"
+      ],
+      "test_evidence": [
+        "7 Node tests",
+        "targeted desktop/mobile Playwright pass",
+        "Axe light/dark pass",
+        "visual baselines pass"
+      ],
+      "review_result": "PASS WITH P2 FOLLOW-UP; P2 items reworked by delivery lead"
+    },
+    {
       "task_id": "P10-REMOTE",
       "run_id": "ssq-hub-2026-11-14-product-rebuild",
       "owner_agent": "delivery-lead",
@@ -241,7 +266,15 @@
         "live Pages still serves the pre-reconstruction title"
       ],
       "test_evidence": [],
-      "review_result": "BLOCKED pending explicit push authorization"
+      "execution_evidence": [
+        "origin/main remains 8594a6b",
+        "remote codex/product-rebuild exists at afc77bd and is behind local work",
+        "gh authentication restored for zhouminghan via macOS keyring",
+        "GitHub About, Homepage and Topics updated",
+        "no Actions run exists for the feature branch",
+        "live Pages still serves the pre-reconstruction title"
+      ],
+      "review_result": "BLOCKED pending explicit push/PR authorization"
     }
   ]
 }

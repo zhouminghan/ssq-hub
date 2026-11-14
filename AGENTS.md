@@ -178,6 +178,85 @@ npx playwright test
 - Independent reviewer reads source and evidence, does not rely on developer
   claims, and blocks delivery on P0/P1 issues.
 
+## Harness / FDE Execution Protocol
+
+Every substantial change follows:
+
+```text
+baseline -> audit -> task DAG -> implement -> verify -> independent review
+         -> rework -> gate -> delivery
+```
+
+### Task States
+
+Use the recoverable state file `docs/harness/tasks.json`.
+
+Allowed states:
+
+- `PENDING`
+- `IN_PROGRESS`
+- `BLOCKED`
+- `COMPLETED`
+- `FAILED`
+- `REVIEW_REQUIRED`
+
+Each task records:
+
+- `task_id`, `run_id`, `owner_agent`
+- objective, input, expected output, dependencies
+- acceptance criteria and status
+- retry count
+- execution evidence and test evidence
+- review result
+
+### DAG Rules
+
+1. Read dependencies and current task state before work.
+2. Reuse completed evidence instead of repeating work.
+3. A task owns an explicit write set. Two agents must not edit the same files
+   concurrently.
+4. Integration of cross-boundary changes belongs to the delivery lead.
+5. Automatic retries are capped at two. Permission, source or environment
+   failures move to `BLOCKED`.
+6. A timeout or unknown agent status must not halt all local progress. Read
+   available artifacts; if they are missing, the delivery lead takes over.
+
+### Evidence Bundle
+
+A completed task must leave traceable evidence:
+
+```text
+requirement -> task -> agent -> changed files -> command/fixture
+            -> result -> reviewer verdict
+```
+
+Acceptance claims without current command output, browser evidence or reviewed
+source are invalid.
+
+### Review Loop
+
+1. Implementer supplies files and fresh test output.
+2. QA independently runs the relevant gates.
+3. Reviewer reads source and evidence, not only summaries.
+4. Reviewer reports P0-P3 with file references.
+5. Delivery lead assigns bounded rework tasks.
+6. QA reruns only affected scope plus necessary regression gates.
+7. Reviewer closes the gate or keeps it `REVIEW_REQUIRED`.
+
+P0/P1 issues block delivery. A reviewer timeout is not approval.
+
+### Delivery Record
+
+Before final delivery, update:
+
+- `docs/harness/tasks.json`
+- `docs/reports/QA_REPORT.md`
+- `docs/reports/INDEPENDENT_REVIEW.md`
+- `docs/reports/FINAL_ACCEPTANCE.md`
+
+Separate local completion from remote deployment evidence. Missing credentials,
+push authorization or Actions/Pages execution remains `BLOCKED`.
+
 ## Completion
 
 Do not mark work complete while a required gate is failed or silently skipped.

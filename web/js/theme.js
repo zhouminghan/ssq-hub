@@ -31,21 +31,22 @@ function syncUI(mode) {
   const trigger = qs('#theme-trigger');
   const icon = qs('#theme-icon');
   const label = qs('#theme-label');
-  if (!trigger || !icon || !label) return;
+  if (!trigger || !icon) return;
 
   if (mode === 'light') {
     icon.innerHTML = SVG_LIGHT;
-    label.textContent = '浅色';
+    if (label) label.textContent = '浅色';
   } else if (mode === 'dark') {
     icon.innerHTML = SVG_DARK;
-    label.textContent = '深色';
+    if (label) label.textContent = '深色';
   } else {
     icon.innerHTML = SVG_AUTO;
-    label.textContent = '跟随系统';
+    if (label) label.textContent = '跟随系统';
   }
 
   const selected = mode || 'auto';
-  trigger.setAttribute('aria-label', `主题：${label.textContent}，点击选择`);
+  const readableMode = mode === 'light' ? '浅色' : mode === 'dark' ? '深色' : '跟随系统';
+  trigger.setAttribute('aria-label', `主题：${readableMode}，点击选择`);
   qs('#theme-menu')?.querySelectorAll('.theme-item').forEach((item) => {
     const active = item.dataset.theme === selected;
     item.classList.toggle('active', active);

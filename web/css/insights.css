@@ -258,11 +258,17 @@
 }
 
 .frequency-ball.red {
-  background: var(--red);
+  background: radial-gradient(circle at 34% 28%, var(--red-hl), var(--red) 58%, var(--red-deep));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.28),
+    0 1px 3px var(--red-line);
 }
 
 .frequency-ball.blue {
-  background: var(--blue);
+  background: radial-gradient(circle at 34% 28%, var(--blue-hl), var(--blue) 58%, var(--blue-deep));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.28),
+    0 1px 3px var(--blue-line);
 }
 
 .frequency-track {

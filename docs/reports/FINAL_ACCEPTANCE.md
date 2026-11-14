@@ -130,8 +130,10 @@ Workflow behavior:
   verify.
 - Pages: actual commit diff gate, predeploy verify, cache-busted artifact.
 
-Remote workflow execution: **BLOCKED**, because the branch has not been pushed.
-No remote success is claimed.
+Remote workflow execution: **BLOCKED**. A partial
+`codex/product-rebuild` branch exists at `afc77bd`, but the current local commits
+are not pushed and no Actions run exists for that feature branch. `origin/main`
+and the live Pages artifact are unchanged. No remote success is claimed.
 
 ## 7. UI/UX
 
@@ -274,7 +276,7 @@ Evidence: [ONBOARDING.md](ONBOARDING.md).
 
 ## 14. Next Actions
 
-1. Review the local commit and push `codex/product-rebuild`.
+1. Review the local commits and push the current `codex/product-rebuild` branch.
 2. Confirm remote CI, data workflow, and Pages deployment.
 3. Run live smoke tests against the deployed commit.
 4. Update GitHub About, homepage, and topics with explicit remote-settings
@@ -301,7 +303,7 @@ Evidence: [ONBOARDING.md](ONBOARDING.md).
 | Performance evidence | PASS |
 | Independent review | PASS locally; no remaining P0/P1 |
 | README/HTML metadata | PASS |
-| GitHub About | BLOCKED: auth restored, explicit settings/push authorization still required |
+| GitHub About | PASS: description, homepage and topics updated through authenticated gh |
 | AGENTS/docs | PASS |
 | Onboarding | PASS |
 | P0/P1 | No known unresolved local P0/P1 after rework |

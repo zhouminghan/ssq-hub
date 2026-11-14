@@ -61,9 +61,6 @@
 }
 
 .trend-table {
-  position: relative;
-  z-index: 0;
-  isolation: isolate;
   width: max-content;
   min-width: 100%;
   color: var(--text-2);
@@ -78,6 +75,7 @@
   position: sticky;
   top: 0;
   z-index: 20;
+  user-select: none;
 }
 
 .trend-table thead th {
@@ -170,7 +168,7 @@
 .trend-table tbody td.col-issue {
   position: sticky;
   left: 0;
-  z-index: 4;
+  z-index: 5;
   min-width: 78px;
   padding: 0 7px;
   color: var(--text-2);
@@ -217,13 +215,17 @@
 }
 
 .trend-table td.hit .ball.red {
-  background: var(--red);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  background: radial-gradient(circle at 34% 28%, var(--red-hl), var(--red) 58%, var(--red-deep));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.28),
+    0 1px 3px var(--red-line);
 }
 
 .trend-table td.hit .ball.blue {
-  background: var(--blue);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  background: radial-gradient(circle at 34% 28%, var(--blue-hl), var(--blue) 58%, var(--blue-deep));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.28),
+    0 1px 3px var(--blue-line);
 }
 
 .trend-table td.col-red,
@@ -247,7 +249,7 @@
 }
 
 .trend-table tbody td.col-aux .sum-val {
-  color: var(--text);
+  color: var(--red-deep);
   font-weight: 700;
 }
 
@@ -261,13 +263,13 @@
 .trend-table td.col-shape .s-small,
 .trend-table td.col-shape .s-even,
 .trend-table td.col-shape .s-composite {
-  color: var(--text-2);
+  color: var(--blue-deep);
 }
 
 .trend-table td.col-shape .s-big,
 .trend-table td.col-shape .s-odd,
 .trend-table td.col-shape .s-prime {
-  color: var(--text);
+  color: var(--red-deep);
 }
 
 .trend-table tbody td.col-issue .year-tag {

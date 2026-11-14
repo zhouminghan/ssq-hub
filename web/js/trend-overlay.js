@@ -17,6 +17,7 @@ export function renderOverlay(svg, table, scrollEl) {
 
   const tableRect = table.getBoundingClientRect();
   const scrollRect = scrollEl.getBoundingClientRect();
+  const issueWidth = table.querySelector('thead th.col-issue')?.getBoundingClientRect().width || 78;
   const offsetX = tableRect.left - scrollRect.left + scrollEl.scrollLeft;
   const offsetY = tableRect.top - scrollRect.top + scrollEl.scrollTop;
 
@@ -42,9 +43,24 @@ export function renderOverlay(svg, table, scrollEl) {
 
   if (bluePts.length < 2) return;
 
+  // Keep the SVG itself clear of the frozen issue column. The sticky issue cell
+  // also masks this area, but browsers can paint sticky table cells differently.
+  const clipId = 'trend-blue-line-safe-area';
+  const clipPath = document.createElementNS(SVG_NS, 'clipPath');
+  clipPath.setAttribute('id', clipId);
+  const clipRect = document.createElementNS(SVG_NS, 'rect');
+  const clipStart = scrollEl.scrollLeft + issueWidth + 1;
+  clipRect.setAttribute('x', String(clipStart));
+  clipRect.setAttribute('y', '0');
+  clipRect.setAttribute('width', String(Math.max(0, table.scrollWidth - clipStart)));
+  clipRect.setAttribute('height', String(table.scrollHeight));
+  clipPath.appendChild(clipRect);
+  svg.appendChild(clipPath);
+
   // 一条 polyline 连接所有期蓝球
   const line = document.createElementNS(SVG_NS, 'polyline');
   line.setAttribute('class', 'blue');
+  line.setAttribute('clip-path', `url(#${clipId})`);
   line.setAttribute('points', bluePts.map((p) => `${p.x},${p.y}`).join(' '));
   svg.appendChild(line);
 }

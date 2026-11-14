@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { PNG } from 'pngjs';
 
 test.describe('SSQ Hub product workflow', () => {
   test.beforeEach(async ({ page }) => {
@@ -111,6 +112,65 @@ test.describe('SSQ Hub product workflow', () => {
       .toBe('2px');
 
     await expect(page.locator('#trend-sticky-track thead th').first()).toHaveText('');
+  });
+
+  test('never paints the blue trend line through the frozen issue column', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile', 'Runs once with the desktop project at 390px');
+    await page.setViewportSize({ width: 390, height: 844 });
+    const point = await page.locator('#trend-scroll').evaluate((scroll) => {
+      const table = document.querySelector('#trend-table')!;
+      const rows = [...table.querySelectorAll('tbody tr')];
+      const rowIndex = Math.min(19, rows.length - 1);
+      const row = rows[rowIndex];
+      const blue = row.querySelector('td.col-blue.hit')!;
+      const tableRect = table.getBoundingClientRect();
+      const scrollRect = scroll.getBoundingClientRect();
+      const rowRect = row.getBoundingClientRect();
+      const blueRect = blue.getBoundingClientRect();
+      const issueWidth = table.querySelector('thead th.col-issue')!
+        .getBoundingClientRect().width;
+      const canvasX = blueRect.left - tableRect.left + blueRect.width / 2;
+      const rowY = rowRect.top - scrollRect.top + scroll.scrollTop;
+
+      scroll.scrollLeft = canvasX - issueWidth / 2;
+      scroll.scrollTop = rowY - scrollRect.height / 3;
+      return { issueWidth, rowIndex };
+    });
+    await page.waitForTimeout(150);
+
+    const clip = await page.evaluate(({ issueWidth, rowIndex }) => {
+      const scroll = document.querySelector('#trend-scroll')!.getBoundingClientRect();
+      const rows = [...document.querySelectorAll('#trend-table tbody tr')];
+      const issue = rows[rowIndex].querySelector('td.col-issue')!.getBoundingClientRect();
+      return {
+        x: issue.left - scroll.left + 2,
+        y: issue.top - scroll.top - 2,
+        width: issueWidth - 4,
+        height: issue.height + 4,
+      };
+    }, point);
+
+    // Expose any SVG bleed hidden only by the sticky cell background, while
+    // removing the covered blue ball so the screenshot isolates the line.
+    await page.addStyleTag({
+      content: `
+        #trend-table tbody td.col-issue {
+          z-index: auto !important;
+          isolation: auto !important;
+          background: transparent !important;
+        }
+        #trend-table tbody td.col-blue.hit .ball { visibility: hidden !important; }
+      `,
+    });
+    const shot = PNG.sync.read(await page.locator('#trend-scroll').screenshot());
+    const issueShot = new PNG({ width: clip.width, height: clip.height });
+    PNG.bitblt(shot, issueShot, clip.x, clip.y, clip.width, clip.height, 0, 0);
+    let bluePixels = 0;
+    for (let i = 0; i < issueShot.data.length; i += 4) {
+      const [red, green, blue] = issueShot.data.subarray(i, i + 3);
+      if (blue > 150 && blue - red > 30 && blue - green > 10) bluePixels += 1;
+    }
+    expect(bluePixels).toBe(0);
   });
 
   test('filters recent N, year, and visible cross-year comparison', async ({ page }) => {

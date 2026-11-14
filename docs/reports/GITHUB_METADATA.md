@@ -1,77 +1,68 @@
-# GitHub Repository Metadata
+# GitHub 仓库信息核验
 
-Checked through the public GitHub API on 2026-11-14.
+核验日期：2026-11-15
 
-## Current Public Values
+## 当前远程状态
+
+通过 GitHub CLI 和公开 HTTP 请求核验：
 
 ```json
 {
-  "description": "双色球走势图 Web 应用",
-  "homepage": "",
-  "topics": [],
+  "name_with_owner": "zhouminghan/ssq-hub",
+  "description": "A modern Double Color Ball historical data analysis and visualization platform with automated data pipelines, statistical insights, and responsive charts.",
+  "homepage": "https://zhouminghan.github.io/ssq-hub/",
+  "topics": [
+    "lottery",
+    "ssq",
+    "data-analysis",
+    "data-visualization",
+    "python",
+    "typescript",
+    "github-pages"
+  ],
   "default_branch": "main",
-  "has_pages": true,
+  "visibility": "PUBLIC",
   "license_api_value": null
 }
 ```
 
-The public Pages URL returned HTTP 200 and the pre-reconstruction title
-`双色球走势图 · ssq-hub`.
+直接链接：
 
-## Proposed Values
+- 仓库：<https://github.com/zhouminghan/ssq-hub>
+- Pages：<https://zhouminghan.github.io/ssq-hub/>
+- Issues：<https://github.com/zhouminghan/ssq-hub/issues>
+- Actions：<https://github.com/zhouminghan/ssq-hub/actions>
 
-Description:
+仓库主页和 Pages 地址均返回 HTTP 200。GitHub About 的描述、Homepage 和 Topics 已配置完成。
 
-> Historical Double Color Ball analysis and visualization with automated data
-> pipelines, statistical insights, and responsive charts.
+## 许可证状态
 
-Homepage:
+本地仓库已经包含 [MIT License](../../LICENSE)，但当前 GitHub `licenseInfo` 仍为 `null`。原因是包含 `LICENSE` 的重构分支尚未推送到默认分支；GitHub 只有在默认分支获得该文件后才能完成许可证识别。
 
-> <https://zhouminghan.github.io/ssq-hub/>
+## Pages 状态
 
-Topics:
+Pages 地址可以访问，但当前正式页面仍是部署前的旧版产品。原因是：
 
-- `lottery`
-- `ssq`
-- `data-analysis`
-- `data-visualization`
-- `python`
-- `javascript`
-- `github-pages`
+- `origin/main` 仍停留在旧版本。
+- 本地 `codex/product-rebuild` 分支尚未获得推送和发布授权。
+- 重构版 Actions 与 Pages 结果不能在推送前被声称为已通过。
 
-License detection will become available after the added MIT `LICENSE` file is
-pushed to the default branch.
+## 认证状态
 
-## Authentication Status
+以下命令已使用 macOS 钥匙串中的 GitHub CLI 凭据成功执行：
 
-The stale `gh:github.com` keychain entry was removed and recreated from the
-existing GitHub credential. `gh auth status` now resolves account
-`zhouminghan` from the macOS keyring, and read-only repository access has been
-verified.
+```bash
+env -u GITHUB_PERSONAL_ACCESS_TOKEN \
+  -u GH_TOKEN \
+  -u GITHUB_TOKEN \
+  gh repo view zhouminghan/ssq-hub
+```
 
-Repository metadata has been updated through the authenticated GitHub CLI.
+该命令避开了失效的环境变量，直接使用 `gh` 自身保存的有效认证。
 
-## Applied Metadata
+## 当前分支状态
 
-- Description:
-  `A modern Double Color Ball historical data analysis and visualization platform with automated data pipelines, statistical insights, and responsive charts.`
-- Homepage: <https://zhouminghan.github.io/ssq-hub/>
-- Topics: `lottery`, `ssq`, `data-analysis`, `data-visualization`, `python`,
-  `typescript`, `github-pages`
-
-The About card now links directly to the Pages product through Homepage.
-
-Branch publication and Actions/Pages verification:
-
-- `codex/product-rebuild` exists remotely at `afc77bd`, but the local branch has
-  newer UX/boundary commits and is not pushed.
-- GitHub has no Actions run for this feature branch because the quality workflow
-  targets `main` and pull requests.
-- `origin/main` remains `8594a6b`; the new Pages artifact has not been deployed.
-- Pushing the current branch and opening a PR require explicit authorization.
-
-## Pages
-
-`has_pages` is true and the current production URL is reachable. The
-reconstruction's exact Pages workflow result cannot be verified until the branch
-is pushed and the new workflows run.
+- 本地分支：`codex/product-rebuild`
+- 远程同名分支：存在，但落后于本地。
+- 默认分支：`main`
+- 推送、合并和正式 Pages 发布仍属于需要明确授权的远程操作。

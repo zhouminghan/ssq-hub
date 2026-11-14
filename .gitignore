@@ -32,6 +32,12 @@ build/
 # ========== Tests ==========
 test-results/
 playwright-report/
+blob-report/
+coverage/
+ci-logs/
+deploy-logs/
+.eslintcache
+*.tsbuildinfo
 
 # ========== IDE / 编辑器 ==========
 .vscode/

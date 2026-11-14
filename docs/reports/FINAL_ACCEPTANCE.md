@@ -34,10 +34,10 @@ Pages verification.
 
 | Gate | Result |
 |---|---|
-| TypeScript + ESLint + Ruff + JS/Python unit tests | PASS, 25 checks |
-| JSON Schema | PASS, 30 files |
+| TypeScript + ESLint + Ruff + JS/Python unit tests | PASS, 54 checks |
+| JSON Schema | PASS, 31 files |
 | Strict data gate | PASS, 0 errors / 0 warnings |
-| Playwright Chrome desktop/mobile | PASS, 30 passed / 2 visual-project skips |
+| Playwright Chrome desktop/mobile | PASS, 32 passed / 2 visual-project skips |
 | Visual screenshot comparison | PASS, 2 passed / 2 project skips |
 | WebKit mobile smoke | PASS |
 | Firefox smoke | BLOCKED by local browser-profile launch |
@@ -52,7 +52,7 @@ Pages verification.
 | Type checking | none | `tsc --checkJs` |
 | Lint | none | ESLint |
 | Frontend tests | none | Node unit + Playwright desktop/mobile |
-| Python tests | none | 20 unittest/pytest cases |
+| Python tests | none | 47 unittest/pytest cases |
 | Data contracts | ad-hoc checks | JSON Schema 2020-12 + semantic invariants |
 | History protection | none | per-record baseline, manifest, correction ledger |
 | Source handling | first successful source | two-source cross-check, conflict rejection |
@@ -161,7 +161,7 @@ Main suite:
 
 ```text
 npx playwright test
-30 passed, 2 visual-project skips, 0 failed
+32 passed, 2 visual-project skips, 0 failed
 ```
 
 Coverage includes:
@@ -192,7 +192,7 @@ Cross-browser:
 
 ## 9. Performance
 
-Measured locally:
+Earlier local measurement:
 
 - Startup to 50 rendered rows: about 565 ms.
 - Full 3,527-row render: about 2.0 s.
@@ -204,6 +204,27 @@ Measured locally:
 
 The full-history view remains opt-in. Default recent-50 use is below the defined
 5-second startup budget.
+
+Latest remeasurement after the UI and calendar changes:
+
+- Startup: 569 ms.
+- Full history: 1,877 ms.
+- Initial transferred resources: about 145 KB.
+
+## 9.1 UX and Boundary Rework
+
+- Light theme uses neutral page/tool/data surfaces; color is reserved for ball
+  semantics and recent-five emphasis.
+- Mobile filter uses two explicit rows and all key controls fit at 375px.
+- CDN, browser-cache and total-failure states have distinct visible feedback.
+- Drawer close target is 42px and frequency values no longer wrap.
+- Expected next draw label now says `预计下期`.
+- 2026 official pause windows and a clearly provisional 2027 Spring Festival
+  window are shared by browser and Python.
+- Scheduled draw runs retry stale/empty/conflicting sources three times.
+- Full/manual runs also exit before network during a declared pause.
+- Partial backfill cannot hide a missing current draw.
+- Cross-year annual files, index rebuild, and `YYYY001` selection are tested.
 
 ## 10. Independent Review
 
@@ -247,15 +268,17 @@ Evidence: [ONBOARDING.md](ONBOARDING.md).
 - Dependency ranges are locked for Python and Node, but Actions still use major
   version tags.
 - Live Pages remains the old product until an authorized push.
-- GitHub About/topics/homepage are not updated because authentication is
-  unavailable.
+- GitHub authentication is restored through macOS keyring; About/topics/homepage
+  remain unchanged because this recovery turn did not authorize remote settings
+  changes.
 
 ## 14. Next Actions
 
 1. Review the local commit and push `codex/product-rebuild`.
 2. Confirm remote CI, data workflow, and Pages deployment.
 3. Run live smoke tests against the deployed commit.
-4. Update GitHub About, homepage, and topics while authenticated.
+4. Update GitHub About, homepage, and topics with explicit remote-settings
+   authorization.
 5. Mark remote acceptance complete only after evidence is available.
 
 ## Completion Matrix
@@ -278,7 +301,7 @@ Evidence: [ONBOARDING.md](ONBOARDING.md).
 | Performance evidence | PASS |
 | Independent review | PASS locally; no remaining P0/P1 |
 | README/HTML metadata | PASS |
-| GitHub About | BLOCKED: no valid auth |
+| GitHub About | BLOCKED: auth restored, explicit settings/push authorization still required |
 | AGENTS/docs | PASS |
 | Onboarding | PASS |
 | P0/P1 | No known unresolved local P0/P1 after rework |

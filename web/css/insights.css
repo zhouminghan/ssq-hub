@@ -32,10 +32,14 @@
 
 .insight-card {
   min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   padding: 14px 16px 16px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 
 .insight-card-head {
@@ -55,7 +59,7 @@
 .insight-card-description {
   margin-top: 3px;
   color: var(--text-3);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .insight-flag {
@@ -64,14 +68,16 @@
   color: var(--text-3);
   background: var(--bg-soft);
   border-radius: 4px;
-  font-size: 9px;
+  font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
 
 .structure-list {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 15px;
+  justify-content: space-around;
 }
 
 .structure-row {
@@ -83,7 +89,7 @@
 
 .structure-label {
   color: var(--text-2);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .structure-bar {
@@ -100,30 +106,31 @@
 }
 
 .structure-bar .seg-red {
-  background: var(--red);
+  background: var(--chart-strong);
 }
 
 .structure-bar .seg-blue {
-  background: var(--blue);
+  background: var(--chart-mid);
 }
 
 .structure-bar .seg-gold {
-  background: var(--gold);
+  background: var(--chart-soft);
 }
 
 .structure-bar .seg-muted {
-  background: var(--border-strong);
+  background: var(--chart-faint);
 }
 
 .structure-value {
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   text-align: right;
   white-space: nowrap;
 }
 
 .ac-chart {
+  flex: 1 1 auto;
   height: 142px;
   display: flex;
   align-items: flex-end;
@@ -146,31 +153,36 @@
 .ac-value {
   color: var(--text-2);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .ac-bar {
   width: 100%;
   max-width: 36px;
   min-height: 2px;
-  background: color-mix(in srgb, var(--blue) 68%, var(--primary-soft));
+  background: color-mix(in srgb, var(--chart-mid) 82%, var(--bg-card));
   border-radius: 3px 3px 0 0;
 }
 
 .ac-label {
   color: var(--text-3);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .pattern-pairs {
   display: grid;
+  flex: 1 1 auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 10px;
 }
 
 .pattern-stat {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 12px;
   background: var(--bg-soft);
   border-radius: 6px;
@@ -190,14 +202,14 @@
   display: block;
   margin-top: 5px;
   color: var(--text-2);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .pattern-stat small {
   display: block;
   margin-top: 2px;
   color: var(--text-3);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .frequency-tabs {
@@ -207,11 +219,11 @@
 }
 
 .frequency-tab {
-  height: 24px;
-  padding: 0 8px;
+  min-height: 28px;
+  padding: 0 10px;
   color: var(--text-3);
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .frequency-tab.active {
@@ -241,7 +253,7 @@
   color: #fff;
   border-radius: 50%;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 720;
 }
 
@@ -262,18 +274,18 @@
 
 .frequency-fill {
   height: 100%;
-  background: var(--red);
+  background: var(--chart-strong);
   border-radius: inherit;
 }
 
 .frequency-fill.blue {
-  background: var(--blue);
+  background: var(--chart-mid);
 }
 
 .frequency-count {
   color: var(--text-2);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   text-align: right;
 }
 
@@ -288,12 +300,51 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  font-size: 10px;
+  box-shadow: var(--shadow-sm);
+  font-size: 11px;
 }
 
 .insight-note strong {
   color: var(--text-2);
   font-weight: 600;
+}
+
+@media (min-width: 901px) {
+  .insights-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .insight-card:nth-child(1) {
+    grid-column: 1 / span 7;
+    grid-row: 1;
+  }
+
+  .insight-card:nth-child(2) {
+    grid-column: 8 / span 5;
+    grid-row: 2;
+  }
+
+  .insight-card:nth-child(3) {
+    grid-column: 8 / span 5;
+    grid-row: 1;
+  }
+
+  .insight-card:nth-child(4) {
+    grid-column: 1 / span 7;
+    grid-row: 2;
+  }
+
+  .insight-note {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .frequency-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 20px;
+  }
 }
 
 @media (max-width: 900px) {

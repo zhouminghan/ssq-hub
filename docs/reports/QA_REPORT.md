@@ -2,6 +2,21 @@
 
 **Current status: PASS (local QA + WebKit mobile smoke)**
 
+## 2026-11-15 UX / Boundary Addendum
+
+The product-tone and scheduling boundary rework was verified separately:
+
+- `npm run check`: PASS; TypeScript, ESLint, Ruff, 7 Node unit tests and
+  47 Python tests.
+- JSON Schema: PASS, 31 files.
+- Strict data gate: PASS, 0 errors / 0 warnings.
+- Main Playwright matrix: 32 passed / 2 deliberate visual-project skips.
+- Visual matrix: 2 passed / 2 project-specific skips.
+- WebKit mobile smoke: PASS.
+
+This supersedes the older count table below for release decisions. The older
+results remain as historical evidence for the previous delivery increment.
+
 | Item | Value |
 |---|---|
 | Final run time | 2026-11-14 20:14-20:17 CST |
@@ -15,7 +30,7 @@
 | Browsers | Chrome 157.0.8103.51; bundled WebKit 2388 |
 | Product code modified by QA | None |
 
-## Final Result
+## Previous Final Result (Historical)
 
 All six requested gates pass:
 

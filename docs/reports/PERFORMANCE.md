@@ -13,12 +13,12 @@ npm run measure:performance -- http://127.0.0.1:8771/
 
 ```json
 {
-  "startupMs": 565,
-  "domContentLoadedMs": 24,
-  "loadMs": 24,
-  "resourceCount": 25,
-  "transferBytes": 132325,
-  "decodedBytes": 124825,
+  "startupMs": 569,
+  "domContentLoadedMs": 29,
+  "loadMs": 29,
+  "resourceCount": 26,
+  "transferBytes": 144625,
+  "decodedBytes": 136825,
   "defaultRows": 50,
   "defaultCells": 2900
 }
@@ -32,10 +32,10 @@ the initial index, latest payload, 2026 annual history, CSS, JS, and favicon.
 
 ```json
 {
-  "fullHistoryMs": 2029,
+  "fullHistoryMs": 1877,
   "rows": 3527,
   "cells": 204566,
-  "domNodes": 448199,
+  "domNodes": 448315,
   "bodyScrollWidth": 1440,
   "viewportWidth": 1440,
   "issueColumnOffsetPx": 0,

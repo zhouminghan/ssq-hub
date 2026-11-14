@@ -46,7 +46,8 @@ index.html
 
 Every resource tries the same-origin path first. If the primary path fails, the
 loader switches to jsDelivr. If both network routes fail, a timestamped browser
-cache entry can be used. The UI labels that state as `使用本地缓存`.
+cache entry can be used. The UI labels that state as `本地缓存` and shows the
+cache timestamp.
 
 ## Data Contracts
 

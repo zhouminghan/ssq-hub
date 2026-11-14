@@ -20,7 +20,7 @@
 }
 
 .filter-tab {
-  height: 28px;
+  min-height: 30px;
   padding: 0 11px;
   color: var(--text-3);
   border-radius: 5px;
@@ -55,7 +55,7 @@
 }
 
 .filter-select {
-  height: 32px;
+  min-height: 34px;
   min-width: 148px;
   padding: 0 30px 0 10px;
   color: var(--text);
@@ -71,7 +71,7 @@
 
 .filter-input {
   width: 110px;
-  height: 30px;
+  min-height: 32px;
   padding: 0 10px;
   color: var(--text);
   background: var(--bg-card);
@@ -91,7 +91,7 @@
 
 .btn-apply,
 .btn-ghost {
-  height: 30px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: 6px;
   font-size: 12px;
@@ -124,7 +124,7 @@
 }
 
 .filter-reset {
-  height: 28px;
+  min-height: 32px;
   margin-left: auto;
   padding: 0 9px;
   color: var(--text-3);
@@ -153,8 +153,8 @@
 
 .compare-badge {
   padding: 2px 7px;
-  color: var(--blue-deep);
-  background: var(--blue-soft);
+  color: var(--text-2);
+  background: var(--bg-soft);
   border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -199,32 +199,43 @@
 
 @media (max-width: 760px) {
   .filter-bar {
-    gap: 7px;
-    padding: 7px 12px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .filter-bar::-webkit-scrollbar {
-    display: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "tabs reset"
+      "panel panel";
+    gap: 8px 10px;
+    padding: 8px 12px 10px;
+    overflow: visible;
   }
 
   .filter-tabs {
-    flex: 0 0 auto;
+    grid-area: tabs;
+    justify-self: start;
   }
 
   .filter-tab {
-    padding: 0 9px;
-    font-size: 11px;
+    min-height: 40px;
+    padding: 0 10px;
+    font-size: 12px;
   }
 
   .filter-panel {
-    flex: 0 0 auto;
+    grid-area: panel;
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
   }
 
   .filter-reset {
-    flex: 0 0 auto;
+    grid-area: reset;
+    justify-self: end;
     margin-left: 0;
+    min-width: 44px;
+    min-height: 40px;
+    font-size: 12px;
   }
 
   .filter-label {
@@ -232,15 +243,34 @@
   }
 
   .filter-select {
-    min-width: 124px;
-    height: 30px;
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  .btn-apply,
+  .btn-ghost {
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  .custom-popover .filter-input {
+    min-height: 40px;
   }
 
   .btn-custom {
-    padding: 0 9px;
+    padding: 0 13px;
   }
 
   .compare-summary {
-    max-width: calc(100vw - 44px);
+    min-width: 0;
+    max-width: 100%;
+    justify-self: end;
+    font-size: 11px;
+  }
+
+  .compare-summary span:last-child {
+    min-width: 0;
   }
 }

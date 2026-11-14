@@ -158,7 +158,7 @@
   border-right: 1px solid var(--line-soft);
   border-bottom: 1px solid var(--line-soft);
   color: var(--text-4);
-  font-size: 10px;
+  font-size: 11px;
   text-align: center;
   vertical-align: middle;
 }
@@ -177,7 +177,7 @@
   background: var(--issue-body-bg);
   border-right: 1px solid var(--border-strong);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 550;
   isolation: isolate;
 }
@@ -238,22 +238,22 @@
 
 .trend-table td .miss {
   color: var(--text-4);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .trend-table td.miss-hot .miss {
-  color: var(--gold);
+  color: var(--text);
   font-weight: 700;
 }
 
 .trend-table tbody td.col-aux .sum-val {
-  color: var(--red-deep);
+  color: var(--text);
   font-weight: 700;
 }
 
 .trend-table tbody td.col-shape {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: -0.08em;
 }
@@ -261,21 +261,21 @@
 .trend-table td.col-shape .s-small,
 .trend-table td.col-shape .s-even,
 .trend-table td.col-shape .s-composite {
-  color: var(--blue-deep);
+  color: var(--text-2);
 }
 
 .trend-table td.col-shape .s-big,
 .trend-table td.col-shape .s-odd,
 .trend-table td.col-shape .s-prime {
-  color: var(--red-deep);
+  color: var(--text);
 }
 
 .trend-table tbody td.col-issue .year-tag {
   display: inline-block;
   margin-right: 3px;
   padding: 0 3px;
-  color: var(--blue-deep);
-  background: var(--blue-soft);
+  color: var(--text-2);
+  background: var(--bg-soft);
   border-radius: 2px;
   font-size: 9px;
   vertical-align: 1px;
@@ -294,7 +294,7 @@
   left: 4px;
   bottom: 7px;
   width: 2px;
-  background: var(--red);
+  background: var(--primary);
   border-radius: 2px;
 }
 

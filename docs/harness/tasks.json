@@ -1,7 +1,7 @@
 {
   "run_id": "ssq-hub-2026-11-14-product-rebuild",
   "baseline_commit": "8594a6b807de8f5e5860353929dde92be0c46d6c",
-  "updated_at": "2026-11-14T20:30:00+08:00",
+  "updated_at": "2026-11-15T01:35:00+08:00",
   "tasks": [
     {
       "task_id": "P0-BASELINE",
@@ -150,7 +150,7 @@
       "status": "COMPLETED",
       "retry_count": 0,
       "execution_evidence": ["docs/reports/QA_REPORT.md", "QA agents 01a1d992-0813-7e90-a2c6-c09217c14162"],
-      "test_evidence": ["npm run check 25/25", "30 Playwright pass / 2 visual-project skips", "30 JSON Schema files", "0 data errors", "WebKit mobile pass"],
+      "test_evidence": ["npm run check 54/54", "32 Playwright pass / 2 visual-project skips", "31 JSON Schema files", "0 data errors", "WebKit mobile pass"],
       "review_result": "PASS"
     },
     {
@@ -199,6 +199,31 @@
       "review_result": "Local delivery accepted"
     },
     {
+      "task_id": "P11-UX-BOUNDARY",
+      "run_id": "ssq-hub-2026-11-14-product-rebuild",
+      "owner_agent": "product-analyst + data-engineer + delivery-lead",
+      "objective": "Improve light-theme product quality and harden cross-year, holiday, stale-source and push-race behavior.",
+      "input": ["UI/UX audit", "data boundary audit", "independent review"],
+      "expected_output": ["neutral light theme", "375px filter fix", "shared pause calendar", "retry and fail-safe tests", "visual evidence"],
+      "dependencies": ["P9-FINAL"],
+      "acceptance_criteria": ["no local P0/P1", "cross-year and Spring Festival paths tested", "mobile/light/dark browser checks pass"],
+      "status": "COMPLETED",
+      "retry_count": 0,
+      "execution_evidence": [
+        "docs/reports/UX_AUDIT_2026-11-14.md",
+        "docs/reports/UX_BOUNDARY_REVIEW.md",
+        "web/config/lottery_pause_windows.json"
+      ],
+      "test_evidence": [
+        "7 Node unit tests",
+        "47 Python tests",
+        "31 JSON Schema files",
+        "32 Playwright pass / 2 project skips",
+        "WebKit mobile pass"
+      ],
+      "review_result": "PASS: no local P0/P1"
+    },
+    {
       "task_id": "P10-REMOTE",
       "run_id": "ssq-hub-2026-11-14-product-rebuild",
       "owner_agent": "delivery-lead",
@@ -211,11 +236,12 @@
       "retry_count": 0,
       "execution_evidence": [
         "origin contains only main at 8594a6b",
-        "gh authentication token is invalid",
+        "gh authentication restored for zhouminghan via macOS keyring",
+        "local branch is four commits ahead and has not been pushed",
         "live Pages still serves the pre-reconstruction title"
       ],
       "test_evidence": [],
-      "review_result": "BLOCKED pending explicit push authorization and valid GitHub authentication"
+      "review_result": "BLOCKED pending explicit push authorization"
     }
   ]
 }

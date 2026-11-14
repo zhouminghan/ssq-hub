@@ -20,9 +20,10 @@ export const fmtIssue = (issue) => `${issueYear(issue)}-${issueSeq(issue)}`;
  *   （仅当 idx.years 已收录次年时进位；否则保守同年 +1，等下次抓取自然纠正）
  * - 若 latest 序号 > count（index 还没刷新）→ 同年 +1 兜底
  */
-export function nextIssue(latestIssue, idx) {
+export function nextIssue(latestIssue, idx, nextDate = null) {
   const year = issueYear(latestIssue);
   const seq = Number(issueSeq(latestIssue));
+  if (nextDate && issueYear(nextDate) !== year) return `${issueYear(nextDate)}001`;
   const yearEntry = idx?.years?.find((y) => String(y.year) === year);
   const count = yearEntry?.count ?? Infinity;
 
@@ -40,7 +41,7 @@ export function nextIssue(latestIssue, idx) {
  * @param {string} latestDate 最新开奖日期，格式 "YYYY-MM-DD"
  * @returns {string} 下期开奖日期，格式 "YYYY-MM-DD"
  */
-export function nextDrawDate(latestDate) {
+export function nextDrawDate(latestDate, pauseWindows = []) {
   // 用本地 midnight 解析，避免 `new Date('YYYY-MM-DD')` 解析为 UTC midnight
   // 导致非 UTC+8 时区 getDate()/getDay() 差一天
   const [y, m, d] = latestDate.split('-').map(Number);
@@ -66,10 +67,29 @@ export function nextDrawDate(latestDate) {
     else if (dayOfWeek === 6) nextDay.setDate(date.getDate() + 1); // 周六 → 周日
   }
   
-  // 直接返回下一个开奖日，不做节假日停售判断。
-  // 节假日期间显示可能偏差 3-10 天，属"预估"语义的正常误差，
-  // 数据源会在开奖日自动更新，无需硬编码维护农历/国庆停售表。
+  // 配置了官方/临时停售窗口时跳过停售日期，再落到下一个开奖日。
+  const isPaused = (value) => {
+    const text = formatDate(value);
+    return pauseWindows.some((window) => window.start <= text && text <= window.end);
+  };
+  while (isPaused(nextDay)) {
+    nextDay.setDate(nextDay.getDate() + 1);
+  }
+  while (![0, 2, 4].includes(nextDay.getDay())) {
+    nextDay.setDate(nextDay.getDate() + 1);
+  }
   return formatDate(nextDay);
+}
+
+/** Describe whether the estimated next draw used unverified/provisional calendar data. */
+export function estimatePauseNote(scheduledDate, adjustedDate, pauseState) {
+  if (!pauseState?.loaded) return '停售配置未校验';
+  const provisional = (pauseState.windows || []).find((window) => (
+    window.provisional
+    && window.start <= adjustedDate
+    && window.end >= scheduledDate
+  ));
+  return provisional ? '临时保护窗口' : '';
 }
 
 /** 格式化日期为 YYYY-MM-DD */

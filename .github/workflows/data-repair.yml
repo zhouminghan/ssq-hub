@@ -72,6 +72,7 @@ jobs:
           set -euo pipefail
           python scripts/fetch_latest.py \
             --allow-corrections \
+            --ignore-pause \
             --reason "$REASON" \
             2>&1 | tee ci-logs/repair-fetch.log
 
@@ -149,18 +150,21 @@ jobs:
           TS=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M 北京时间')
           git commit -m "chore(data): repair @ $TS | ${REASON} | ${CHANGES}"
 
-          if git push origin HEAD:main; then
-            exit 0
-          fi
-
-          echo "首次 push 被拒绝，执行一次对账恢复"
-          git fetch origin main
-          if ! git rebase origin/main; then
-            git rebase --abort
-            exit 1
-          fi
-          python scripts/verify_data.py
-          git push origin HEAD:main
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "push 被拒绝，执行第 ${attempt}/3 次对账恢复"
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort
+              echo "上游同时修改了生成数据，拒绝自动覆盖并结束"
+              exit 1
+            fi
+            python scripts/verify_data.py
+          done
+          echo "连续 push 竞争失败，保留失败诊断等待人工处理"
+          exit 1
 
       - name: 🧾 收集失败诊断
         if: failure()

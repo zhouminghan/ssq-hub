@@ -20,13 +20,17 @@ Scheduled Tuesday/Thursday/Sunday plus monthly maintenance and manual dispatch.
 - Preflight validates the checked-in data before fetch.
 - No-source failure exits non-zero.
 - Sources are cross-checked.
+- Empty, stale or transiently conflicting source results retry three times at
+  ten-minute intervals.
 - Scheduled draw-day runs require a newer issue after the 22:10 source window.
-  Set repository variable `LOTTERY_PAUSE_UNTIL=YYYY-MM-DD` during official
-  holiday suspensions.
+  Official holiday windows are read from
+  `web/config/lottery_pause_windows.json`; the legacy
+  `LOTTERY_PAUSE_UNTIL=YYYY-MM-DD` override remains supported.
 - Calculation and strict verification occur before staging.
 - Only expected `web/data/` paths may be committed.
 - No data changes means no commit.
-- One fetch/rebase retry handles a concurrent main update.
+- Push races are reconciled up to three times; overlapping generated-data
+  conflicts abort without overwriting the upstream value.
 - Failure logs are uploaded.
 
 ### `data-repair.yml`

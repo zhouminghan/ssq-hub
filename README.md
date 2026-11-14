@@ -41,6 +41,8 @@ requires an authorized push and a successful Pages workflow run.
 - Insights view for zone, odd/even, small/big, AC, consecutive, same-tail, and
   recent high-frequency distributions.
 - Auto/light/dark themes applied before first paint and persisted locally.
+- Explicit freshness/source state plus an estimated next draw that respects
+  configured official and provisional market pauses.
 - Responsive desktop, tablet, and mobile layouts with internal table scrolling,
   frozen issue column, and sticky header.
 - Same-origin JSON loading, jsDelivr fallback, timestamped browser cache, and a
@@ -154,6 +156,11 @@ rejects a write when an existing issue conflicts. Authorized corrections use:
 ```
 
 Review `web/data/corrections.json` before refreshing the baseline.
+
+Scheduled draw-day runs retry empty or stale sources three times. Official
+Spring Festival and other market closures are configured inclusively in
+`web/config/lottery_pause_windows.json`; a pause exits before network access,
+while any other missing current draw fails the workflow.
 
 ## Data Sources
 

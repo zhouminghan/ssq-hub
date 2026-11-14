@@ -24,6 +24,8 @@ let latestCache = null;
 let latestCacheTime = 0;
 let statsCache = null;
 let statsCacheTime = 0;
+let pauseWindowsCache = null;
+let pauseWindowsCacheTime = 0;
 
 // 主源健康度：UNKNOWN=待探测 / OK=健康 / DEGRADED=已切CDN
 const PRIMARY = Object.freeze({ UNKNOWN: 0, OK: 1, DEGRADED: 2 });
@@ -35,11 +37,25 @@ const loadState = {
   source: 'pending',
   cached: false,
   lastLoadedAt: null,
+  usedPrimary: false,
+  usedCdn: false,
+  usedCache: false,
+  cacheAt: null,
 };
 
 function markLoaded(source, at = new Date().toISOString()) {
-  loadState.source = source;
-  loadState.cached = source === 'browser-cache';
+  if (source === 'primary') loadState.usedPrimary = true;
+  if (source === 'cdn') loadState.usedCdn = true;
+  if (source === 'browser-cache') {
+    loadState.usedCache = true;
+    loadState.cacheAt = at;
+  }
+  loadState.source = loadState.usedCache
+    ? 'browser-cache'
+    : loadState.usedCdn
+      ? 'cdn'
+      : source;
+  loadState.cached = loadState.usedCache;
   loadState.lastLoadedAt = at;
 }
 
@@ -66,7 +82,7 @@ function writeBrowserCache(relPath, data) {
   }
 }
 
-async function fetchJson(relPath, cacheBuster) {
+async function fetchJson(relPath, cacheBuster, trackState = true) {
   // 主源：相对路径 fetch（cache: 'no-cache' 避免部署后 24h 浏览器命中旧版）
   if (primaryHealthy !== PRIMARY.DEGRADED) {
     const ctrl = new AbortController();
@@ -78,7 +94,7 @@ async function fetchJson(relPath, cacheBuster) {
       primaryHealthy = PRIMARY.OK;
       const data = await res.json();
       writeBrowserCache(relPath, data);
-      markLoaded('primary');
+      if (trackState) markLoaded('primary');
       return data;
     } catch (err) {
       // 仅在第一次失败时打印，避免后续 N 次 fetch 都刷一遍 console
@@ -111,12 +127,14 @@ async function fetchJson(relPath, cacheBuster) {
     if (!res.ok) throw new Error(`fetch ${cdnUrl} failed: ${res.status}`);
     const data = await res.json();
     writeBrowserCache(relPath, data);
-    markLoaded('cdn');
+    if (trackState) markLoaded('cdn');
     return data;
   } catch (cdnErr) {
     const cached = readBrowserCache(relPath);
     if (cached) {
-      markLoaded('browser-cache', cached.savedAt || new Date().toISOString());
+      if (trackState) {
+        markLoaded('browser-cache', cached.savedAt || new Date().toISOString());
+      }
       console.warn(
         `[data-loader] 网络源均不可用，使用 ${cached.savedAt || '未知时间'} 的本地缓存：${relPath}`,
       );
@@ -179,6 +197,34 @@ export async function loadStats() {
   statsCache = await fetchJson('stats.json');
   statsCacheTime = now;
   return statsCache;
+}
+
+/** Load pause windows and expose whether the estimate can be verified. */
+export async function loadPauseWindowsState() {
+  const now = Date.now();
+  if (pauseWindowsCache && (now - pauseWindowsCacheTime) < CACHE_TTL) {
+    return { loaded: true, windows: pauseWindowsCache };
+  }
+  try {
+    const payload = await fetchJson('../config/lottery_pause_windows.json', undefined, false);
+    const windows = Array.isArray(payload?.windows)
+      ? payload.windows.filter((window) => (
+        typeof window?.start === 'string'
+        && typeof window?.end === 'string'
+        && window.start <= window.end
+      ))
+      : [];
+    pauseWindowsCache = windows;
+    pauseWindowsCacheTime = now;
+    return { loaded: true, windows };
+  } catch (error) {
+    console.warn('[data-loader] 停售窗口配置不可用，使用正常开奖日估算', error);
+    return { loaded: false, windows: [] };
+  }
+}
+
+export async function loadPauseWindows() {
+  return (await loadPauseWindowsState()).windows;
 }
 
 /**

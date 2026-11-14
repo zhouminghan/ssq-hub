@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
@@ -24,6 +26,9 @@ test.describe('SSQ Hub product workflow', () => {
     );
     await expect(page.locator('#overview-balls .draw-ball')).toHaveCount(7);
     await expect(page.locator('#metric-status')).toHaveAttribute('title', /500彩票网 \+ 福彩官方/);
+    await expect(page.locator('#overview-next')).toHaveText(
+      /^预计下期 \d{7} · \d{4}\.\d{2}\.\d{2}$/,
+    );
     expect(runtimeErrors).toEqual([]);
 
     await page.screenshot({
@@ -246,8 +251,18 @@ test.describe('SSQ Hub product workflow', () => {
       expect(metrics.headerRight).toBeLessThanOrEqual(metrics.viewport);
       expect(metrics.githubVisible).toBe(true);
       if (viewport.width > 760) await expect(page.locator('#overview-scale')).toBeHidden();
+      if (viewport.width === 768) await expect(page.locator('#metric-status')).toBeVisible();
     }
     await expect(page.locator('#overview-scale')).toBeVisible();
+
+    for (const selector of [
+      '.filter-tab.active', '.btn-custom', '.filter-reset', '.filter-select', '#theme-trigger',
+    ]) {
+      const box = await page.locator(selector).boundingBox();
+      expect(box!.x, `${selector} left`).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width, `${selector} right`).toBeLessThanOrEqual(375);
+      expect(box!.height, `${selector} height`).toBeGreaterThanOrEqual(40);
+    }
   });
 
   test('passes automated accessibility checks for both views', async ({ page }) => {
@@ -285,7 +300,31 @@ test.describe('Resilience', () => {
     await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#trend-loading .error-text')).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('#trend-loading .error-text')).toHaveText(
+      '加载失败：无法连接数据源，请检查网络后重试',
+    );
     await expect(page.locator('#trend-scroll')).toBeHidden();
+    await expect(page.locator('#metric-status')).toHaveText('数据不可用');
+  });
+
+  test('labels a successful CDN fallback as an alternate source', async ({ page }) => {
+    await page.route('**/data/**', (route) => route.abort());
+    await page.route('https://cdn.jsdelivr.net/**', async (route) => {
+      const url = new URL(route.request().url());
+      const marker = ['/web/data/', '/web/config/'].find((part) => url.pathname.includes(part));
+      expect(marker).toBeTruthy();
+      const relative = marker === '/web/data/'
+        ? `data/${url.pathname.slice(url.pathname.indexOf(marker) + marker.length)}`
+        : `config/${url.pathname.slice(url.pathname.indexOf(marker) + marker.length)}`;
+      await route.fulfill({
+        path: path.resolve('web', relative),
+        contentType: 'application/json',
+      });
+    });
+    await page.goto('/');
+    await expect(page.locator('#trend-table tbody tr')).toHaveCount(50);
+    await expect(page.locator('#metric-status')).toHaveText('备用镜像');
+    await expect(page.locator('#metric-status-detail')).toHaveText('本次已切换备用');
   });
 
   test('uses the browser cache when network sources are unavailable', async ({ page }) => {
@@ -294,7 +333,8 @@ test.describe('Resilience', () => {
     await page.route('**/data/**', (route) => route.abort());
     await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#metric-status')).toHaveText('使用本地缓存', { timeout: 20_000 });
+    await expect(page.locator('#metric-status')).toHaveText('本地缓存', { timeout: 20_000 });
+    await expect(page.locator('#metric-status-detail')).toContainText('缓存于');
     await expect(page.locator('#trend-table tbody tr')).toHaveCount(50);
   });
 });

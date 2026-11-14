@@ -27,8 +27,12 @@ with current `main` and checks whether `web/` changed.
 - Actions workflow permissions: read by default; workflows request the minimum
   needed write permissions.
 - For corrections: create a `data-repair` environment with required reviewers.
-- Optional repository variable `LOTTERY_PAUSE_UNTIL=YYYY-MM-DD` suppresses
-  expected-draw failures during official holiday suspensions.
+- Keep `web/config/lottery_pause_windows.json` aligned with the official annual
+  lottery-market closure notice. Dates are inclusive.
+- Optional `LOTTERY_PAUSE_WINDOWS_JSON` repository variable can inject a newly
+  published pause list without a code change.
+- Legacy `LOTTERY_PAUSE_UNTIL=YYYY-MM-DD` remains available as an emergency
+  override.
 - Optionally require the CI workflow checks on `main`.
 
 ## First Deployment Verification

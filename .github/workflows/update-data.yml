@@ -3,11 +3,11 @@ name: 🎰 更新双色球数据
 # Scheduled draws:
 #   Tue/Thu/Sun 22:10 Asia/Shanghai = 14:10 UTC.
 # Monthly maintenance:
-#   1st day 02:00 Asia/Shanghai = previous day 18:00 UTC.
+#   2nd day 02:00 Asia/Shanghai = 1st day 18:00 UTC.
 #
-# fetch_latest.py owns source fallback and its 45 minute retry. It exits
-# nonzero when no source is usable, so this workflow cannot report a green
-# result after a total source outage.
+# fetch_latest.py owns source fallback and retries stale/empty source results
+# three times at 10-minute intervals. During an official pause window it exits
+# before network access; outside one, a total source outage fails the job.
 "on":
   schedule:
     - cron: '10 14 * * 0,2,4'
@@ -106,6 +106,8 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           SCHEDULE: ${{ github.event.schedule }}
           LOTTERY_PAUSE_UNTIL: ${{ vars.LOTTERY_PAUSE_UNTIL }}
+          LOTTERY_PAUSE_WINDOWS_FILE: web/config/lottery_pause_windows.json
+          LOTTERY_PAUSE_WINDOWS_JSON: ${{ vars.LOTTERY_PAUSE_WINDOWS_JSON }}
         run: |
           set -euo pipefail
           FLAG=""
@@ -164,18 +166,21 @@ jobs:
           git commit -m "chore(data): 自动更新 @ $TS [$MODE] | ${CHANGES}"
 
           BRANCH="${GITHUB_REF_NAME:-main}"
-          if git push origin "HEAD:${BRANCH}"; then
-            exit 0
-          fi
-
-          echo "首次 push 被拒绝，执行一次对账恢复"
-          git fetch origin "$BRANCH"
-          if ! git rebase "origin/$BRANCH"; then
-            git rebase --abort
-            exit 1
-          fi
-          python scripts/verify_data.py
-          git push origin "HEAD:${BRANCH}"
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:${BRANCH}"; then
+              exit 0
+            fi
+            echo "push 被拒绝，执行第 ${attempt}/3 次对账恢复"
+            git fetch origin "$BRANCH"
+            if ! git rebase "origin/$BRANCH"; then
+              git rebase --abort
+              echo "上游同时修改了生成数据，拒绝自动覆盖并结束"
+              exit 1
+            fi
+            python scripts/verify_data.py
+          done
+          echo "连续 push 竞争失败，保留失败诊断等待人工处理"
+          exit 1
 
       - name: 🧾 收集失败诊断
         if: failure()

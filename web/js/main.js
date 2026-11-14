@@ -2,15 +2,18 @@
 import { qs } from './utils/dom.js';
 import { store } from './store.js';
 import {
-  getDataLoadState, loadIndex, loadLatest, loadRecent, loadYear, loadIssues,
+  getDataLoadState, loadIndex, loadLatest, loadPauseWindowsState, loadRecent, loadYear, loadIssues,
 } from './data-loader.js';
 import { mountFilterBar } from './filter-bar.js';
 import { renderTrend } from './trend-table.js';
 import { bindOverlay, bindStickyHeader } from './trend-overlay.js';
 import { mountNumberProfile } from './number-profile.js';
 import { initTheme } from './theme.js';
-import { mountDashboard, bindViewNavigation } from './dashboard.js';
+import {
+  bindViewNavigation, markDashboardUnavailable, mountDashboard,
+} from './dashboard.js';
 import { mountInsights } from './insights.js';
+import { estimatePauseNote, nextDrawDate, nextIssue } from './utils/format.js';
 
 const $loading = qs('#trend-loading');
 const $scroll = qs('#trend-scroll');
@@ -35,8 +38,18 @@ async function init(retryCount = 0) {
   initTheme();
 
   try {
-    const [index, latest] = await Promise.all([loadIndex(), loadLatest()]);
-    mountDashboard(index, latest, getDataLoadState());
+    const [index, latest, pauseState] = await Promise.all([
+      loadIndex(), loadLatest(), loadPauseWindowsState(),
+    ]);
+    const scheduledNextDate = nextDrawDate(latest.latest_draw.date);
+    const nextDate = nextDrawDate(latest.latest_draw.date, pauseState.windows);
+    const next = nextIssue(latest.latest_draw.issue, index, nextDate);
+    const estimateNote = estimatePauseNote(scheduledNextDate, nextDate, pauseState);
+    mountDashboard(index, latest, getDataLoadState(), {
+      nextIssue: next,
+      nextDate,
+      estimateNote,
+    });
     await mountFilterBar($filterBar);
     mountNumberProfile();
 
@@ -58,7 +71,8 @@ async function init(retryCount = 0) {
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
       return init(retryCount + 1);
     }
-    showError(`数据加载失败：${error.message || error}`, true);
+    markDashboardUnavailable();
+    showError('无法连接数据源，请检查网络后重试', true);
   }
 }
 
@@ -86,7 +100,7 @@ async function renderByFilter() {
   } catch (error) {
     if (token !== renderToken) return;
     console.error(error);
-    showError(error.message);
+    showError('当前范围的数据加载失败，请重新选择或重试');
     return;
   }
   if (token !== renderToken) return;

@@ -53,7 +53,7 @@
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--bg-warm) 0%, var(--bg-card) 100%);
+  background: var(--bg-card);
   flex: 0 0 auto;
 }
 
@@ -65,8 +65,9 @@
 }
 
 .np-close {
-  width: 28px;
-  height: 28px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   border-radius: 50%;
   border: none;
   background: transparent;
@@ -78,8 +79,8 @@
 }
 
 .np-close:hover {
-  background: var(--red-soft);
-  color: var(--red);
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 /* body：滚动区 */
@@ -108,7 +109,7 @@
   align-items: center;
   gap: 14px;
   padding: 14px;
-  background: linear-gradient(135deg, var(--red-soft) 0%, var(--bg-warm) 100%);
+  background: var(--bg-soft);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
@@ -155,13 +156,13 @@
 .np-stat-num {
   font-size: 18px;
   font-weight: 800;
-  color: var(--red-deep);
+  color: var(--text);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 
 .np-stat-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-3);
   white-space: nowrap;
 }
@@ -172,6 +173,7 @@
   border-radius: var(--radius);
   padding: 12px 14px;
   background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .np-card-title {
@@ -183,25 +185,36 @@
 }
 
 .np-card-sub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-3);
   margin-bottom: 10px;
   font-style: italic;
 }
 
+.np-card-sub::after {
+  content: "深灰：偏高　中灰：接近期望　浅灰：偏低";
+  display: block;
+  margin-top: 6px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1.45;
+}
+
 /* 频次条形图 */
 .np-bar-row {
   display: grid;
-  grid-template-columns: 60px 1fr 110px;
+  grid-template-columns: 54px minmax(64px, 1fr) minmax(132px, auto);
   align-items: center;
   gap: 8px;
   margin: 6px 0;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .np-bar-label {
   color: var(--text-2);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .np-bar-track {
@@ -230,15 +243,24 @@
   transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.np-bar-fill.is-high { background: linear-gradient(90deg, var(--red-hl), var(--red)); }
-.np-bar-fill.is-mid { background: linear-gradient(90deg, var(--text-4), var(--text-3)); }
-.np-bar-fill.is-low { background: linear-gradient(90deg, var(--blue-hl), var(--blue)); }
+.np-bar-fill.is-high {
+  background: linear-gradient(90deg, var(--chart-mid), var(--chart-strong));
+}
+
+.np-bar-fill.is-mid {
+  background: linear-gradient(90deg, var(--chart-soft), var(--chart-mid));
+}
+
+.np-bar-fill.is-low {
+  background: linear-gradient(90deg, var(--chart-faint), var(--chart-soft));
+}
 
 .np-bar-value {
   text-align: right;
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
   font-size: 11px;
+  white-space: nowrap;
 }
 
 /* 键值对 */
@@ -277,7 +299,7 @@
 .np-recent li:last-child { border-bottom: none; }
 
 .np-recent-idx {
-  color: var(--red);
+  color: var(--primary);
   font-weight: 700;
 }
 
@@ -312,6 +334,6 @@
 
 /* 抽屉关闭按钮焦点 */
 .np-close:focus-visible {
-  outline: 2px solid var(--red);
+  outline: 2px solid var(--primary);
   outline-offset: 1px;
 }

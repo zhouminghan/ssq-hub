@@ -15,6 +15,7 @@ from _paths import (
     INDEX_FILE,
     LATEST_FILE,
     MANIFEST_FILE,
+    PAUSE_WINDOWS_FILE,
     SCHEMA_DIR,
     SOURCE_STATE_FILE,
     STATS_FILE,
@@ -230,6 +231,15 @@ def verify_corrections() -> None:
 
 def verify_source_state() -> None:
     print("\n[5/8] 数据来源追踪")
+    pause_payload = load_json(PAUSE_WINDOWS_FILE)
+    validate_shape(pause_payload, "pause-windows.schema.json", "lottery_pause_windows.json")
+    try:
+        from fetch_latest import load_pause_windows
+
+        windows = load_pause_windows()
+        print(f"  ✅ 停售窗口语义校验通过 ({len(windows)} 个)")
+    except ValueError as error:
+        fail(f"停售窗口语义校验失败: {error}")
     if not check_source_exists():
         return
     payload = load_json(SOURCE_STATE_FILE)
@@ -294,6 +304,7 @@ def verify_project_files() -> None:
         "web/data/manifest.json",
         "web/data/history_baseline.json",
         "web/data/source_state.json",
+        "web/config/lottery_pause_windows.json",
         "package.json",
         "package-lock.json",
     ]

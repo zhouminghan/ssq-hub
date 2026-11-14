@@ -23,6 +23,7 @@ const checks = [
   ['manifest.schema.json', path.join(dataDir, 'manifest.json')],
   ['history-baseline.schema.json', path.join(dataDir, 'history_baseline.json')],
   ['source-state.schema.json', path.join(dataDir, 'source_state.json')],
+  ['pause-windows.schema.json', path.join(root, 'web/config/lottery_pause_windows.json')],
 ];
 
 const historyDir = path.join(dataDir, 'history');

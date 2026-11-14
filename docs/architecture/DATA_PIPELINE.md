@@ -9,6 +9,27 @@ Both returned the latest 30 draws and matched local records during the
 2026-11-14 audit. `idcd.com` returned 404 HTML and is no longer in the source
 list.
 
+## Scheduled Draw and Holiday Handling
+
+Scheduled runs execute after the 22:10 Asia/Shanghai source-sync window. A
+Tuesday/Thursday/Sunday run must receive a draw dated today; an empty or old
+result is retried three times at ten-minute intervals before the job fails.
+
+Official market pauses live in
+`web/config/lottery_pause_windows.json` and are shared by the Python updater and
+browser next-draw estimate. The date range is inclusive. During a configured
+pause, the updater exits successfully before network access; any other draw-day
+no-op is an error.
+
+`LOTTERY_PAUSE_UNTIL` remains available as an emergency override.
+`LOTTERY_PAUSE_WINDOWS_JSON` can inject the official window list through
+repository variables when a newly published annual notice is available.
+
+The 2027 Spring Festival entry is explicitly marked `provisional` and uses the
+State Council holiday range as a fail-safe until the Ministry of Finance
+lottery-market notice is published. Replace that entry with the official notice
+when available.
+
 ## Draw Invariants
 
 - Seven-digit issue.
@@ -56,6 +77,13 @@ Local measurements on 3,527 draws:
 
 `generated_at` is preserved when generated content is unchanged, preventing
 no-op commits.
+
+## Cross-Year Behavior
+
+The first issue of a new year is `YYYY001`. Annual file selection follows the
+draw date, not the prior issue sequence. The browser derives the next issue year
+from the next scheduled draw date, so a late-December draw correctly points to
+the next year's `001` issue.
 
 ## Atomic Writes
 

@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "windows": [
+    {
+      "id": "2026-spring-festival",
+      "start": "2026-02-14",
+      "end": "2026-02-23",
+      "reason": "2026年福利彩票市场春节休市",
+      "source": "财政部公告2025年第14号"
+    },
+    {
+      "id": "2026-national-day",
+      "start": "2026-10-01",
+      "end": "2026-10-04",
+      "reason": "2026年彩票市场国庆节休市",
+      "source": "财政部公告2025年第14号"
+    },
+    {
+      "id": "2027-spring-festival-provisional",
+      "start": "2027-02-05",
+      "end": "2027-02-13",
+      "reason": "春节假期保守停售保护，正式彩票市场公告发布后替换",
+      "source": "国务院办公厅2027年部分节假日安排；彩票休市公告待发布",
+      "provisional": true
+    }
+  ]
+}

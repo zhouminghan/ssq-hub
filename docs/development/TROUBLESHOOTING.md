@@ -31,7 +31,7 @@ node scripts/dev-server.mjs 5174 web
 
 Update `baseURL`/`webServer.url` only for a temporary local POC.
 
-## Page shows `使用本地缓存`
+## Page shows `本地缓存`
 
 Both the same-origin JSON path and jsDelivr failed. Check network, then reload.
 The label intentionally prevents cached data from appearing fresh.

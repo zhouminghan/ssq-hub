@@ -42,14 +42,16 @@ Topics:
 License detection will become available after the added MIT `LICENSE` file is
 pushed to the default branch.
 
-## Blocker
+## Authentication Status
 
-The local `gh` token is invalid and unauthenticated API access is read-only. The
-branch has not been authorized for push. Therefore About, homepage, and topics
-could not be updated in this run.
+The stale `gh:github.com` keychain entry was removed and recreated from the
+existing GitHub credential. `gh auth status` now resolves account
+`zhouminghan` from the macOS keyring, and read-only repository access has been
+verified.
 
-Once authenticated, the maintainer can update them from repository settings or
-with an authenticated GitHub CLI/API call after the branch is merged.
+Remote settings and branch push remain untouched because no explicit push or
+settings authorization was provided for this recovery turn. About, homepage,
+and topics therefore have not been changed.
 
 ## Pages
 

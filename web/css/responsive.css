@@ -25,6 +25,36 @@
 
   .app-nav-item {
     padding: 0 10px;
+    min-height: 44px;
+  }
+
+  .github-link,
+  .theme-trigger {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex-basis: 44px;
+  }
+
+  .filter-tab,
+  .filter-reset,
+  .btn-apply,
+  .btn-ghost,
+  .filter-input,
+  .select-field {
+    min-height: 44px;
+  }
+
+  .select-field {
+    height: 44px;
+  }
+
+  .filter-reset {
+    min-width: 44px;
+  }
+
+  .theme-item {
+    min-height: 44px;
   }
 
   .overview {
@@ -65,7 +95,8 @@
 
   .header-brand {
     min-width: 0;
-    flex: 1 1 auto;
+    min-height: 44px;
+    flex: 0 1 auto;
   }
 
   .brand-mark {
@@ -89,28 +120,33 @@
 
   .github-link,
   .theme-trigger {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex-basis: 44px;
     justify-content: center;
     padding: 0;
   }
 
   .github-link span,
-  #theme-label,
-  .theme-trigger .chevron {
+  #theme-label {
     display: none;
   }
 
   .app-nav {
     order: 3;
     width: 100%;
-    height: 40px;
+    height: 44px;
     align-self: auto;
     border-top: 1px solid var(--line-soft);
   }
 
+  html[data-view="notes"] .overview {
+    display: none;
+  }
+
   .app-nav-item {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0 14px;
     border-radius: 0;
     background: transparent;
@@ -133,7 +169,7 @@
   }
 
   .theme-item {
-    min-height: 40px;
+    min-height: 44px;
     font-size: 13px;
   }
 
@@ -243,14 +279,18 @@
   }
 
   .trend-table thead th {
-    height: 30px;
-    padding: 0 2px;
-    font-size: 10px;
+    height: 32px;
+    padding: 0 1px;
+    font-size: 11px;
   }
 
   .trend-table thead th.col-issue,
   .trend-table tbody td.col-issue {
     min-width: 64px;
+  }
+
+  .trend-table thead th.col-issue {
+    font-size: 11px;
   }
 
   .trend-table tbody td {
@@ -269,17 +309,12 @@
   }
 
   .app-footer {
-    gap: 5px;
     padding: 0 10px;
-    font-size: 10px;
+    font-size: 11px;
   }
 
-  .app-footer span:nth-child(2) {
-    display: none;
-  }
-
-  .app-footer a {
-    margin-left: auto;
+  .footer-content {
+    gap: 3px;
   }
 
   .insight-card-head {
@@ -328,10 +363,6 @@
     display: none;
   }
 
-  .overview-heading span:first-child {
-    display: none;
-  }
-
   .draw-ball {
     width: 23px;
     height: 23px;
@@ -339,6 +370,10 @@
 
   .pattern-pairs {
     gap: 7px;
+  }
+
+  .frequency-tab {
+    min-height: 44px;
   }
 
   .pattern-stat {

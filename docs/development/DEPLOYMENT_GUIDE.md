@@ -49,5 +49,6 @@ Do not claim live success before these checks.
 
 ## Rollback
 
-Revert the site or data commit through a reviewed pull request. Never rewrite
-the protected history or force-push main.
+For a personal repository, roll back through an explicitly authorized revert
+commit. Do not require a pull request. Never rewrite the protected history or
+force-push `main`.

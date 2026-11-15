@@ -1,27 +1,31 @@
-# Contributing
+# 贡献指南
 
-## Workflow
+本项目是个人开发仓库，不要求为了形式走 Pull Request 流程。
 
-1. Open an issue describing the user-visible problem.
-2. Branch from current `main`.
-3. Keep data, UI, and workflow concerns in separate commits when practical.
-4. Add or update tests with the change.
-5. Run the full local quality gate.
-6. Open a pull request with screenshots for UI changes.
+## 工作流程
 
-## Pull Request Checklist
+1. 明确要解决的问题和验收标准。
+2. 对较大的改动，从当前基线建立工作分支；用户明确要求时可以直接在主分支工作。
+3. 保持数据、UI 和工作流改动边界清晰。
+4. 同步增加或更新测试。
+5. 运行相关质量门禁，并检查实际 diff。
+6. 向用户报告改动文件、测试证据、剩余风险和拟用提交信息。
+7. 按 `AGENTS.md` 的授权门禁，等待用户明确确认后再提交。
+8. 提交后直接继续个人仓库流程，不需要额外创建 Pull Request。
 
-- No historical record was hand-edited.
-- Schema and data gates pass.
-- Desktop and mobile browser tests pass.
-- Light and dark screenshots are included.
-- Accessibility has no serious/critical Axe issues.
-- README and architecture docs remain accurate.
-- No generated secrets or local caches are committed.
+## 提交前检查清单
 
-## Commit Style
+- 没有手工修改受保护的历史开奖记录。
+- Schema 和数据门禁通过。
+- 桌面端和移动端浏览器测试通过。
+- 浅色和深色已完成真实浏览器检查，截图不提交。
+- Axe 无障碍检查没有严重或致命问题。
+- README 和架构文档与实际项目一致。
+- 不提交密钥、本地缓存或生成物。
 
-Use a concise conventional prefix:
+## 提交信息风格
+
+使用简洁、明确的提交前缀：
 
 - `feat:`
 - `fix:`
@@ -30,8 +34,3 @@ Use a concise conventional prefix:
 - `docs:`
 - `chore(data):`
 - `ci:`
-
-## Review
-
-Data logic and UI changes require a reviewer who did not implement the change.
-Reviewer findings must reference source lines or reproducible browser evidence.

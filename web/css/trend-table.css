@@ -4,67 +4,12 @@
   min-width: 100%;
 }
 
-.trend-sticky-header {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 40;
-  height: 30px;
-  overflow: hidden;
-  pointer-events: none;
-  background: var(--bg-soft);
-  border-bottom: 1px solid var(--border-strong);
-}
-
-.trend-sticky-track {
-  width: max-content;
-  will-change: transform;
-}
-
-.trend-sticky-track .trend-table {
-  width: max-content;
-  min-width: 100%;
-}
-
-.trend-sticky-issue {
-  position: absolute;
-  top: 0;
-  height: 30px;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 78px;
-  color: var(--text);
-  background: var(--issue-head-bg);
-  border-right: 1px solid var(--border-strong);
-  font-size: 10px;
-  font-weight: 650;
-}
-
-.trend-header-clone {
-  table-layout: fixed;
-  background: var(--bg-soft);
-}
-
-.trend-header-clone thead,
-.trend-header-clone tr,
-.trend-header-clone th {
-  position: static;
-  transform: none;
-}
-
-.trend-header-clone th {
-  height: 29px;
-  padding: 0 3px;
-}
-
 .trend-table {
   width: max-content;
   min-width: 100%;
   color: var(--text-2);
   background: var(--bg-card);
+  border-collapse: separate;
   border-spacing: 0;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
@@ -82,34 +27,32 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  height: 30px;
-  padding: 0 3px;
-  color: var(--text-2);
+  height: 32px;
+  padding: 0 2px;
+  color: var(--table-head-text);
   background: var(--bg-soft);
   border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border-strong);
-  font-size: 10px;
-  font-weight: 650;
+  border-bottom: 2px solid var(--table-head-border);
+  box-shadow: 0 1px 0 var(--border);
+  font-size: 12px;
+  font-weight: 700;
   text-align: center;
   white-space: nowrap;
-  isolation: isolate;
-  transform: translateZ(0);
+  background-clip: padding-box;
 }
 
 .trend-table thead th.zone-red {
   color: var(--red-deep);
   background-color: var(--bg-soft);
+  background-image: linear-gradient(180deg, var(--bg-card), var(--red-soft));
   box-shadow: inset 0 -2px 0 var(--red-soft);
 }
 
 .trend-table thead th.zone-blue {
   color: var(--blue-deep);
   background-color: var(--bg-soft);
+  background-image: linear-gradient(180deg, var(--bg-card), var(--blue-soft));
   box-shadow: inset 0 -2px 0 var(--blue-soft);
-}
-
-.trend-table thead th.zone-blue:first-of-type {
-  border-left: 2px solid var(--border-strong);
 }
 
 .trend-table thead th.zone-aux {
@@ -121,16 +64,21 @@
 .trend-table thead th.col-issue {
   left: 0;
   z-index: 21;
-  min-width: 78px;
-  color: var(--text);
+  min-width: 80px;
+  color: var(--table-head-text);
   background: var(--issue-head-bg);
   border-right: 1px solid var(--border-strong);
+  font-size: 12px;
 }
 
 .number-head {
   width: 100%;
-  min-width: 22px;
-  padding: 4px 0;
+  height: 30px;
+  min-width: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   color: inherit;
   border-radius: 3px;
   font-size: inherit;
@@ -142,19 +90,13 @@
   background: rgba(127, 140, 160, 0.12);
 }
 
-.number-head.clone-focus {
-  color: var(--text);
-  outline: 2px solid var(--focus);
-  outline-offset: -2px;
-}
-
 .trend-table tbody td {
-  height: 29px;
-  min-width: 25px;
+  height: 30px;
+  min-width: 26px;
   padding: 0;
   background: var(--bg-card);
   border-right: 1px solid var(--line-soft);
-  border-bottom: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--table-row-line);
   color: var(--text-4);
   font-size: 11px;
   text-align: center;
@@ -169,8 +111,8 @@
   position: sticky;
   left: 0;
   z-index: 5;
-  min-width: 78px;
-  padding: 0 7px;
+  min-width: 80px;
+  padding: 0 8px;
   color: var(--text-2);
   background: var(--issue-body-bg);
   border-right: 1px solid var(--border-strong);
@@ -182,10 +124,6 @@
 
 .trend-table tbody tr:hover td.col-issue {
   background: var(--bg-warm);
-}
-
-.trend-table tbody td.col-blue:first-of-type {
-  border-left: 2px solid var(--border-strong);
 }
 
 .trend-table tbody td.col-aux {
@@ -216,6 +154,7 @@
 
 .trend-table td.hit .ball.red {
   background: radial-gradient(circle at 34% 28%, var(--red-hl), var(--red) 58%, var(--red-deep));
+  border: 1px solid var(--red-edge);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.28),
     0 1px 3px var(--red-line);
@@ -223,6 +162,7 @@
 
 .trend-table td.hit .ball.blue {
   background: radial-gradient(circle at 34% 28%, var(--blue-hl), var(--blue) 58%, var(--blue-deep));
+  border: 1px solid var(--blue-edge);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.28),
     0 1px 3px var(--blue-line);

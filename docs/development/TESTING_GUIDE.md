@@ -22,10 +22,10 @@ npm run test:visual
 npm run test:cross-browser
 ```
 
-`test:visual` compares the four committed macOS Chrome screenshots with a 1%
-pixel-difference limit and is skipped on CI/other platforms. CI still enforces
-the layout geometry assertions. The cross-browser config runs Firefox desktop
-and WebKit mobile smoke tests.
+Visual checks are performed in a real browser at the required desktop and
+mobile viewports. `test:visual` compares local screenshots with baselines under
+the Git-ignored `docs/screenshots/` directory. Screenshots are never committed.
+The cross-browser config runs Firefox desktop and WebKit mobile smoke tests.
 
 ## Targeted Browser Run
 
@@ -39,7 +39,7 @@ npx playwright test --project=mobile --grep "viewport"
 Playwright writes traces and failure screenshots under `test-results/`. The HTML
 report is in `playwright-report/`. Both are ignored by Git and uploaded by CI.
 
-Committed product screenshots are under `docs/screenshots/`.
+Do not commit screenshots or visual-baseline images.
 
 ## Data-Gate Negative Cases
 

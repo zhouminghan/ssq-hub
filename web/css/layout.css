@@ -38,6 +38,7 @@ body {
 }
 
 .header-brand {
+  order: 1;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -92,6 +93,7 @@ body {
 }
 
 .app-nav {
+  order: 2;
   display: flex;
   align-self: stretch;
   align-items: center;
@@ -131,6 +133,7 @@ body {
 }
 
 .header-actions {
+  order: 3;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -139,17 +142,19 @@ body {
 
 .github-link,
 .theme-trigger {
-  width: 32px;
-  min-height: 34px;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  flex: 0 0 36px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 0;
   justify-content: center;
   padding: 0;
   color: var(--text-2);
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 550;
   transition: border-color var(--transition-fast), background var(--transition-fast),
@@ -169,8 +174,9 @@ body {
 }
 
 .github-link svg {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
+  display: block;
   fill: currentColor;
 }
 
@@ -179,19 +185,9 @@ body {
 }
 
 .theme-trigger svg {
-  width: 14px;
-  height: 14px;
-}
-
-.theme-trigger .chevron {
-  width: 12px;
-  height: 12px;
-  color: var(--text-3);
-  transition: transform var(--transition-fast);
-}
-
-.theme-dropdown.open .chevron {
-  transform: rotate(180deg);
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 .theme-menu {
@@ -305,6 +301,17 @@ body {
   font-size: 12px;
   font-weight: 750;
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.draw-ball:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.draw-ball:active {
+  transform: translateY(0);
 }
 
 :root[data-theme="dark"] .draw-ball,
@@ -316,6 +323,7 @@ body {
 
 .draw-ball.red {
   background: radial-gradient(circle at 34% 28%, var(--red-hl), var(--red) 58%, var(--red-deep));
+  border: 1px solid var(--red-edge);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.24),
     0 1px 3px var(--red-line);
@@ -323,6 +331,7 @@ body {
 
 .draw-ball.blue {
   background: radial-gradient(circle at 34% 28%, var(--blue-hl), var(--blue) 58%, var(--blue-deep));
+  border: 1px solid var(--blue-edge);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.24),
     0 1px 3px var(--blue-line);
@@ -409,7 +418,8 @@ body {
 }
 
 .trend-view,
-.insights-view {
+.insights-view,
+.notes-view {
   min-height: 0;
   flex: 1 1 0;
   display: flex;
@@ -432,6 +442,11 @@ body {
   color: var(--text);
   font-size: 14px;
   font-weight: 700;
+}
+
+.section-heading h2:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
 }
 
 .section-heading p {
@@ -555,7 +570,17 @@ body {
   color: var(--text-3);
   background: var(--bg-card);
   border-top: 1px solid var(--border);
-  font-size: 10px;
+  font-size: 12px;
+}
+
+.footer-content {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .footer-sep {
@@ -565,12 +590,12 @@ body {
 .app-footer a {
   color: var(--text-2);
   text-decoration: underline;
-  text-decoration-color: var(--border-strong);
+  text-decoration-color: var(--text-4);
   text-underline-offset: 2px;
 }
 
 .app-footer a:hover {
-  color: var(--primary);
+  color: var(--red);
 }
 
 .btn-retry {

@@ -2,6 +2,7 @@
 import { h, qs } from './utils/dom.js';
 import { loadStats } from './data-loader.js';
 import { pad2 } from './utils/format.js';
+import { showProfile } from './number-profile.js';
 
 const RED_MAX = 33;
 const BLUE_MAX = 16;
@@ -13,8 +14,8 @@ function percentage(value, total) {
   return total > 0 ? Math.round((value / total) * 100) : 0;
 }
 
-function card(title, description, flag, content) {
-  return h('article.insight-card', null, [
+function card(title, description, flag, content, tone) {
+  return h(`article.insight-card.tone-${tone}`, null, [
     h('div.insight-card-head', null, [
       h('div', null, [
         h('h3', null, title),
@@ -32,7 +33,9 @@ function structureRow(label, parts, total, valueText) {
     'aria-label': `${label}，${valueText}`,
   });
   for (const part of parts) {
-    const segment = h(`span.${part.className}`);
+    const segment = h(`span.${part.className}`, {
+      title: `${part.label}：${part.value}`,
+    });
     segment.style.width = `${percentage(part.value, total)}%`;
     bar.appendChild(segment);
   }
@@ -52,19 +55,20 @@ function structureCard(stats) {
     '近 50 期',
     h('div.structure-list', null, [
       structureRow('三区分布', [
-        { className: 'seg-red', value: s.zone1 },
-        { className: 'seg-blue', value: s.zone2 },
-        { className: 'seg-gold', value: s.zone3 },
+        { className: 'seg-red', value: s.zone1, label: '一区' },
+        { className: 'seg-blue', value: s.zone2, label: '二区' },
+        { className: 'seg-gold', value: s.zone3, label: '三区' },
       ], ballTotal, `${s.zone1}:${s.zone2}:${s.zone3}`),
       structureRow('奇偶结构', [
-        { className: 'seg-red', value: s.odd },
-        { className: 'seg-muted', value: s.even },
+        { className: 'seg-red', value: s.odd, label: '奇数' },
+        { className: 'seg-blue', value: s.even, label: '偶数' },
       ], ballTotal, `${s.odd}:${s.even}`),
       structureRow('大小结构', [
-        { className: 'seg-blue', value: s.small },
-        { className: 'seg-muted', value: s.big },
+        { className: 'seg-blue', value: s.small, label: '小号' },
+        { className: 'seg-red', value: s.big, label: '大号' },
       ], ballTotal, `${s.small}:${s.big}`),
     ]),
+    'structure',
   );
 }
 
@@ -78,7 +82,7 @@ function acCard(stats) {
     'aria-label': `AC 值分布，${entries.map(([value, count]) => `AC ${value} 有 ${count} 期`).join('，')}`,
   });
   for (const [value, count] of entries) {
-    const bar = h('div.ac-bar');
+    const bar = h(count === max ? 'div.ac-bar.peak' : 'div.ac-bar');
     bar.style.height = `${Math.max(4, (count / max) * 105)}px`;
     chart.appendChild(h('div.ac-column', null, [
       h('span.ac-value', null, String(count)),
@@ -86,7 +90,7 @@ function acCard(stats) {
       h('span.ac-label', null, String(value)),
     ]));
   }
-  return card('AC 值分布', '号码离散度分布，基于最近 100 期', '近 100 期', chart);
+  return card('AC 值分布', '号码离散度分布，基于最近 100 期', '近 100 期', chart, 'ac');
 }
 
 function patternCard(stats) {
@@ -97,17 +101,18 @@ function patternCard(stats) {
     '连号与同尾在近期开奖中的覆盖比例',
     `${consecutive.window || 100} 期`,
     h('div.pattern-pairs', null, [
-      h('div.pattern-stat', null, [
+      h('div.pattern-stat.consecutive', null, [
         h('strong', null, `${Math.round((consecutive.ratio || 0) * 100)}%`),
         h('span', null, '出现连号'),
         h('small', null, `${consecutive.with_consec_count || 0} / ${consecutive.window || 100} 期`),
       ]),
-      h('div.pattern-stat', null, [
+      h('div.pattern-stat.same-tail', null, [
         h('strong', null, `${Math.round((sameTail.ratio || 0) * 100)}%`),
         h('span', null, '出现同尾'),
         h('small', null, `${sameTail.with_same_tail_count || 0} / ${sameTail.window || 100} 期`),
       ]),
     ]),
+    'pattern',
   );
 }
 
@@ -127,7 +132,11 @@ function frequencyList(stats, color) {
     const fill = h(`div.frequency-fill.${color}`);
     fill.style.width = `${Math.max(4, (count / max) * 100)}%`;
     list.appendChild(h('div.frequency-row', null, [
-      h(`span.frequency-ball.${color}`, null, pad2(number)),
+      h(`button.frequency-ball.${color}`, {
+        type: 'button',
+        'aria-label': `查看${color === 'red' ? '红球' : '蓝球'} ${pad2(number)} 的历史数据`,
+        onclick: () => showProfile(color, number),
+      }, pad2(number)),
       h('div.frequency-track', null, fill),
       h('span.frequency-count', null, String(count)),
     ]));
@@ -170,6 +179,7 @@ function frequencyCard(stats) {
     '最近 50 期出现次数，仅供历史数据阅读',
     '近 50 期',
     h('div', null, [tabs, content]),
+    'frequency',
   );
 }
 
@@ -197,9 +207,9 @@ export async function mountInsights({ force = false } = {}) {
     const stats = await loadStats();
     grid.replaceChildren(
       structureCard(stats),
-      acCard(stats),
       patternCard(stats),
       frequencyCard(stats),
+      acCard(stats),
       footerNote(stats),
     );
     qs('#insights-window').textContent = `近 ${stats.consecutive?.window || 100} 期`;

@@ -31,6 +31,7 @@
 }
 
 .insight-card {
+  position: relative;
   min-width: 0;
   height: 100%;
   display: flex;
@@ -40,6 +41,30 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
+}
+
+.insight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--insight-accent, var(--border-strong));
+}
+
+.insight-card.tone-structure {
+  --insight-accent: linear-gradient(90deg, var(--red), var(--blue) 52%, var(--gold));
+}
+
+.insight-card.tone-pattern {
+  --insight-accent: linear-gradient(90deg, var(--gold), var(--warning));
+}
+
+.insight-card.tone-ac {
+  --insight-accent: linear-gradient(90deg, var(--blue-hl), var(--blue-deep));
+}
+
+.insight-card.tone-frequency {
+  --insight-accent: linear-gradient(90deg, var(--red), var(--blue));
 }
 
 .insight-card-head {
@@ -70,6 +95,16 @@
   border-radius: 4px;
   font-size: 10px;
   font-variant-numeric: tabular-nums;
+}
+
+.tone-pattern .insight-flag {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.tone-ac .insight-flag {
+  color: var(--blue-deep);
+  background: var(--blue-soft);
 }
 
 .structure-list {
@@ -106,15 +141,15 @@
 }
 
 .structure-bar .seg-red {
-  background: var(--chart-strong);
+  background: linear-gradient(90deg, var(--red-deep), var(--red));
 }
 
 .structure-bar .seg-blue {
-  background: var(--chart-mid);
+  background: linear-gradient(90deg, var(--blue-deep), var(--blue));
 }
 
 .structure-bar .seg-gold {
-  background: var(--chart-soft);
+  background: linear-gradient(90deg, var(--warning), var(--gold));
 }
 
 .structure-bar .seg-muted {
@@ -160,8 +195,13 @@
   width: 100%;
   max-width: 36px;
   min-height: 2px;
-  background: color-mix(in srgb, var(--chart-mid) 82%, var(--bg-card));
+  background: linear-gradient(180deg, var(--blue-hl), var(--blue-deep));
   border-radius: 3px 3px 0 0;
+}
+
+.ac-bar.peak {
+  background: linear-gradient(180deg, var(--blue), var(--blue-deep));
+  box-shadow: 0 0 0 2px var(--blue-soft);
 }
 
 .ac-label {
@@ -188,6 +228,16 @@
   border-radius: 6px;
 }
 
+.pattern-stat.consecutive {
+  background: var(--red-soft);
+  border: 1px solid color-mix(in srgb, var(--red) 24%, var(--border));
+}
+
+.pattern-stat.same-tail {
+  background: var(--blue-soft);
+  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--border));
+}
+
 .pattern-stat strong {
   display: block;
   color: var(--text);
@@ -196,6 +246,14 @@
   font-weight: 650;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
+}
+
+.pattern-stat.consecutive strong {
+  color: var(--red-deep);
+}
+
+.pattern-stat.same-tail strong {
+  color: var(--blue-deep);
 }
 
 .pattern-stat span {
@@ -231,6 +289,16 @@
   background: var(--bg-soft);
 }
 
+.frequency-tab[data-color="red"].active {
+  color: var(--red-deep);
+  background: var(--red-soft);
+}
+
+.frequency-tab[data-color="blue"].active {
+  color: var(--blue-deep);
+  background: var(--blue-soft);
+}
+
 .frequency-list {
   display: flex;
   flex-direction: column;
@@ -255,10 +323,23 @@
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 720;
+  padding: 0;
+  cursor: pointer;
+  transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.frequency-ball:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.frequency-ball:active {
+  transform: translateY(0);
 }
 
 .frequency-ball.red {
   background: radial-gradient(circle at 34% 28%, var(--red-hl), var(--red) 58%, var(--red-deep));
+  border: 1px solid var(--red-edge);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.28),
     0 1px 3px var(--red-line);
@@ -266,6 +347,7 @@
 
 .frequency-ball.blue {
   background: radial-gradient(circle at 34% 28%, var(--blue-hl), var(--blue) 58%, var(--blue-deep));
+  border: 1px solid var(--blue-edge);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.28),
     0 1px 3px var(--blue-line);
@@ -280,12 +362,12 @@
 
 .frequency-fill {
   height: 100%;
-  background: var(--chart-strong);
+  background: linear-gradient(90deg, var(--red-deep), var(--red));
   border-radius: inherit;
 }
 
 .frequency-fill.blue {
-  background: var(--chart-mid);
+  background: linear-gradient(90deg, var(--blue-deep), var(--blue));
 }
 
 .frequency-count {
@@ -328,16 +410,16 @@
 
   .insight-card:nth-child(2) {
     grid-column: 8 / span 5;
-    grid-row: 2;
-  }
-
-  .insight-card:nth-child(3) {
-    grid-column: 8 / span 5;
     grid-row: 1;
   }
 
-  .insight-card:nth-child(4) {
+  .insight-card:nth-child(3) {
     grid-column: 1 / span 7;
+    grid-row: 2;
+  }
+
+  .insight-card:nth-child(4) {
+    grid-column: 8 / span 5;
     grid-row: 2;
   }
 
@@ -373,7 +455,7 @@
   }
 
   .structure-row {
-    grid-template-columns: 78px minmax(60px, 1fr) 44px;
+    grid-template-columns: 72px minmax(60px, 1fr) 62px;
     gap: 7px;
   }
 

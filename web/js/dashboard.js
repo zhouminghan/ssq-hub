@@ -1,6 +1,7 @@
 // ── 产品概览：最新一期、数据规模与新鲜度 ──
 import { h, qs } from './utils/dom.js';
 import { pad2 } from './utils/format.js';
+import { showProfile } from './number-profile.js';
 
 function daysSince(dateText) {
   const then = new Date(`${dateText}T00:00:00+08:00`).getTime();
@@ -32,15 +33,20 @@ export function mountDashboard(index, latest, loadState = {}, calendar = {}) {
   }
 
   const balls = qs('#overview-balls');
+  balls.setAttribute('role', 'group');
   balls.replaceChildren();
   for (const number of draw.red) {
-    balls.appendChild(h('span.draw-ball.red', {
-      'aria-label': `红球 ${pad2(number)}`,
+    balls.appendChild(h('button.draw-ball.red', {
+      type: 'button',
+      'aria-label': `查看红球 ${pad2(number)} 的历史数据`,
+      onclick: () => showProfile('red', number),
     }, pad2(number)));
   }
   balls.appendChild(h('span.draw-ball-separator', { 'aria-hidden': 'true' }));
-  balls.appendChild(h('span.draw-ball.blue', {
-    'aria-label': `蓝球 ${pad2(draw.blue)}`,
+  balls.appendChild(h('button.draw-ball.blue', {
+    type: 'button',
+    'aria-label': `查看蓝球 ${pad2(draw.blue)} 的历史数据`,
+    onclick: () => showProfile('blue', draw.blue),
   }, pad2(draw.blue)));
 
   const age = daysSince(draw.date);
@@ -109,8 +115,29 @@ export function markDashboardUnavailable() {
   qs('#metric-status-detail').textContent = '请稍后重试';
 }
 
-/** 绑定“走势分析 / 数据洞察”主视图。 */
-export function bindViewNavigation() {
+const VIEW_META = {
+  trend: { section: 'trend-view', title: 'SSQ Hub · 双色球数据分析', skip: '跳到走势图' },
+  insights: { section: 'insights-view', title: '数据洞察 · SSQ Hub', skip: '跳到数据洞察' },
+  notes: { section: 'notes-view', title: '研究笔记 · SSQ Hub', skip: '跳到研究笔记' },
+};
+
+function currentView() {
+  const requested = new URLSearchParams(location.search).get('view');
+  return requested && requested in VIEW_META ? requested : 'trend';
+}
+
+function viewUrl(view) {
+  const url = new URL(location.href);
+  if (view === 'trend') url.searchParams.delete('view');
+  else url.searchParams.set('view', view);
+  return url;
+}
+
+/**
+ * 绑定走势、洞察和研究笔记主视图。
+ * @param {{ onChange?: (view: string) => void }} [options]
+ */
+export function bindViewNavigation({ onChange } = {}) {
   /** @type {HTMLElement[]} */
   const buttons = [];
   document.querySelectorAll('.app-nav-item').forEach((element) => {
@@ -118,9 +145,11 @@ export function bindViewNavigation() {
   });
   const trendView = qs('#trend-view');
   const insightsView = qs('#insights-view');
+  const notesView = qs('#notes-view');
   const filterBar = qs('#filter-bar');
 
-  const setView = (view) => {
+  const setView = (requested, { historyMode = 'none', focus = false } = {}) => {
+    const view = requested in VIEW_META ? requested : 'trend';
     buttons.forEach((button) => {
       const active = button.dataset.view === view;
       button.classList.toggle('active', active);
@@ -129,15 +158,41 @@ export function bindViewNavigation() {
     });
     trendView.hidden = view !== 'trend';
     insightsView.hidden = view !== 'insights';
+    notesView.hidden = view !== 'notes';
     filterBar.hidden = view !== 'trend';
     document.documentElement.dataset.view = view;
+    document.title = VIEW_META[view].title;
+    const skip = qs('#skip-link');
+    skip.href = `#${VIEW_META[view].section}`;
+    skip.textContent = VIEW_META[view].skip;
+
+    const url = viewUrl(view);
+    if (historyMode === 'push' && url.href !== location.href) {
+      history.pushState({ view }, '', url);
+    } else if (historyMode === 'replace' && url.href !== location.href) {
+      history.replaceState({ view }, '', url);
+    }
+
+    onChange?.(view);
+    if (focus) {
+      const heading = qs(`#${VIEW_META[view].section} h2`);
+      if (heading) {
+        heading.tabIndex = -1;
+        heading.focus({ preventScroll: true });
+      }
+    }
   };
 
   buttons.forEach((button) => {
     button.addEventListener('click', () => {
-      if (button instanceof HTMLElement && button.dataset.view) setView(button.dataset.view);
+      if (button instanceof HTMLElement && button.dataset.view) {
+        setView(button.dataset.view, { historyMode: 'push' });
+      }
     });
   });
-  setView('trend');
+  window.addEventListener('popstate', () => {
+    setView(currentView(), { focus: true });
+  });
+  setView(currentView(), { historyMode: 'replace' });
   return setView;
 }

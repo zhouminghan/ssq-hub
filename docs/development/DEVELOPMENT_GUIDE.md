@@ -6,7 +6,8 @@
 2. Change the smallest relevant ES module or CSS file.
 3. Run `npm run typecheck`, `npm run lint`, and `npm run test:unit`.
 4. Run the relevant Playwright test.
-5. Inspect desktop and mobile screenshots for layout regressions.
+5. Inspect the real page at desktop and mobile widths and use the ignored local
+   screenshot baselines for visual regressions.
 
 Do not add a runtime dependency unless an ADR explains why native browser
 capability is insufficient.

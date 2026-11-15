@@ -20,25 +20,40 @@ test('cross-browser core table and sticky layout', async ({ page }) => {
   expect(layout.table).toBeGreaterThan(layout.viewport);
 
   await page.locator('#trend-scroll').evaluate((element) => {
-    element.scrollLeft = 300;
-    element.scrollTop = 100;
+    element.scrollLeft = element.scrollWidth;
+    element.scrollTop = element.scrollHeight;
   });
   await page.waitForTimeout(150);
   const alignment = await page.evaluate(() => {
-    const source = document.querySelector('#trend-table thead th:nth-child(20)')!
-      .getBoundingClientRect();
-    const clone = document.querySelector('#trend-sticky-track th:nth-child(20)')!
-      .getBoundingClientRect();
-    const shell = document.querySelector('#trend-sticky-header')!.getBoundingClientRect();
-    return { delta: Math.abs(source.left - clone.left), shellHeight: shell.height };
+    const heading = document.querySelector('#trend-table thead th')!.getBoundingClientRect();
+    const issue = document.querySelector('#trend-table thead th.col-issue')!.getBoundingClientRect();
+    const container = document.querySelector('#trend-scroll')!.getBoundingClientRect();
+    return {
+      headingTop: heading.top,
+      issueLeft: issue.left,
+      containerTop: container.top,
+      containerLeft: container.left,
+    };
   });
-  expect(alignment.delta).toBeLessThanOrEqual(2);
-  expect(alignment.shellHeight).toBeGreaterThanOrEqual(29);
+  expect(Math.abs(alignment.headingTop - alignment.containerTop)).toBeLessThanOrEqual(2);
+  expect(Math.abs(alignment.issueLeft - alignment.containerLeft)).toBeLessThanOrEqual(2);
+
+  await page.getByRole('button', { name: '研究笔记' }).click();
+  await expect(page.locator('.note-article-head h2')).toContainText('组合数');
+  expect(await page.locator('.math-display math').count()).toBeGreaterThanOrEqual(3);
+
+  await page.getByRole('button', { name: '数据洞察' }).click();
+  await expect(page.locator('.insight-card')).toHaveCount(4);
+  await expect(page.locator('.insight-card.tone-frequency')).toBeVisible();
+
+  await page.getByRole('button', { name: '走势分析' }).click();
 
   await page.locator('#theme-trigger').click();
   await page.getByRole('option', { name: '深色' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.getByRole('button', { name: '查看红球 01 的历史数据' }).click();
+  await page.locator('#trend-table')
+    .getByRole('button', { name: '查看红球 01 的历史数据' })
+    .click();
   await expect(page.getByRole('dialog', { name: '红球 01' })).toBeVisible();
   await page.getByRole('button', { name: '关闭' }).click();
   expect(runtimeErrors).toEqual([]);

@@ -11,13 +11,9 @@
   <meta property="og:title" content="SSQ Hub · 双色球数据洞察" />
   <meta property="og:description" content="3500+ 期双色球历史走势、遗漏与结构统计。数据自动更新，适配桌面和移动端。" />
   <meta property="og:url" content="https://zhouminghan.github.io/ssq-hub/" />
-  <meta property="og:image" content="https://zhouminghan.github.io/ssq-hub/assets/img/og-cover.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="SSQ Hub · 双色球数据洞察" />
   <meta name="twitter:description" content="3500+ 期双色球历史走势、遗漏与结构统计。" />
-  <meta name="twitter:image" content="https://zhouminghan.github.io/ssq-hub/assets/img/og-cover.png" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -41,19 +37,20 @@
         saved === 'light' || saved === 'dark' ? saved : (dark ? 'dark' : 'light'));
     })();
   </script>
-  <link rel="stylesheet" href="./css/reset.css?v=20261114" />
-  <link rel="stylesheet" href="./css/theme.css?v=20261114" />
-  <link rel="stylesheet" href="./css/layout.css?v=20261114" />
-  <link rel="stylesheet" href="./css/filter-bar.css?v=20261114" />
-  <link rel="stylesheet" href="./css/trend-table.css?v=20261114" />
-  <link rel="stylesheet" href="./css/trend-overlay.css?v=20261114" />
-  <link rel="stylesheet" href="./css/number-profile.css?v=20261114" />
-  <link rel="stylesheet" href="./css/insights.css?v=20261114" />
-  <link rel="stylesheet" href="./css/responsive.css?v=20261114" />
+  <link rel="stylesheet" href="./css/reset.css?v=2026111515" />
+  <link rel="stylesheet" href="./css/theme.css?v=2026111515" />
+  <link rel="stylesheet" href="./css/layout.css?v=2026111515" />
+  <link rel="stylesheet" href="./css/filter-bar.css?v=2026111515" />
+  <link rel="stylesheet" href="./css/trend-table.css?v=2026111515" />
+  <link rel="stylesheet" href="./css/trend-overlay.css?v=2026111515" />
+  <link rel="stylesheet" href="./css/number-profile.css?v=2026111515" />
+  <link rel="stylesheet" href="./css/insights.css?v=2026111515" />
+  <link rel="stylesheet" href="./css/notes.css?v=2026111515" />
+  <link rel="stylesheet" href="./css/responsive.css?v=2026111515" />
 </head>
 <body>
   <nav class="skip-nav" aria-label="辅助导航">
-    <a href="#trend-view" class="skip-link">跳到走势图</a>
+    <a href="#trend-view" class="skip-link" id="skip-link">跳到走势图</a>
   </nav>
 
   <header class="app-header">
@@ -66,11 +63,6 @@
         <small>双色球数据洞察</small>
       </span>
     </a>
-
-    <nav class="app-nav" aria-label="主要视图">
-      <button class="app-nav-item active" type="button" data-view="trend" aria-current="page">走势分析</button>
-      <button class="app-nav-item" type="button" data-view="insights">数据洞察</button>
-    </nav>
 
     <div class="header-actions">
       <a class="github-link" href="https://github.com/zhouminghan/ssq-hub"
@@ -85,8 +77,6 @@
                 aria-haspopup="listbox" aria-expanded="false" aria-label="选择主题">
           <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
-          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
         </button>
         <div class="theme-menu" id="theme-menu" role="listbox" hidden>
           <button class="theme-item" data-theme="auto" role="option" type="button">
@@ -101,6 +91,12 @@
         </div>
       </div>
     </div>
+
+    <nav class="app-nav" aria-label="主要视图">
+      <button class="app-nav-item active" type="button" data-view="trend" aria-current="page">走势分析</button>
+      <button class="app-nav-item" type="button" data-view="insights">数据洞察</button>
+      <button class="app-nav-item" type="button" data-view="notes">研究笔记</button>
+    </nav>
   </header>
 
   <section class="overview" id="overview" aria-label="数据概览">
@@ -154,10 +150,6 @@
           <span class="spinner" aria-hidden="true"></span>
           <span>正在加载走势数据</span>
         </div>
-        <div class="trend-sticky-header" id="trend-sticky-header" aria-hidden="true" hidden>
-          <div class="trend-sticky-track" id="trend-sticky-track"></div>
-          <div class="trend-sticky-issue" id="trend-sticky-issue">期号</div>
-        </div>
         <div class="trend-scroll" id="trend-scroll" hidden>
           <div class="trend-canvas">
             <table class="trend-table" id="trend-table">
@@ -181,13 +173,33 @@
         <div class="insights-loading"><span class="spinner" aria-hidden="true"></span>正在计算概览</div>
       </div>
     </section>
+
+    <section class="notes-view" id="notes-view" aria-labelledby="notes-title" hidden>
+      <div class="section-heading">
+        <div>
+          <h2 id="notes-title">研究笔记</h2>
+          <p>用组合数、概率和期望理解双色球</p>
+        </div>
+        <span class="section-note">概率与理性</span>
+      </div>
+      <div class="notes-shell" id="notes-root">
+        <div class="notes-loading" role="status">
+          <span class="spinner" aria-hidden="true"></span>
+          正在加载研究笔记
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="app-footer">
-    <span>数据来自公开开奖记录</span>
-    <span class="footer-sep" aria-hidden="true">·</span>
-    <span>历史数据不预测未来</span>
-    <a href="https://github.com/zhouminghan/ssq-hub" target="_blank" rel="noopener noreferrer">项目源码</a>
+    <div class="footer-content">
+      <span>数据来源：</span>
+      <a href="https://datachart.500.com/ssq/" target="_blank" rel="noopener noreferrer">500彩票网</a>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <a href="https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/" target="_blank" rel="noopener noreferrer">中国福利彩票网</a>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <span>历史数据不预测未来</span>
+    </div>
   </footer>
 
   <script>
@@ -209,7 +221,7 @@
       loading.append(message, retry);
     }, 12000);
   </script>
-  <script type="module" src="./js/main.js?v=20261114"></script>
+  <script type="module" src="./js/main.js?v=2026111515"></script>
   <noscript><p class="noscript">本应用需要 JavaScript 才能运行。</p></noscript>
 </body>
 </html>

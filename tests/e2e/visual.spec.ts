@@ -59,3 +59,18 @@ test('mobile and insights visual baselines', async ({ page }, testInfo) => {
   await page.waitForTimeout(300);
   await compareScreenshot(page, 'insights-mobile-dark');
 });
+
+test('research notes visual baselines', async ({ page }, testInfo) => {
+  test.skip(Boolean(process.env.CI), 'Baselines are generated on macOS Chrome');
+  test.skip(process.platform !== 'darwin', 'Baselines are generated on macOS Chrome');
+  await page.clock.setFixedTime(new Date('2026-11-14T10:00:00+08:00'));
+  await page.goto('/');
+  await expect(page.locator('#trend-table tbody tr')).toHaveCount(50);
+  await page.getByRole('button', { name: '研究笔记' }).click();
+  await expect(page.locator('.note-article-head h2')).toBeVisible();
+  await page.waitForTimeout(300);
+  await compareScreenshot(
+    page,
+    testInfo.project.name === 'mobile' ? 'notes-mobile-light' : 'notes-light',
+  );
+});

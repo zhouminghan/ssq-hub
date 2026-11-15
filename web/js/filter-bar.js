@@ -8,6 +8,10 @@ const QUICK_RANGES = [30, 50, 100, 150, 300];
 let idxCache = null;
 let latestCache = null;
 
+function selectField(select) {
+  return h('span.select-field', null, select);
+}
+
 /** 当前最新实际开奖序号，避免年末生成不存在的下一期。 */
 function currentIssueSeq() {
   return latestCache ? latestCache.latest_draw.issue.slice(4) : '001';
@@ -61,8 +65,8 @@ export async function mountFilterBar(root) {
   reset.addEventListener('click', () => store.set('filter', { ...defaultFilter }));
 
   root.appendChild(tabs);
-  root.appendChild(panel);
   root.appendChild(reset);
+  root.appendChild(panel);
 
   // 切换 Tab
   tabs.addEventListener('click', (e) => {
@@ -94,6 +98,7 @@ export async function mountFilterBar(root) {
       const active = el.dataset.mode === f.mode;
       el.classList.toggle('active', active);
       el.setAttribute('aria-selected', String(active));
+      el.tabIndex = active ? 0 : -1;
     });
     // 渲染对应面板
     clear(panel);
@@ -141,14 +146,18 @@ function renderRecentPanel(panel, f) {
   });
 
   // 「自定义…」按钮：点击展开 popover 输入框
-  const customBtn = h('button.btn-ghost.btn-custom', { type: 'button' }, '自定义…');
+  const customBtn = h('button.btn-ghost.btn-custom', {
+    type: 'button',
+    'aria-haspopup': 'dialog',
+    'aria-expanded': 'false',
+  }, '自定义…');
   customBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     openCustomPopover(customBtn, f, total);
   });
 
   panel.appendChild(label);
-  panel.appendChild(select);
+  panel.appendChild(selectField(select));
   panel.appendChild(customBtn);
 }
 
@@ -168,13 +177,19 @@ function openCustomPopover(anchor, f, total) {
   const apply = h('button.btn-apply', { type: 'button' }, '应用');
   const hint = h('span.filter-hint', null, `共 ${total} 期`);
 
-  const pop = h('div.custom-popover', null, [
+  const pop = h('div.custom-popover', {
+    id: 'custom-range-popover',
+    role: 'dialog',
+    'aria-label': '自定义最近期数',
+  }, [
     h('div.custom-popover-row', null, [input, apply]),
     hint,
   ]);
 
   // 绝对定位到按钮下方
   document.body.appendChild(pop);
+  anchor.setAttribute('aria-controls', pop.id);
+  anchor.setAttribute('aria-expanded', 'true');
   const r = anchor.getBoundingClientRect();
   pop.style.position = 'fixed';
   pop.style.top = `${r.bottom + 6}px`;
@@ -183,16 +198,22 @@ function openCustomPopover(anchor, f, total) {
   // 自动 focus + 全选
   setTimeout(() => { input.focus(); input.select(); }, 0);
 
-  const close = () => {
+  const close = (restoreFocus = true) => {
     pop.remove();
+    anchor.setAttribute('aria-expanded', 'false');
+    anchor.removeAttribute('aria-controls');
     document.removeEventListener('click', onDocClick, true);
     document.removeEventListener('keydown', onKey);
+    if (restoreFocus && anchor.isConnected) anchor.focus();
   };
   const onDocClick = (e) => {
-    if (!pop.contains(e.target) && e.target !== anchor) close();
+    if (!pop.contains(e.target) && e.target !== anchor) close(false);
   };
   const onKey = (e) => {
-    if (e.key === 'Escape') close();
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      close();
+    }
     if (e.key === 'Enter') apply.click();
   };
   document.addEventListener('click', onDocClick, true);
@@ -202,8 +223,12 @@ function openCustomPopover(anchor, f, total) {
     let v = parseInt(input.value, 10);
     if (!Number.isFinite(v) || v < 1) v = total;
     if (v > total) v = total;
+    close(false);
     store.set('filter', { ...f, mode: 'recent', recent: v });
-    close();
+    requestAnimationFrame(() => {
+      const next = document.querySelector('.filter-select');
+      if (next instanceof HTMLElement) next.focus();
+    });
   });
 }
 
@@ -222,7 +247,7 @@ function renderYearPanel(panel, f, idx) {
     store.set('filter', { ...f, mode: 'year', year: select.value });
   });
   panel.appendChild(label);
-  panel.appendChild(select);
+  panel.appendChild(selectField(select));
 }
 
 // ── 同期对比：展示当前对齐期号与可匹配年份数 ──
@@ -246,7 +271,7 @@ function renderComparePanel(panel, f) {
       compareIssues: defaultCompareIssues(selected),
     });
   });
-  panel.appendChild(select);
+  panel.appendChild(selectField(select));
   panel.appendChild(h('div.compare-summary', null, [
     h('span.compare-badge', null, `第 ${seq} 期`),
     h('span', null, `对齐 ${matched} 个历史年份的同期开奖`),

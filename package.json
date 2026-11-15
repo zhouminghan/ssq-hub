@@ -17,7 +17,7 @@
     "test:e2e": "playwright test",
     "test:cross-browser": "playwright test --config=playwright.cross-browser.config.ts",
     "test:visual": "playwright test --grep \"visual baseline\"",
-    "test:e2e:update": "playwright test --update-snapshots",
+    "sync:katex": "node scripts/sync-katex.mjs",
     "test:data": ".venv/bin/python scripts/verify_data.py",
     "test:python": "PYTHONPATH=scripts python3 -m unittest discover -s tests/python -v",
     "test": "npm run check && npm run test:schema && npm run test:e2e"
@@ -33,6 +33,7 @@
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "eslint": "^10.15.0",
+    "katex": "^0.19.1",
     "pixelmatch": "^8.0.0",
     "pngjs": "^7.0.0",
     "typescript": "^7.0.2"

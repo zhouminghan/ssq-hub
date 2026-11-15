@@ -48,13 +48,21 @@ reset to recent 50 on page load.
 
 The trend view rerenders the table from a fresh row model. It does not mutate
 the loaded JSON. Omission values are accumulated while rows are rendered.
-The SVG overlay is redrawn after resize and scroll. A synchronized, non-
-interactive header paint layer covers the native sticky header and dynamically
-masks the portion of a row crossing its lower edge. The semantic header below
-still owns mouse and keyboard input.
+The SVG overlay is redrawn after resize and scroll. The table uses one native
+sticky header, which owns both the visible paint layer and mouse/keyboard
+interaction. A second cloned header is not used because compositor-driven
+scrolling can leave duplicate or partially painted header layers.
 
 Temporary filters expose a top-level order token. If two requests race, only the
 latest render token may replace the table.
+
+The research-notes view loads a local manifest and Markdown files from
+`web/content/notes/`. A small DOM-based renderer supports headings, paragraphs,
+lists, quotes, links, tables, display-math blocks, and named chart directives
+without inserting untrusted raw HTML. Display math is rendered to MathML by a
+vendored KaTeX ESM build. Probability and expectation charts are generated from
+local DOM/CSS data visualizations. Note content stays editable as Markdown while
+the production runtime remains framework-free and works without a math CDN.
 
 ## Accessibility
 

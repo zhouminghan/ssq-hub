@@ -1,8 +1,7 @@
 # AGENTS.md
 
 This is the single authoritative instruction file for coding agents working on
-SSQ Hub. The former `AGENT.md` has been merged here and removed to prevent
-conflicting rules.
+SSQ Hub.
 
 ## Product
 
@@ -10,10 +9,6 @@ SSQ Hub is a static, data-dense web product for exploring Chinese Double Color
 Ball historical draws. It is not a prediction, recommendation, betting, or
 financial product. User-facing copy must consistently say that history does not
 predict the future.
-
-Live site: <https://zhouminghan.github.io/ssq-hub/>
-
-Repository: <https://github.com/zhouminghan/ssq-hub>
 
 ## Architecture
 
@@ -78,45 +73,56 @@ write. `idcd.com` was removed because it returned 404 HTML during verification.
 
 ## Commands
 
-```bash
-# Python environment
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.lock
+Use the documented sources instead of maintaining duplicate command lists:
 
-# Local application
-npm install
-npm run dev
-
-# Quality
-npm run typecheck
-npm run lint
-npm run test:unit
-npm run test:python
-npm run test:schema
-.venv/bin/python scripts/verify_data.py
-npx playwright test
-
-# Data pipeline
-.venv/bin/python scripts/fetch_latest.py
-.venv/bin/python scripts/calc_all.py
-.venv/bin/python scripts/verify_data.py
-```
-
-`npm run dev` serves `web/` at `http://127.0.0.1:5173`.
+- Setup and local server: `docs/development/GETTING_STARTED.md`
+- Quality gates and browser evidence: `docs/development/TESTING_GUIDE.md`
+- Data pipeline behavior: `docs/architecture/DATA_PIPELINE.md`
+- Deploy and recovery: `docs/development/DEPLOYMENT_GUIDE.md`
 
 ## Frontend Rules
 
 - Keep the application usable without a backend.
 - Preserve all 58 trend columns: issue, 33 red, 16 blue, 8 structure columns.
 - Preserve frozen issue column and sticky table header.
+- Keep the restored reference table-header density: a 32px header row, 12px
+  desktop labels, 80px desktop issue column, and an opaque two-tone header.
+- Keep the footer centered and compact with public data-source links and the
+  non-prediction disclaimer; do not turn it into a second navigation bar.
 - Preserve horizontal and vertical internal scrolling.
 - Preserve blue-ball SVG connection.
 - Preserve recent-5 highlight and latest-draw positioning.
 - Preserve recent N, year, and cross-year comparison filters.
+- Filter select controls use the shared `select-field` wrapper with one custom
+  chevron, a 36px desktop control and 44px touch target. Keep native `<select>`
+  semantics and visible `focus-within` feedback.
+- Main views must remain deep-linkable through `?view=trend|insights|notes`;
+  browser back/forward and refresh must restore the selected view.
+- Custom popovers and menus must expose expanded state, support Escape, close
+  when keyboard focus leaves, and return focus to their trigger.
 - Do not introduce framework runtime without an accepted ADR.
 - Use semantic HTML and native controls before custom widgets.
 - Every icon-only control needs an accessible name.
 - Numeric cell interactions must have a keyboard-accessible header alternative.
+- Number balls in the overview and insight frequency list must open the same
+  number-profile drawer as the trend table; interactive balls must be native
+  buttons with descriptive accessible names.
+- Preserve the `研究笔记` view and keep its source files as Markdown under
+  `web/content/notes/`. Render with the local safe parser; do not inject
+  untrusted HTML or add a framework runtime for note rendering.
+- Research-note cards are discovery indexes, not modal articles. Keep long-form
+  notes in the inline reader with `?view=notes&note=<id>`; do not place formulas,
+  tables, and charts inside a modal.
+- Data-insight colors must carry meaning: red/blue structural series follow the
+  established number semantics, gold marks pattern or recency signals, AC uses
+  one ordered blue scale, and red/blue frequency bars match their ball type.
+- Display math uses `$$ ... $$` blocks rendered by the vendored KaTeX MathML
+  engine. Note charts use explicit `:::chart` directives backed by local DOM/CSS
+  renderers, not remote image services.
+- Horizontally scrollable note tables need keyboard focus and an accessible
+  region name.
+- On mobile, research-note reading uses one outer scroll region. Do not place
+  the whole article in an `aria-live` region or create nested article scrolls.
 - The drawer must handle Escape, focus entry, focus return, and mobile full-width
   layout.
 - Respect `prefers-reduced-motion`.
@@ -149,22 +155,58 @@ npx playwright test
 - Changes to data logic require Python tests and `scripts/verify_data.py`.
 - Changes to data contracts require `tests/schema/validate-data.mjs`.
 - Changes to browser behavior require Playwright desktop and mobile checks.
-- Changes to theme, layout, or interactions require real screenshots.
+- Changes to theme, layout, or interactions require real-browser inspection at
+  the required viewports. Screenshots may be used as local temporary evidence,
+  but must not be committed.
 - Do not alter expected results to hide a real defect.
 - Failed quality gates block commit and deployment.
 
 ## Git And Release Rules
 
-- Work on a non-main branch unless the user explicitly requests otherwise.
-- Never push, merge, release, rewrite history, or change repository settings
-  without explicit user authorization.
+- This is a personal development repository, not a team PR workflow. Do not
+  require a pull request, reviewer approval, or merge ceremony merely because
+  code changed.
+- Work on a non-main branch for substantial multi-step work unless the user
+  explicitly requests direct work on `main`. After the user authorizes
+  delivery, a solo repository may commit directly to the target branch without
+  creating a pull request.
+- Every `git add` or `git commit` is blocked by default. Never stage or commit
+  a change until the user explicitly confirms that specific working diff.
+- Before asking for commit confirmation, inspect the diff, run the relevant
+  gates, and report the changed files, test evidence, remaining risks, and
+  proposed commit message. Then stop with `BLOCKED: COMMIT AUTHORIZATION`.
+- A commit confirmation applies only to the named diff and one commit. It does
+  not authorize later commits, pushes, merges, releases, workflow runs, or
+  repository settings changes.
+- Do not infer commit permission from instructions such as "fix it",
+  "continue", "finish", "ship it", or "do not ask questions". Only an explicit
+  instruction to commit the current diff satisfies this gate.
+- After explicit confirmation, commit directly. Do not create a pull request
+  unless the user specifically asks for one.
+- Never push, merge to a remote branch, release, rewrite history, or change
+  repository settings without separate explicit user authorization.
 - Never discard user changes or revert unrelated files.
-- Inspect `git diff` before committing.
 - GitHub Actions are the only production data writer.
 - Update workflow must verify before fetch, verify after calculation, commit
   only `web/data/`, and deploy only after success.
 - Pages deployment must be based on actual commit/file differences, not author
   names or commit-message heuristics.
+
+### Push Authorization Gate
+
+- Every push is blocked by default. Commit confirmation never implies push,
+  merge, release, workflow, Pages, or repository-setting authorization.
+- Before requesting push confirmation, fetch the remote and inspect:
+  - `git diff --stat origin/<remote-branch>...HEAD`
+  - `git diff --name-status origin/<remote-branch>...HEAD`
+  - `git log --oneline origin/<remote-branch>..HEAD`
+  - untracked files and local-only process artifacts
+- Summarize the exact commit range, user-facing changes, runtime/config/data
+  changes, tests, repository metadata changes, and remaining risks.
+- Stop with `BLOCKED: PUSH AUTHORIZATION` after the report. The user must
+  explicitly approve the named remote, target branch, and commit range.
+- After confirmation, push directly for this personal repository. Do not create
+  a PR or require team approval unless the user explicitly asks.
 
 ## Agent Roles
 
@@ -174,11 +216,14 @@ npx playwright test
 - Data engineer owns source integrity, schemas, statistics, and corrections.
 - Frontend engineer owns views, data service, theme system, and interactions.
 - DevOps engineer owns workflows, idempotency, failure recovery, and deploy.
-- QA owns layered tests, browser evidence, screenshots, and performance.
+- QA owns layered tests, browser evidence, local screenshots, and performance.
 - Independent reviewer reads source and evidence, does not rely on developer
   claims, and blocks delivery on P0/P1 issues.
 
 ## Harness / FDE Execution Protocol
+
+`docs/harness/`, `docs/reports/`, and `docs/screenshots/` are local-only process
+artifacts. They are ignored by Git and must never be staged or committed.
 
 Every substantial change follows:
 
@@ -247,7 +292,7 @@ P0/P1 issues block delivery. A reviewer timeout is not approval.
 
 ### Delivery Record
 
-Before final delivery, update:
+Before final delivery, update the local, ignored evidence files:
 
 - `docs/harness/tasks.json`
 - `docs/reports/QA_REPORT.md`
@@ -256,6 +301,11 @@ Before final delivery, update:
 
 Separate local completion from remote deployment evidence. Missing credentials,
 push authorization or Actions/Pages execution remains `BLOCKED`.
+
+Local delivery is not committed merely because all gates pass. Present the
+exact diff and wait for the explicit commit authorization required by the Git
+rules above. A separate push report and explicit push authorization are
+required even after the commit exists.
 
 ## Completion
 

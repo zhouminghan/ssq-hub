@@ -17,6 +17,7 @@ let panelEl = null;
 let bodyEl = null;
 let cachedStats = null;
 let lastTrigger = null;
+let closeTimer = null;
 
 /**
  * 在 document.body 挂载抽屉容器（仅一次）
@@ -83,6 +84,10 @@ export function mountNumberProfile() {
  */
 export async function showProfile(color, num) {
   if (!mounted) mountNumberProfile();
+  if (closeTimer) {
+    clearTimeout(closeTimer);
+    closeTimer = null;
+  }
   lastTrigger = document.activeElement;
 
   // 先打开壳，加载中态
@@ -108,11 +113,13 @@ export async function showProfile(color, num) {
 function closeProfile() {
   if (!rootEl) return;
   rootEl.classList.remove('is-open');
-  // 等动画结束再 hidden
-  setTimeout(() => {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (closeTimer) clearTimeout(closeTimer);
+  closeTimer = setTimeout(() => {
     rootEl.hidden = true;
+    closeTimer = null;
     if (lastTrigger instanceof HTMLElement && lastTrigger.isConnected) lastTrigger.focus();
-  }, 220);
+  }, reduceMotion ? 0 : 220);
 }
 
 /**

@@ -118,7 +118,15 @@ export function initTheme() {
     trigger.focus();
   });
 
+  document.addEventListener('focusin', (event) => {
+    if (!menu.hidden && !dropdown.contains(event.target)) closeMenu();
+  });
+
   menu.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab') {
+      closeMenu();
+      return;
+    }
     const items = [...menu.querySelectorAll('.theme-item')];
     const current = items.indexOf(document.activeElement);
     let next = current;

@@ -6,28 +6,25 @@ import {
 } from './data-loader.js';
 import { mountFilterBar } from './filter-bar.js';
 import { renderTrend } from './trend-table.js';
-import { bindOverlay, bindStickyHeader } from './trend-overlay.js';
+import { bindOverlay } from './trend-overlay.js';
 import { mountNumberProfile } from './number-profile.js';
 import { initTheme } from './theme.js';
 import {
   bindViewNavigation, markDashboardUnavailable, mountDashboard,
 } from './dashboard.js';
 import { mountInsights } from './insights.js';
+import { mountNotes } from './notes.js';
 import { estimatePauseNote, nextDrawDate, nextIssue } from './utils/format.js';
 
 const $loading = qs('#trend-loading');
 const $scroll = qs('#trend-scroll');
 const $table = qs('#trend-table');
 const $svg = qs('#trend-overlay');
-const $stickyHeader = qs('#trend-sticky-header');
-const $stickyTrack = qs('#trend-sticky-track');
-const $stickyIssue = qs('#trend-sticky-issue');
 const $filterBar = qs('#filter-bar');
 const $summary = qs('#trend-summary');
 
 /** @type {null | (() => void)} */
 let disposeOverlay = null;
-let disposeStickyHeader = null;
 let renderToken = 0;
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
@@ -53,9 +50,11 @@ async function init(retryCount = 0) {
     await mountFilterBar($filterBar);
     mountNumberProfile();
 
-    bindViewNavigation();
-    document.querySelector('[data-view="insights"]').addEventListener('click', () => {
-      mountInsights();
+    bindViewNavigation({
+      onChange: (view) => {
+        if (view === 'insights') mountInsights();
+        if (view === 'notes') mountNotes();
+      },
     });
 
     store.subscribe('filter', async () => {
@@ -109,11 +108,7 @@ async function renderByFilter() {
   renderTrend($table, draws, { compareMode });
   updateSummary(filter, draws.length);
   if (disposeOverlay) disposeOverlay();
-  if (disposeStickyHeader) disposeStickyHeader();
   disposeOverlay = bindOverlay($svg, $table, $scroll);
-  disposeStickyHeader = bindStickyHeader(
-    $stickyHeader, $stickyTrack, $stickyIssue, $table, $scroll,
-  );
 
   if (draws.length > 0) positionRows(filter.mode);
 }

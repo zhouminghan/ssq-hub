@@ -39,6 +39,11 @@ deploy-logs/
 .eslintcache
 *.tsbuildinfo
 
+# ========== Local process evidence ==========
+/docs/harness/
+/docs/reports/
+/docs/screenshots/
+
 # ========== IDE / 编辑器 ==========
 .vscode/
 .idea/

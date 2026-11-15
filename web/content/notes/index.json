@@ -1,0 +1,37 @@
+{
+  "notes": [
+    {
+      "id": "combinations",
+      "title": "从组合数看一等奖：1 / 17721088 怎么来",
+      "summary": "不背公式，从 33 个红球、16 个蓝球和组合数开始，一步步算出各奖级概率。",
+      "category": "概率入门",
+      "level": "初中数学",
+      "minutes": 6,
+      "tone": "red",
+      "cover": "C(33,6) × C(16,1)",
+      "file": "combinations.md"
+    },
+    {
+      "id": "expectation",
+      "title": "2 元一注的数学期望：为什么长期成本是负的",
+      "summary": "把中奖概率、奖金和票价放在同一张算式里，理解返奖率与期望损失。",
+      "category": "数学期望",
+      "level": "初中数学",
+      "minutes": 5,
+      "tone": "blue",
+      "cover": "E[X] = -1",
+      "file": "expectation.md"
+    },
+    {
+      "id": "fairness",
+      "title": "随机性、数据安全与公信力：要分开看的三件事",
+      "summary": "摇奖随机、销售数据安全、资金透明度不是同一个问题，判断时应分别寻找证据。",
+      "category": "资料笔记",
+      "level": "通识阅读",
+      "minutes": 6,
+      "tone": "gold",
+      "cover": "随机 × 制度",
+      "file": "fairness.md"
+    }
+  ]
+}

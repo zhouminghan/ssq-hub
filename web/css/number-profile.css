@@ -65,9 +65,9 @@
 }
 
 .np-close {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   border-radius: 50%;
   border: none;
   background: transparent;
@@ -131,11 +131,13 @@
 
 .np-bigball.red {
   background: radial-gradient(circle at 35% 30%, var(--red-hl), var(--red) 65%, var(--red-deep));
+  border: 1px solid var(--red-edge);
   box-shadow: 0 4px 12px var(--red-line);
 }
 
 .np-bigball.blue {
   background: radial-gradient(circle at 35% 30%, var(--blue-hl), var(--blue) 65%, var(--blue-deep));
+  border: 1px solid var(--blue-edge);
   box-shadow: 0 4px 12px var(--blue-line);
 }
 

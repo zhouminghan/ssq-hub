@@ -46,8 +46,6 @@ deploy-logs/
 /docs/screenshots/
 /docs/DEVELOPMENT.md
 /docs/CONTRIBUTING.md
-/docs/双色球概率统计.md
-/docs/双色球真相.md
 
 # ========== Local-only development and test harness ==========
 /.github/workflows/ci.yml

@@ -166,10 +166,12 @@ Use the documented sources instead of maintaining duplicate command lists:
 - This is a personal development repository, not a team PR workflow. Do not
   require a pull request, reviewer approval, or merge ceremony merely because
   code changed.
-- Work on a non-main branch for substantial multi-step work unless the user
-  explicitly requests direct work on `main`. After the user authorizes
-  delivery, a solo repository may commit directly to the target branch without
-  creating a pull request.
+- The remote repository has exactly one long-lived branch: `main`. Keep feature
+  work on local branches and never push those branches to `origin`.
+- After the user authorizes delivery, commit the reviewed work on the local
+  feature branch, merge it into local `main`, then push `main`.
+- Delete stale remote branches after their work has landed on `main`. A remote
+  feature branch is not a backup or delivery target for this repository.
 - Every `git add` or `git commit` is blocked by default. Never stage or commit
   a change until the user explicitly confirms that specific working diff.
 - Before asking for commit confirmation, inspect the diff, run the relevant
@@ -181,10 +183,10 @@ Use the documented sources instead of maintaining duplicate command lists:
 - Do not infer commit permission from instructions such as "fix it",
   "continue", "finish", "ship it", or "do not ask questions". Only an explicit
   instruction to commit the current diff satisfies this gate.
-- After explicit confirmation, commit directly. Do not create a pull request
-  unless the user specifically asks for one.
-- Never push, merge to a remote branch, release, rewrite history, or change
-  repository settings without separate explicit user authorization.
+- After explicit confirmation, commit directly. Do not create a pull request.
+- Never push a feature branch, merge to a remote feature branch, release,
+  rewrite history, or change repository settings without separate explicit user
+  authorization.
 - Never discard user changes or revert unrelated files.
 - GitHub Actions are the only production data writer.
 - Update workflow must verify before fetch, verify after calculation, commit
@@ -197,16 +199,16 @@ Use the documented sources instead of maintaining duplicate command lists:
 - Every push is blocked by default. Commit confirmation never implies push,
   merge, release, workflow, Pages, or repository-setting authorization.
 - Before requesting push confirmation, fetch the remote and inspect:
-  - `git diff --stat origin/<remote-branch>...HEAD`
-  - `git diff --name-status origin/<remote-branch>...HEAD`
-  - `git log --oneline origin/<remote-branch>..HEAD`
+  - `git diff --stat origin/main...main`
+  - `git diff --name-status origin/main...main`
+  - `git log --oneline origin/main..main`
   - untracked files and local-only process artifacts
 - Summarize the exact commit range, user-facing changes, runtime/config/data
   changes, tests, repository metadata changes, and remaining risks.
 - Stop with `BLOCKED: PUSH AUTHORIZATION` after the report. The user must
-  explicitly approve the named remote, target branch, and commit range.
-- After confirmation, push directly for this personal repository. Do not create
-  a PR or require team approval unless the user explicitly asks.
+  explicitly approve pushing the named commit range to `origin/main`.
+- After confirmation, push `main` directly for this personal repository. Do not
+  push any other branch, create a PR, or require team approval.
 
 ## Agent Roles
 

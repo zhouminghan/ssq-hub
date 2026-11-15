@@ -24,6 +24,7 @@ with current `main` and checks whether `web/` changed.
 
 - Pages source: GitHub Actions.
 - Default branch: `main`.
+- Remote branches: only `main`; feature branches remain local.
 - Actions workflow permissions: read by default; workflows request the minimum
   needed write permissions.
 - For corrections: create a `data-repair` environment with required reviewers.

@@ -40,9 +40,30 @@ deploy-logs/
 *.tsbuildinfo
 
 # ========== Local process evidence ==========
+/pocs/
 /docs/harness/
 /docs/reports/
 /docs/screenshots/
+/docs/DEVELOPMENT.md
+/docs/CONTRIBUTING.md
+/docs/双色球概率统计.md
+/docs/双色球真相.md
+
+# ========== Local-only development and test harness ==========
+/.github/workflows/ci.yml
+/.github/workflows/data-repair.yml
+/tests/
+/scripts/dev-server.mjs
+/scripts/sync-katex.mjs
+/eslint.config.js
+/playwright.config.ts
+/tsconfig.json
+/package.json
+/package-lock.json
+/pyproject.toml
+/requirements-dev.txt
+/requirements.lock
+/web/assets/vendor/katex/README.md
 
 # ========== IDE / 编辑器 ==========
 .vscode/

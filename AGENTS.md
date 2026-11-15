@@ -35,13 +35,11 @@ Key boundaries:
   concerns in their existing modules.
 - `web/css/`: design tokens and component styles. Keep responsive overrides in
   `responsive.css`.
-- `tests/python/`: data and pipeline tests.
-- `tests/unit/`: pure browser-module tests.
-- `tests/schema/`: JSON Schema validation.
-- `tests/e2e/`: real-browser product tests.
+- `tests/`: local-only test harness; ignored and never pushed.
 - `schemas/`: formal JSON Schema 2020-12 contracts.
-- `docs/architecture/`: system and data design.
-- `docs/development/`: commands and onboarding.
+- `docs/ARCHITECTURE.md`: system, data, frontend and delivery design.
+- Local Playwright, ESLint, TypeScript, npm and development-server files are
+  intentionally ignored and do not belong in the remote repository.
 
 ## Protected Data Rules
 
@@ -73,12 +71,9 @@ write. `idcd.com` was removed because it returned 404 HTML during verification.
 
 ## Commands
 
-Use the documented sources instead of maintaining duplicate command lists:
-
-- Setup and local server: `docs/development/GETTING_STARTED.md`
-- Quality gates and browser evidence: `docs/development/TESTING_GUIDE.md`
-- Data pipeline behavior: `docs/architecture/DATA_PIPELINE.md`
-- Deploy and recovery: `docs/development/DEPLOYMENT_GUIDE.md`
+The remote repository runs only data update and Pages deployment. Use local,
+Git-ignored tooling for browser tests, linting, Python tests and development;
+do not add those tools back to remote CI without a practical need.
 
 ## Frontend Rules
 
@@ -155,6 +150,9 @@ Use the documented sources instead of maintaining duplicate command lists:
 - Changes to data logic require Python tests and `scripts/verify_data.py`.
 - Changes to data contracts require `tests/schema/validate-data.mjs`.
 - Changes to browser behavior require Playwright desktop and mobile checks.
+- Browser, TypeScript, ESLint and unit-test commands are local development tasks;
+  they must not be reintroduced into GitHub Actions or committed as local
+  harness files.
 - Changes to theme, layout, or interactions require real-browser inspection at
   the required viewports. Screenshots may be used as local temporary evidence,
   but must not be committed.

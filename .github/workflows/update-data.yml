@@ -26,7 +26,7 @@ name: 🎰 更新双色球数据
 permissions:
   contents: write
 
-# update-data and data-repair both write protected history.
+# Serialize all remote protected-data writes.
 concurrency:
   group: data-write
   cancel-in-progress: false
@@ -48,12 +48,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-          cache-dependency-path: requirements-runtime.lock
+          cache-dependency-path: requirements.txt
 
       - name: 📦 安装依赖
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements-runtime.lock
+          python -m pip install -r requirements.txt
 
       - name: 🧭 判定运行模式
         id: mode
@@ -74,10 +74,7 @@ jobs:
           echo "运行模式: $MODE"
 
       - name: 🔍 发布前预检
-        run: |
-          set -euo pipefail
-          mkdir -p ci-logs
-          python scripts/verify_data.py 2>&1 | tee ci-logs/preflight.log
+        run: python scripts/verify_data.py
 
       - name: ⏭️ 判断本轮是否需要抓取
         id: check
@@ -114,19 +111,15 @@ jobs:
           if [ "$EVENT_NAME" = "schedule" ] && [ "$SCHEDULE" = "10 14 * * 0,2,4" ]; then
             FLAG="--require-new"
           fi
-          python scripts/fetch_latest.py $FLAG 2>&1 | tee ci-logs/fetch.log
+          python scripts/fetch_latest.py $FLAG
 
       - name: 📊 重算统计数据
         if: steps.check.outputs.fetch == 'true'
-        run: |
-          set -euo pipefail
-          python scripts/calc_all.py 2>&1 | tee ci-logs/calc.log
+        run: python scripts/calc_all.py
 
       - name: 🔍 数据质量门禁
         if: steps.check.outputs.fetch == 'true'
-        run: |
-          set -euo pipefail
-          python scripts/verify_data.py 2>&1 | tee ci-logs/verify.log
+        run: python scripts/verify_data.py
 
       - name: 🧾 检查数据变更范围
         id: changes
@@ -151,7 +144,7 @@ jobs:
           fi
 
           echo "changed=true" >> "$GITHUB_OUTPUT"
-          git diff --cached --name-status | tee ci-logs/data-changes.log
+          git diff --cached --name-status
 
       - name: 💾 提交并推送数据
         if: steps.changes.outputs.changed == 'true'
@@ -181,20 +174,3 @@ jobs:
           done
           echo "连续 push 竞争失败，保留失败诊断等待人工处理"
           exit 1
-
-      - name: 🧾 收集失败诊断
-        if: failure()
-        run: |
-          mkdir -p ci-logs
-          git status --short > ci-logs/failure-status.log || true
-          git diff --stat > ci-logs/failure-diff.log || true
-          git diff --cached --stat > ci-logs/failure-staged-diff.log || true
-
-      - name: 📤 上传失败日志
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: update-data-failure-${{ github.run_id }}
-          path: ci-logs/
-          if-no-files-found: warn
-          retention-days: 14

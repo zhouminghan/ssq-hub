@@ -288,6 +288,7 @@ def verify_project_files() -> None:
         "web/js/trend-table.js",
         "web/js/trend-overlay.js",
         "web/js/number-profile.js",
+        "web/js/notes.js",
         "web/js/theme.js",
         "web/js/utils/dom.js",
         "web/js/utils/format.js",
@@ -297,7 +298,9 @@ def verify_project_files() -> None:
         "web/css/trend-table.css",
         "web/css/number-profile.css",
         "web/css/insights.css",
+        "web/css/notes.css",
         "web/css/responsive.css",
+        "web/content/notes/index.json",
         "web/data/history_index.json",
         "web/data/stats.json",
         "web/data/latest.json",
@@ -305,8 +308,6 @@ def verify_project_files() -> None:
         "web/data/history_baseline.json",
         "web/data/source_state.json",
         "web/config/lottery_pause_windows.json",
-        "package.json",
-        "package-lock.json",
     ]
     missing = [path for path in critical if not os.path.exists(os.path.join(BASE_DIR, path))]
     if missing:

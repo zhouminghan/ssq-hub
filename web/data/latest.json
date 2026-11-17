@@ -1,23 +1,23 @@
 {
   "schema_version": "2.0.0",
   "pipeline_version": "2.0.0",
-  "generated_at": "2026-11-14T09:43:48Z",
-  "source": "500彩票网 + 福彩官方",
+  "generated_at": "2026-11-17T22:13:58Z",
+  "source": "500彩票网",
   "latest_draw": {
-    "issue": "2026130",
-    "date": "2026-11-12",
+    "issue": "2026132",
+    "date": "2026-11-17",
     "red": [
-      1,
-      2,
-      6,
-      16,
-      20,
-      28
+      5,
+      9,
+      13,
+      17,
+      18,
+      21
     ],
-    "blue": 2
+    "blue": 11
   },
-  "latest_issue": "2026130",
-  "latest_date": "2026-11-12",
-  "updated": "2026-11-12",
-  "total": 3527
+  "latest_issue": "2026132",
+  "latest_date": "2026-11-17",
+  "updated": "2026-11-17",
+  "total": 3529
 }

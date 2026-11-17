@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0.0",
   "pipeline_version": "2.0.0",
-  "generated_at": "2026-11-14T09:43:48Z",
-  "source": "500彩票网 + 福彩官方",
-  "total": 3527,
+  "generated_at": "2026-11-17T22:13:58Z",
+  "source": "500彩票网",
+  "total": 3529,
   "range": [
     "2003-02-23",
-    "2026-11-12"
+    "2026-11-17"
   ],
-  "latest_issue": "2026130",
-  "latest_date": "2026-11-12",
-  "records_sha256": "4843f2d39caf77e89356809daf6f8d0b1fabfe63b02588d58c1efd7662209868",
+  "latest_issue": "2026132",
+  "latest_date": "2026-11-17",
+  "records_sha256": "32574121b2ff094633b14e4fcb1a04061f1e53c14da53dd175e76b9a6c979cdc",
   "years": [
     {
       "year": "2003",
@@ -267,14 +267,14 @@
     },
     {
       "year": "2026",
-      "count": 130,
+      "count": 132,
       "range": [
         "2026-01-01",
-        "2026-11-12"
+        "2026-11-17"
       ],
       "first_issue": "2026001",
-      "last_issue": "2026130",
-      "records_sha256": "de60dce2910b5eb96222ab781ff169f50b86f85f356cb7206b9519d04adb5661"
+      "last_issue": "2026132",
+      "records_sha256": "160390e9efcd3267869484d8e0a3189645df35c2372c7480605b34d1a3666851"
     }
   ]
 }

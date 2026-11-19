@@ -1,23 +1,23 @@
 {
   "schema_version": "2.0.0",
   "pipeline_version": "2.0.0",
-  "generated_at": "2026-11-17T22:13:58Z",
+  "generated_at": "2026-11-19T22:06:26Z",
   "source": "500彩票网",
   "latest_draw": {
-    "issue": "2026132",
-    "date": "2026-11-17",
+    "issue": "2026133",
+    "date": "2026-11-19",
     "red": [
-      5,
-      9,
-      13,
-      17,
-      18,
-      21
+      7,
+      10,
+      11,
+      14,
+      21,
+      26
     ],
-    "blue": 11
+    "blue": 13
   },
-  "latest_issue": "2026132",
-  "latest_date": "2026-11-17",
-  "updated": "2026-11-17",
-  "total": 3529
+  "latest_issue": "2026133",
+  "latest_date": "2026-11-19",
+  "updated": "2026-11-19",
+  "total": 3530
 }

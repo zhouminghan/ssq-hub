@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0.0",
   "pipeline_version": "2.0.0",
-  "generated_at": "2026-11-17T22:13:58Z",
+  "generated_at": "2026-11-19T22:06:26Z",
   "source": "500彩票网",
-  "total": 3529,
+  "total": 3530,
   "range": [
     "2003-02-23",
-    "2026-11-17"
+    "2026-11-19"
   ],
-  "latest_issue": "2026132",
-  "latest_date": "2026-11-17",
-  "records_sha256": "32574121b2ff094633b14e4fcb1a04061f1e53c14da53dd175e76b9a6c979cdc",
+  "latest_issue": "2026133",
+  "latest_date": "2026-11-19",
+  "records_sha256": "567d9df6809313358dfbfc2cc5416c37e8d7224c7df98b2d3db023e96435b935",
   "years": [
     {
       "year": "2003",
@@ -267,14 +267,14 @@
     },
     {
       "year": "2026",
-      "count": 132,
+      "count": 133,
       "range": [
         "2026-01-01",
-        "2026-11-17"
+        "2026-11-19"
       ],
       "first_issue": "2026001",
-      "last_issue": "2026132",
-      "records_sha256": "160390e9efcd3267869484d8e0a3189645df35c2372c7480605b34d1a3666851"
+      "last_issue": "2026133",
+      "records_sha256": "01cff3fbf274a9b7c9541351a723ed3cf6a04ade5e2dca06f43b03db94fb2e3a"
     }
   ]
 }
